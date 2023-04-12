@@ -1,0 +1,22 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "devDependencies": {
+    "nuxt": "^3.3.3"
+  },
+  "dependencies": {
+    "@nuxtjs/tailwindcss": "^6.6.5",
+    "chart.js": "^4.2.1",
+    "d3-array": "^3.2.3",
+    "echarts": "^5.4.2",
+    "vue-chartjs": "^5.2.0",
+    "vue-echarts": "^6.5.4"
+  }
+}
