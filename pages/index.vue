@@ -1,7 +1,9 @@
 <template>
 	<div class="pb-10 px-10 pt-8 max-w-7xl w-full">
-		<h1 class="text-7xl font-bold mb-6">keyboardkurita 🐙</h1>
-		<div class="flex mb-8 shadow-sm w-fit max-w-full overflow-scroll">
+	<!--
+		<div
+			class="flex mb-8 shadow-sm w-fit max-w-full overflow-scroll"
+		>
 			<button
 				:class="`h-9 hover:bg-neutral-700 hover:text-white/90 font-medium border-y border-r px-3 border-neutral-400 flex-none flex items-center justify-center first:border-l first:rounded-l last:rounded-r ${
 					!currentChar
@@ -31,16 +33,20 @@
 				{{ String.fromCharCode(i + 64) }}
 			</button>
 		</div>
+		-->
 		<div
 			v-if="
 				currentActive &&
 				currentActive.id === 'MasterInput'
 			"
-			:class="`fixed z-50 h-12 w-2 bg-[#3992FF] transition-all duration-100 ease-linear`"
-			:style="`left: ${cursorLeft - 2}px; top: ${
-				cursorTop + 6
+			:class="`fixed z-50 h-11 w-2 bg-[#3992FF] transition-all duration-100 ease-linear`"
+			:style="`left: ${cursorLeft - 6}px; top: ${
+				cursorTop + 8
 			}px`"
 		></div>
+		<div class="flex justify-center">
+		<div class="bg-neutral-900 mb-8 px-6 py-2 h-14 rounded-[20px] text-xs items-center grid grid-cols-7 relative w-[80%]"><div class="flex gap-3 items-center col-span-2"><div>Difficulty:</div><UIListbox :difficulty="difficulty"/></div><div class="flex gap-3 items-center col-span-2"><div>Mode:</div><UIListbox :difficulty="modes"/></div><div class="flex gap-3 items-center col-span-2"><div>Keys:</div><UIListbox :difficulty="keyOptions"/></div><div class="flex gap-3 items-center justify-end"><button class="text-sm">More settings</button></div></div>
+	</div>
 		<div
 			@click.prevent.stop="
 				currentActive &&
@@ -48,7 +54,7 @@
 					? ''
 					: focusInput()
 			"
-			:class="`relative transition-all ease-linear duration-1000 mb-6 min-h-[16rem] bg-neutral-800 pt-3 pb-6 px-6 rounded-xl w-full text-5xl leading-[54px]`"
+			:class="`relative transition-all ease-linear duration-1000 mb-6 min-h-[16rem] bg-neutral-900/80 pt-3 pb-6 px-6 rounded-[32px] w-full text-5xl leading-[54px]`"
 		>
 			<template v-for="(word, index) in allData">
 				<span
@@ -89,7 +95,7 @@
 						}}</span
 					>
 					<span
-						:class="`${
+						:class="`tracking-widest ${
 							index ===
 								currentWordNum -
 									1 &&
@@ -113,12 +119,12 @@
 						? fetchData(currentChar)
 						: ''
 				"
-				class="inset-0 absolute right-0 items-center justify-center flex cursor-pointer backdrop-blur-sm bg-neutral-800/60"
+				class="inset-0 absolute right-0 items-center justify-center flex cursor-pointer backdrop-blur rounded-[32px] "
 			>
 				<div
-					class="text-neutral-200 pointer-events-none"
+					class="text-neutral-300 pointer-events-none text-2xl"
 				>
-					press to start
+					click to activate
 				</div>
 			</div>
 		</div>
@@ -136,7 +142,13 @@
 				<div
 					class="flex flex-col gap-3 max-h-96 overflow-scroll"
 				>
-				<div v-if="!totalTime.length" class="text-sm text-neutral-400 border border-neutral-700 px-4 py-2 text-center">Your past games will show up here!</div>
+					<div
+						v-if="!totalTime.length"
+						class="text-sm text-neutral-400 border border-neutral-700 px-4 py-2 text-center"
+					>
+						Your past games will show up
+						here!
+					</div>
 					<div
 						v-for="(
 							game, index
@@ -153,7 +165,11 @@
 								class="text-xl font-medium"
 							>
 								{{
-									totalTime[totalTime.length-1-index].toFixed(
+									totalTime[
+										totalTime.length -
+											1 -
+											index
+									].toFixed(
 										1
 									)
 								}}
@@ -170,7 +186,9 @@
 							>
 								{{
 									accArr[
-										totalTime.length - index - 1
+										totalTime.length -
+											index -
+											1
 									].toFixed(
 										1
 									)
@@ -190,7 +208,9 @@
 						>
 							wpm
 						</div>
-						<div class="text-5xl text-[#3DEFE9]">
+						<div
+							class="text-5xl text-[#3DEFE9]"
+						>
 							{{
 								totalTime.length
 									? totalTime[
@@ -209,7 +229,9 @@
 						>
 							acc
 						</div>
-						<div class="text-5xl text-[#3DEFE9]">
+						<div
+							class="text-5xl text-[#3DEFE9]"
+						>
 							{{
 								accArr.length
 									? accArr[
@@ -226,7 +248,9 @@
 				<div class="col-span-8 row-span-2 -mb-4">
 					<ClientOnly>
 						<Chart
-							:data="sortedDatasetData"
+							:data="
+								sortedDatasetData
+							"
 							:columns="sortedColumns"
 						/>
 					</ClientOnly>
@@ -286,6 +310,10 @@
 </template>
 
 <script setup>
+const difficulty = ['Easy', 'Medium', 'Hard'];
+const modes = ['Word', 'Time', 'Code'];
+const keyOptions = ['Any key', 'A', 'B'];
+const isOpen = useState("isOpen", () => false);
 const currentActive = ref();
 const loading = ref(false);
 const model = ref("");
@@ -332,35 +360,93 @@ const accuracies = computed(() => {
 });
 const accArr = ref([]);
 const startingTime = ref(0);
-const columns = ['a', 'b', 'c', 'd', 'e','f', 'g', 'h', 'i', 'j','k', 'l', 'm', 'n', 'o','p', 'q', 'r', 's', 't','u', 'v', 'w', 'x', 'y','z'];
-const datasetObject = ref([{char: 'a', count: 0, value: 0, totalValue: 0},{char: 'b', count: 0, value: 0, totalValue: 0},{char: 'c', count: 0, value: 0, totalValue: 0},{char: 'd', count: 0, value: 0, totalValue: 0},{char: 'e', count: 0, value: 0, totalValue: 0},{char: 'f', count: 0, value: 0, totalValue: 0},{char: 'g', count: 0, value: 0, totalValue: 0},{char: 'h', count: 0, value: 0, totalValue: 0},{char: 'i', count: 0, value: 0, totalValue: 0},{char: 'j', count: 0, value: 0, totalValue: 0},{char: 'k', count: 0, value: 0, totalValue: 0},{char: 'l', count: 0, value: 0, totalValue: 0},{char: 'm', count: 0, value: 0, totalValue: 0},{char: 'n', count: 0, value: 0, totalValue: 0},{char: 'o', count: 0, value: 0, totalValue: 0},{char: 'p', count: 0, value: 0, totalValue: 0},{char: 'q', count: 0, value: 0, totalValue: 0},{char: 'r', count: 0, value: 0, totalValue: 0},{char: 's', count: 0, value: 0, totalValue: 0},{char: 't', count: 0, value: 0, totalValue: 0},{char: 'u', count: 0, value: 0, totalValue: 0},{char: 'v', count: 0, value: 0, totalValue: 0},{char: 'w', count: 0, value: 0, totalValue: 0},{char: 'x', count: 0, value: 0, totalValue: 0},{char: 'y', count: 0, value: 0, totalValue: 0},{char: 'z', count: 0, value: 0, totalValue: 0}]);
-const dataset = computed(()=>{
-	return datasetObject.value.flatMap((data)=>{
-		return data.value
-	})
-})
+const columns = [
+	"a",
+	"b",
+	"c",
+	"d",
+	"e",
+	"f",
+	"g",
+	"h",
+	"i",
+	"j",
+	"k",
+	"l",
+	"m",
+	"n",
+	"o",
+	"p",
+	"q",
+	"r",
+	"s",
+	"t",
+	"u",
+	"v",
+	"w",
+	"x",
+	"y",
+	"z",
+];
+const datasetObject = ref([
+	{ char: "a", count: 0, value: 0, totalValue: 0 },
+	{ char: "b", count: 0, value: 0, totalValue: 0 },
+	{ char: "c", count: 0, value: 0, totalValue: 0 },
+	{ char: "d", count: 0, value: 0, totalValue: 0 },
+	{ char: "e", count: 0, value: 0, totalValue: 0 },
+	{ char: "f", count: 0, value: 0, totalValue: 0 },
+	{ char: "g", count: 0, value: 0, totalValue: 0 },
+	{ char: "h", count: 0, value: 0, totalValue: 0 },
+	{ char: "i", count: 0, value: 0, totalValue: 0 },
+	{ char: "j", count: 0, value: 0, totalValue: 0 },
+	{ char: "k", count: 0, value: 0, totalValue: 0 },
+	{ char: "l", count: 0, value: 0, totalValue: 0 },
+	{ char: "m", count: 0, value: 0, totalValue: 0 },
+	{ char: "n", count: 0, value: 0, totalValue: 0 },
+	{ char: "o", count: 0, value: 0, totalValue: 0 },
+	{ char: "p", count: 0, value: 0, totalValue: 0 },
+	{ char: "q", count: 0, value: 0, totalValue: 0 },
+	{ char: "r", count: 0, value: 0, totalValue: 0 },
+	{ char: "s", count: 0, value: 0, totalValue: 0 },
+	{ char: "t", count: 0, value: 0, totalValue: 0 },
+	{ char: "u", count: 0, value: 0, totalValue: 0 },
+	{ char: "v", count: 0, value: 0, totalValue: 0 },
+	{ char: "w", count: 0, value: 0, totalValue: 0 },
+	{ char: "x", count: 0, value: 0, totalValue: 0 },
+	{ char: "y", count: 0, value: 0, totalValue: 0 },
+	{ char: "z", count: 0, value: 0, totalValue: 0 },
+]);
+const dataset = computed(() => {
+	return datasetObject.value.flatMap((data) => {
+		return data.value;
+	});
+});
 
-const sortedDataset = computed(()=>{
-	return datasetObject.value.filter(i=>i.count>0).sort((x, y)=>{return y.value - x.value})
-})
+const sortedDataset = computed(() => {
+	return datasetObject.value
+		.filter((i) => i.count > 0)
+		.sort((x, y) => {
+			return y.value - x.value;
+		});
+});
 
-const sortedDatasetData = computed(()=>{
-	return sortedDataset.value.flatMap((data)=>{
-		return calculateWPM(data.value)
-	})
-})
+const sortedDatasetData = computed(() => {
+	return sortedDataset.value.flatMap((data) => {
+		return calculateWPM(data.value);
+	});
+});
 
 function calculateWPM(time) {
-  const charactersPerWord = 5;
-  const wpm = 60 / charactersPerWord / time;
-  return wpm;
+	const charactersPerWord = 5;
+	const wpm = 60 / charactersPerWord / time;
+	return wpm;
 }
 
-const sortedColumns = computed(()=>{
-	return sortedDataset.value.flatMap((data)=>{
-		return data.char
-	})
-})
+const sortedColumns = computed(() => {
+	return sortedDataset.value.flatMap((data) => {
+		return data.char;
+	});
+});
 
 const {
 	data: words,
@@ -501,10 +587,13 @@ function watchKeydown(e) {
 			} else {
 				currentObj.status = "correct";
 			}
-			const currCharObj = datasetObject.value.find(i=>i.char === e.key)
+			const currCharObj = datasetObject.value.find(
+				(i) => i.char === e.key
+			);
 			currCharObj.count++;
-			currCharObj.totalValue += (time - finalKeydown) / 1000
-			currCharObj.value = currCharObj.totalValue/currCharObj.count;
+			currCharObj.totalValue += (time - finalKeydown) / 1000;
+			currCharObj.value =
+				currCharObj.totalValue / currCharObj.count;
 			currentObj.timing =
 				currentWordNum.value + currentCharNum.value == 0
 					? 0
