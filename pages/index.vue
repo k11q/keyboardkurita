@@ -1,6 +1,6 @@
 <template>
 	<div class="pb-10 px-10 pt-8 max-w-7xl w-full">
-		<h1 class="text-7xl font-bold mb-6">kekunci</h1>
+		<h1 class="text-7xl font-bold mb-6">keyboardkurita 🐙</h1>
 		<div class="flex mb-8 shadow-sm w-fit max-w-full overflow-scroll">
 			<button
 				:class="`h-9 hover:bg-neutral-700 hover:text-white/90 font-medium border-y border-r px-3 border-neutral-400 flex-none flex items-center justify-center first:border-l first:rounded-l last:rounded-r ${
