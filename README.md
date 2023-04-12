@@ -1,3 +1,25 @@
+# 
+
+
+## TODO/ROADMAP
+
+### Core
+- [ ] Define schema
+- [ ] Build db (supabase)
+- [ ] Build auth (supabase)
+
+### Features
+- [ ] More configs for error
+- [ ] Enable multi char delete/backspace
+- [ ] More selection/category(e.g.: open source repos)
+
+### More
+- [ ] Profile Dashboard
+- [ ] Profile Dashboard
+
+### Extra
+- [ ] Gamification
+
 hai! nak share my latest side project, been building this for ~3 days it's *working* now.
 
 a keyboard practice app. why another keyboard practice app lepas dah ada beribu available?
