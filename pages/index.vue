@@ -1,5 +1,4 @@
 <template>
-	<Script src="https://beamanalytics.b-cdn.net/beam.min.js" data-token="a80211cd-14e0-406b-81fa-d0e2c17b27c8" async></Script>
 	<div class="pb-10 px-10 pt-8 max-w-7xl w-full">
 		<!--
 		<div
@@ -54,70 +53,87 @@
 				<div class="flex gap-3 items-center col-span-2">
 					<div>Difficulty:</div>
 					<div class="relative">
-					<select
-						class="text-base relative w-32 rounded-xl bg-neutral-800 py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
-					>
-						<option v-for="key in difficulty" :value="key">
-							{{key}}
-						</option>
-					</select>
-					<span
-					class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
-				>
-					<Icon
-						name="heroicons:chevron-down-20-solid"
-						size="1rem"
-					/>
-				</span>
+						<select
+							class="text-base relative w-32 rounded-xl bg-neutral-800 py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+						>
+							<option
+								v-for="key in difficulty"
+								:value="key"
+							>
+								{{ key }}
+							</option>
+						</select>
+						<span
+							class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
+						>
+							<Icon
+								name="heroicons:chevron-down-20-solid"
+								size="1rem"
+							/>
+						</span>
 					</div>
 				</div>
 				<div class="flex gap-3 items-center col-span-2">
 					<div>Mode:</div>
 					<div class="relative">
-					<select
-						class="text-base relative w-32 rounded-xl bg-neutral-800 py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
-					>
-						<option v-for="key in modes" :value="key">
-							{{key}}
-						</option>
-					</select>
-					<span
-					class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
-				>
-					<Icon
-						name="heroicons:chevron-down-20-solid"
-						size="1rem"
-					/>
-				</span>
+						<select
+							class="text-base relative w-32 rounded-xl bg-neutral-800 py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+						>
+							<option
+								v-for="key in modes"
+								:value="key"
+							>
+								{{ key }}
+							</option>
+						</select>
+						<span
+							class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
+						>
+							<Icon
+								name="heroicons:chevron-down-20-solid"
+								size="1rem"
+							/>
+						</span>
 					</div>
 				</div>
 				<div class="flex gap-3 items-center col-span-2">
-				
 					<div>Keys:</div>
 					<div class="relative">
-					<select
-					@change="(e)=>fetchData(e.target.value)"
-						class="text-base relative w-32 rounded-xl bg-neutral-800 py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
-					>
-						<option
-							value=""
-							disabled
-							selected
+						<select
+							@change="
+								(e) =>
+									fetchData(
+										e
+											.target
+											.value
+									)
+							"
+							class="text-base relative w-32 rounded-xl bg-neutral-800 py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
 						>
-							Any key
-						</option>
-						<option v-for="key in keyOptions" :value="key">
-							{{key.toUpperCase()}}
-						</option>
-					</select>
-					<span
-					class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
-				>
-					<Icon
-						name="heroicons:chevron-down-20-solid"
-						size="1rem"
-					/>
-				</span>
+							<option
+								value=""
+								disabled
+								selected
+							>
+								Any key
+							</option>
+							<option
+								v-for="key in keyOptions"
+								:value="key"
+							>
+								{{
+									key.toUpperCase()
+								}}
+							</option>
+						</select>
+						<span
+							class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
+						>
+							<Icon
+								name="heroicons:chevron-down-20-solid"
+								size="1rem"
+							/>
+						</span>
 					</div>
 				</div>
 				<div

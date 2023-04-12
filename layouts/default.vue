@@ -1,3 +1,9 @@
+<script setup>
+useHead({
+  script: [{'data-token':"a80211cd-14e0-406b-81fa-d0e2c17b27c8", src:"https://beamanalytics.b-cdn.net/beam.min.js", async: true}],
+});
+</script>
+
 <template>
 	<div
 		class="flex flex-col items-center bg-black text-white min-h-screen"
