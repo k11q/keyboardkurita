@@ -28,9 +28,19 @@ const option = computed(() => ({
 	xAxis: {
 		type: "category",
 		data: props.columns,
+		splitLine: {
+            lineStyle: {
+                color: '#555555'
+            }
+        }
 	},
 	yAxis: {
 		type: "value",
+		splitLine: {
+            lineStyle: {
+                color: '#555555'
+            }
+        }
 	},
 	series: [
 		{
