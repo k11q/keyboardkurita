@@ -13,7 +13,7 @@ export default defineEventHandler(async (e) => {
 
 	async function loadIndexData() {
 		const indexData = {};
-		const fileStream = fs.createReadStream("../data/dataset3_index.jl");
+		const fileStream = fs.createReadStream("../data/dataset3_index.jsonl");
 
 		const rl = readline.createInterface({
 			input: fileStream,
@@ -86,7 +86,7 @@ export default defineEventHandler(async (e) => {
 	const selectedWordObjects = [];
 	const selectedIndices = new Set();
 
-	const fd = fs.openSync("../data/dataset3.jl", "r");
+	const fd = fs.openSync("../data/dataset3.jsonl", "r");
 
 	while (selectedWords.length < num_words) {
 		const batchIndices = new Set();
