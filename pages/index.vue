@@ -333,7 +333,7 @@ const accuracies = computed(() => {
 const accArr = ref([]);
 const startingTime = ref(0);
 const columns = ['a', 'b', 'c', 'd', 'e','f', 'g', 'h', 'i', 'j','k', 'l', 'm', 'n', 'o','p', 'q', 'r', 's', 't','u', 'v', 'w', 'x', 'y','z'];
-const datasetObject = ref([{char: 'a', count: 0, value: 0},{char: 'b', count: 0, value: 0},{char: 'c', count: 0, value: 0},{char: 'd', count: 0, value: 0},{char: 'e', count: 0, value: 0},{char: 'f', count: 0, value: 0},{char: 'g', count: 0, value: 0},{char: 'h', count: 0, value: 0},{char: 'i', count: 0, value: 0},{char: 'j', count: 0, value: 0},{char: 'k', count: 0, value: 0},{char: 'l', count: 0, value: 0},{char: 'm', count: 0, value: 0},{char: 'n', count: 0, value: 0},{char: 'o', count: 0, value: 0},{char: 'p', count: 0, value: 0},{char: 'q', count: 0, value: 0},{char: 'r', count: 0, value: 0},{char: 's', count: 0, value: 0},{char: 't', count: 0, value: 0},{char: 'u', count: 0, value: 0},{char: 'v', count: 0, value: 0},{char: 'w', count: 0, value: 0},{char: 'x', count: 0, value: 0},{char: 'y', count: 0, value: 0},{char: 'z', count: 0, value: 0}]);
+const datasetObject = ref([{char: 'a', count: 0, value: 0, totalValue: 0},{char: 'b', count: 0, value: 0, totalValue: 0},{char: 'c', count: 0, value: 0, totalValue: 0},{char: 'd', count: 0, value: 0, totalValue: 0},{char: 'e', count: 0, value: 0, totalValue: 0},{char: 'f', count: 0, value: 0, totalValue: 0},{char: 'g', count: 0, value: 0, totalValue: 0},{char: 'h', count: 0, value: 0, totalValue: 0},{char: 'i', count: 0, value: 0, totalValue: 0},{char: 'j', count: 0, value: 0, totalValue: 0},{char: 'k', count: 0, value: 0, totalValue: 0},{char: 'l', count: 0, value: 0, totalValue: 0},{char: 'm', count: 0, value: 0, totalValue: 0},{char: 'n', count: 0, value: 0, totalValue: 0},{char: 'o', count: 0, value: 0, totalValue: 0},{char: 'p', count: 0, value: 0, totalValue: 0},{char: 'q', count: 0, value: 0, totalValue: 0},{char: 'r', count: 0, value: 0, totalValue: 0},{char: 's', count: 0, value: 0, totalValue: 0},{char: 't', count: 0, value: 0, totalValue: 0},{char: 'u', count: 0, value: 0, totalValue: 0},{char: 'v', count: 0, value: 0, totalValue: 0},{char: 'w', count: 0, value: 0, totalValue: 0},{char: 'x', count: 0, value: 0, totalValue: 0},{char: 'y', count: 0, value: 0, totalValue: 0},{char: 'z', count: 0, value: 0, totalValue: 0}]);
 const dataset = computed(()=>{
 	return datasetObject.value.flatMap((data)=>{
 		return data.value
@@ -346,9 +346,15 @@ const sortedDataset = computed(()=>{
 
 const sortedDatasetData = computed(()=>{
 	return sortedDataset.value.flatMap((data)=>{
-		return data.value
+		return calculateWPM(data.value)
 	})
 })
+
+function calculateWPM(time) {
+  const charactersPerWord = 5;
+  const wpm = 60 / charactersPerWord / time;
+  return wpm;
+}
 
 const sortedColumns = computed(()=>{
 	return sortedDataset.value.flatMap((data)=>{
@@ -497,7 +503,8 @@ function watchKeydown(e) {
 			}
 			const currCharObj = datasetObject.value.find(i=>i.char === e.key)
 			currCharObj.count++;
-			currCharObj.value = (((time - finalKeydown) / 1000) + currCharObj.value)/currCharObj.count;
+			currCharObj.totalValue += (time - finalKeydown) / 1000
+			currCharObj.value = currCharObj.totalValue/currCharObj.count;
 			currentObj.timing =
 				currentWordNum.value + currentCharNum.value == 0
 					? 0
