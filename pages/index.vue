@@ -1,6 +1,7 @@
 <template>
+	<Script src="https://beamanalytics.b-cdn.net/beam.min.js" data-token="a80211cd-14e0-406b-81fa-d0e2c17b27c8" async></Script>
 	<div class="pb-10 px-10 pt-8 max-w-7xl w-full">
-	<!--
+		<!--
 		<div
 			class="flex mb-8 shadow-sm w-fit max-w-full overflow-scroll"
 		>
@@ -41,12 +42,93 @@
 			"
 			:class="`fixed z-50 h-11 w-2 bg-[#3992FF] transition-all duration-100 ease-linear`"
 			:style="`left: ${cursorLeft - 4}px; top: ${
-				cursorTop -2
+				cursorTop - 2
 			}px`"
 		></div>
+		<button @click="login('google')">login</button>
+		<button @click="logUser()">log user</button>
 		<div class="flex justify-center">
-		<div class="bg-neutral-900 mb-8 px-6 py-2 h-14 rounded-[20px] text-xs items-center grid grid-cols-7 relative w-[80%]"><div class="flex gap-3 items-center col-span-2"><div>Difficulty:</div><UIListbox :difficulty="difficulty"/></div><div class="flex gap-3 items-center col-span-2"><div>Mode:</div><UIListbox :difficulty="modes"/></div><div class="flex gap-3 items-center col-span-2"><div>Keys:</div><UIListbox :difficulty="keyOptions"/></div><div class="flex gap-3 items-center justify-end"><button class="text-sm">More settings</button></div></div>
-	</div>
+			<div
+				class="bg-neutral-900 mb-8 px-6 py-2 h-14 rounded-[20px] text-xs items-center grid grid-cols-7 relative w-[80%]"
+			>
+				<div class="flex gap-3 items-center col-span-2">
+					<div>Difficulty:</div>
+					<div class="relative">
+					<select
+						class="text-base relative w-32 rounded-xl bg-neutral-800 py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+					>
+						<option v-for="key in difficulty" :value="key">
+							{{key}}
+						</option>
+					</select>
+					<span
+					class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
+				>
+					<Icon
+						name="heroicons:chevron-down-20-solid"
+						size="1rem"
+					/>
+				</span>
+					</div>
+				</div>
+				<div class="flex gap-3 items-center col-span-2">
+					<div>Mode:</div>
+					<div class="relative">
+					<select
+						class="text-base relative w-32 rounded-xl bg-neutral-800 py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+					>
+						<option v-for="key in modes" :value="key">
+							{{key}}
+						</option>
+					</select>
+					<span
+					class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
+				>
+					<Icon
+						name="heroicons:chevron-down-20-solid"
+						size="1rem"
+					/>
+				</span>
+					</div>
+				</div>
+				<div class="flex gap-3 items-center col-span-2">
+				
+					<div>Keys:</div>
+					<div class="relative">
+					<select
+					@change="(e)=>fetchData(e.target.value)"
+						class="text-base relative w-32 rounded-xl bg-neutral-800 py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+					>
+						<option
+							value=""
+							disabled
+							selected
+						>
+							Any key
+						</option>
+						<option v-for="key in keyOptions" :value="key">
+							{{key.toUpperCase()}}
+						</option>
+					</select>
+					<span
+					class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
+				>
+					<Icon
+						name="heroicons:chevron-down-20-solid"
+						size="1rem"
+					/>
+				</span>
+					</div>
+				</div>
+				<div
+					class="flex gap-3 items-center justify-end"
+				>
+					<button class="text-sm">
+						More settings
+					</button>
+				</div>
+			</div>
+		</div>
 		<div
 			@click.prevent.stop="
 				currentActive &&
@@ -119,7 +201,7 @@
 						? fetchData(currentChar)
 						: ''
 				"
-				class="inset-0 absolute right-0 items-center justify-center flex cursor-pointer backdrop-blur rounded-[32px] "
+				class="inset-0 absolute right-0 items-center justify-center flex cursor-pointer backdrop-blur rounded-[32px]"
 			>
 				<div
 					class="text-neutral-300 pointer-events-none text-2xl"
@@ -309,10 +391,26 @@
 	</div>
 </template>
 
-<script setup>
-const difficulty = ['Easy', 'Medium', 'Hard'];
-const modes = ['Word', 'Time', 'Code'];
-const keyOptions = ['Any key', 'A', 'B'];
+<script setup lang="ts">
+const user = useSupabaseUser()
+const client = useSupabaseAuthClient()
+const router = useRouter()
+// Login method using providers
+const login = async (provider: 'github' | 'google' | 'gitlab' | 'bitbucket') => {
+  const { error } = await client.auth.signInWithOAuth({ provider })
+  if (error) {
+    return alert('Something went wrong !')
+  }
+  router.push('/')
+  console.log(user)
+}
+
+const logUser = ()=>{
+	console.log(user.value)
+}
+
+const difficulty = ["Easy", "Medium", "Hard"];
+const modes = ["Word", "Time", "Code"];
 const isOpen = useState("isOpen", () => false);
 const currentActive = ref();
 const loading = ref(false);
@@ -360,7 +458,7 @@ const accuracies = computed(() => {
 });
 const accArr = ref([]);
 const startingTime = ref(0);
-const columns = [
+const keyOptions = [
 	"a",
 	"b",
 	"c",
