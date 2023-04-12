@@ -40,8 +40,8 @@
 				currentActive.id === 'MasterInput'
 			"
 			:class="`fixed z-50 h-11 w-2 bg-[#3992FF] transition-all duration-100 ease-linear`"
-			:style="`left: ${cursorLeft - 6}px; top: ${
-				cursorTop + 8
+			:style="`left: ${cursorLeft - 4}px; top: ${
+				cursorTop -2
 			}px`"
 		></div>
 		<div class="flex justify-center">
@@ -54,7 +54,7 @@
 					? ''
 					: focusInput()
 			"
-			:class="`relative transition-all ease-linear duration-1000 mb-6 min-h-[16rem] bg-neutral-900/80 pt-3 pb-6 px-6 rounded-[32px] w-full text-5xl leading-[54px]`"
+			:class="`font-mono relative transition-all ease-linear duration-1000 mb-6 min-h-[16rem] bg-neutral-900/80 pt-3 pb-6 px-6 rounded-[32px] w-full text-4xl leading-[54px]`"
 		>
 			<template v-for="(word, index) in allData">
 				<span
@@ -95,7 +95,7 @@
 						}}</span
 					>
 					<span
-						:class="`tracking-widest ${
+						:class="`${
 							index ===
 								currentWordNum -
 									1 &&
