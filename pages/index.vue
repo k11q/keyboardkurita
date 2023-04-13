@@ -44,8 +44,6 @@
 				cursorTop - 2
 			}px`"
 		></div>
-		<button @click="login('google')">login</button>
-		<button @click="logUser()">log user</button>
 		<div class="flex justify-center">
 			<div
 				class="bg-neutral-900 mb-8 px-6 py-2 h-14 rounded-[20px] text-xs items-center grid grid-cols-7 relative w-[80%]"
@@ -232,6 +230,7 @@
 			@keydown="watchKeydown"
 			style="opacity: 0%; position: absolute"
 		/>
+		<!--<div>{{ outputData }}</div>-->
 		<div class="grid grid-cols-10 gap-x-8">
 			<div class="col-span-2 flex flex-col gap-5 py-4">
 				<div class="font-semibold text-xl">
@@ -425,6 +424,16 @@ const logUser = ()=>{
 	console.log(user.value)
 }
 
+const startTime = ref(0)
+const endTime = ref(0)
+const numberOfExtras = ref(0)
+const allWords = ref([])
+const outputData = computed(()=>{
+	return {start_time: startTime.value,end_time: endTime.value, chars: accuracies.value.total_chars, errors: accuracies.value.error_chars, extras: numberOfExtras.value, words: allWords.value, char_performance: sortedDataset.value}
+})
+
+const pastSessions = ref([])
+
 const difficulty = ["Easy", "Medium", "Hard"];
 const modes = ["Word", "Time", "Code"];
 const isOpen = useState("isOpen", () => false);
@@ -585,7 +594,9 @@ async function fetchData(char = "") {
 
 function fillData() {
 	allData.value = [];
+	allWords.value = []
 	if (words.value) {
+		allWords.value = words.value.all_words
 		words.value.all_words.map((i) => {
 			const characters = i.split("");
 			const charData = [];
@@ -607,6 +618,7 @@ function resetIndexes() {
 	typedData.value = [];
 	currentWordNum.value = 0;
 	currentCharNum.value = 0;
+	numberOfExtras.value = 0;
 	currentPendingWordIndex.value = 0;
 	separator.value = false;
 }
@@ -705,13 +717,14 @@ function watchKeydown(e) {
 				(i) => i.char === e.key
 			);
 			currCharObj.count++;
-			currCharObj.totalValue += (time - finalKeydown) / 1000;
-			currCharObj.value =
-				currCharObj.totalValue / currCharObj.count;
-			currentObj.timing =
-				currentWordNum.value + currentCharNum.value == 0
-					? 0
-					: (time - finalKeydown) / 1000;
+			currCharObj.totalValue += parseFloat(((time - finalKeydown) / 1000).toFixed(2));
+			currCharObj.value = parseFloat((currCharObj.totalValue / currCharObj.count).toFixed(2));
+			if (currentWordNum.value + currentCharNum.value == 0){
+				startTime.value = Date.now()
+				currentObj.timing = 0
+			}else{
+				currentObj.timing = (time - finalKeydown) / 1000;
+			}
 			if (
 				allData.value.length ===
 					currentWordNum.value + 1 &&
@@ -759,6 +772,7 @@ function watchKeydown(e) {
 				0,
 				{ character: e.key, timing: 0, status: "extra" }
 			);
+			numberOfExtras.value++;
 			currentPendingWordIndex.value++;
 		}
 		finalKeydown = time;
