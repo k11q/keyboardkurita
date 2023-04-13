@@ -29,7 +29,7 @@
 						leave-to="opacity-0 scale-95"
 					>
 						<HeadlessDialogPanel
-							class="flex flex-col gap-2 w-full max-w-xl transform overflow-hidden rounded-2xl bg-neutral-900 px-6 pb-6 pt-8 text-left align-middle border border-neutral-700 transition-all text-white"
+							class="flex flex-col gap-2 w-full max-w-xl transform overflow-hidden rounded-2xl bg-neutral-900/75 backdrop-blur-lg px-6 pb-6 pt-8 text-left align-middle border border-neutral-700 transition-all text-white"
 						>
 						<h1 class="text-2xl font-semibold mb-2">Settings</h1>
 						<div class="flex gap-3 mb-3 shadow-[0_-2px_0_inset] shadow-neutral-700"><button v-for="tab in tabs" @click="currentTab = tab" :class="`${currentTab === tab? 'shadow-[0_-2px_0_inset] shadow-green-500' : 'text-neutral-400 hover:text-white'} py-3 px-2`">{{tab}}</button></div>

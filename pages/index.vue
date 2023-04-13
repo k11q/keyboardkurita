@@ -351,7 +351,9 @@
 							accuracies
 								? accuracies.error_chars
 								: 0
-						}}
+						}}/{{ 
+							numberOfExtras
+						 }}
 					</p>
 				</div>
 				<div class="col-span-2">
@@ -383,7 +385,6 @@ const router = useRouter();
 const startTime = ref(0);
 const endTime = ref(0);
 const numberOfExtras = ref(0);
-const currentNumberOfExtras = ref(0);
 const allWords = ref([]);
 const outputData = computed(() => {
 	return {
@@ -442,7 +443,6 @@ const accuracies = computed(() => {
 	};
 });
 const accArr = ref([]);
-const startingTime = ref(0);
 const keyOptions = [
 	"a",
 	"b",
@@ -688,21 +688,6 @@ const isEndWord = (currentCharLocation: number, currentWordLength: number) => {
 	return false;
 };
 
-const isBetweenWords = (
-	currentWordLocation: number,
-	currentCharLocation: number,
-	totalWords: number,
-	totalCharsCurrentWord: number
-) => {
-	if (
-		currentWordLocation !== totalWords - 1 &&
-		currentCharLocation === totalCharsCurrentWord - 1
-	) {
-		return true;
-	}
-	return false;
-};
-
 function handleKeydown(e: KeyboardEvent) {
 	e.preventDefault();
 	e.stopImmediatePropagation();
@@ -748,13 +733,6 @@ function handleKeydown(e: KeyboardEvent) {
 			}
 			return false;
 		};
-
-		console.log(currentWordMetadata);
-		console.log(currentCharLocation);
-		console.log(currentCharMetadata);
-		console.log(key);
-		console.log(currentCorrectChar);
-		console.log(key === currentCorrectChar);
 		if (key === currentCorrectChar) {
 			let currentObj =
 				allData.value[currentWordLocation].characters[
@@ -820,17 +798,17 @@ function handleKeydown(e: KeyboardEvent) {
 					currentWordLength
 				)
 			) {
-				totalTime.value.push(
-					parseFloat(
+				
+				const timeTaken = parseFloat(
 						(
 							25 /
 							((time -
-								startingTime.value) /
+								startTime.value) /
 								1000 /
 								60)
 						).toFixed(2)
 					)
-				);
+				totalTime.value.push(timeTaken);
 				accArr.value.push(
 					parseFloat(
 						(
@@ -842,6 +820,7 @@ function handleKeydown(e: KeyboardEvent) {
 						).toFixed(2)
 					)
 				);
+				outputData.value.wpm = calculateWPM(timeTaken)
 				pastSessions.value.push(
 					JSON.parse(
 						JSON.stringify(outputData.value)
