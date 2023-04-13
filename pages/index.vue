@@ -193,85 +193,109 @@
 			style="opacity: 0%; position: absolute"
 		/>
 		<div class="flex justify-center">
-		<div class="rounded-xl bg-neutral-900 w-[70%] overflow-clip">
 			<div
-				class="flex justify-between px-6 py-4 even:bg-neutral-800"
+				class="rounded-xl bg-neutral-900 w-[70%] overflow-clip"
 			>
-				<div>
-					<div>username</div>
-				</div>
-				<div>
-					<div>wpm</div>
-				</div>
-				<div>
-					<div>raw</div>
-				</div>
-				<div>
-					<div>acc</div>
-				</div>
-				<div>
-					<div>consistency</div>
-				</div>
-				<div>
-					<div>chars</div>
-				</div>
-				<div>
-					<div>mode</div>
-				</div>
-				<div>
-					<div>info</div>
-				</div>
-				<div>
-					<div>tags</div>
-				</div>
-				<div>
-					<div>date</div>
-				</div>
-			</div>
-			<div
-				v-for="session in pastSessions
-					.slice()
-					.reverse()"
-				class="flex justify-between px-6 py-4 even:bg-neutral-800"
-			>
-				<div>
-					<div>{{ session.user_username }}</div>
-				</div>
-				<div>
-					<div>{{ session.wpm }}</div>
-				</div>
-				<div>
-					<div>{{ session.raw }}</div>
-				</div>
-				<div>
-					<div>{{ session.accuracy }}</div>
-				</div>
-				<div>
-					<div>{{ session.consistency }}</div>
-				</div>
-				<div>
+				<div
+					class="flex justify-between px-6 py-4 even:bg-neutral-800"
+				>
 					<div>
-						{{ session.total_corrects }}/{{
-							session.total_errors
-						}}/{{ session.total_extras }}/{{
-							session.total_missed
-						}}
+						<div>username</div>
+					</div>
+					<div>
+						<div>wpm</div>
+					</div>
+					<div>
+						<div>raw</div>
+					</div>
+					<div>
+						<div>acc</div>
+					</div>
+					<div>
+						<div>consistency</div>
+					</div>
+					<div>
+						<div>chars</div>
+					</div>
+					<div>
+						<div>mode</div>
+					</div>
+					<div>
+						<div>info</div>
+					</div>
+					<div>
+						<div>tags</div>
+					</div>
+					<div>
+						<div>date</div>
 					</div>
 				</div>
-				<div>
-					<div>{{ session.mode }}</div>
-				</div>
-				<div>
-					<div>wpm</div>
-				</div>
-				<div>
-					<div>wpm</div>
-				</div>
-				<div>
-					<div>{{ session.end_time }}</div>
+				<div
+					v-for="session in pastSessions
+						.slice()
+						.reverse()"
+					class="flex justify-between px-6 py-4 even:bg-neutral-800"
+				>
+					<div>
+						<div>
+							{{
+								session.user_username
+							}}
+						</div>
+					</div>
+					<div>
+						<div>{{ session.wpm }}</div>
+					</div>
+					<div>
+						<div>{{ session.raw }}</div>
+					</div>
+					<div>
+						<div>
+							{{ session.accuracy }}
+						</div>
+					</div>
+					<div>
+						<div>
+							{{
+								session.consistency
+							}}
+						</div>
+					</div>
+					<div>
+						<div>
+							{{
+								session.total_corrects
+							}}/{{
+								session.total_errors
+							}}/{{
+								session.total_extras
+							}}/{{
+								session.total_missed
+							}}
+						</div>
+					</div>
+					<div>
+						<div>{{ session.mode }}</div>
+					</div>
+					<div>
+						<div>wpm</div>
+					</div>
+					<div>
+						<div>wpm</div>
+					</div>
+					<div>
+						<div>
+							{{
+								formatDistanceToNow(
+									new Date(
+										session.end_time
+									)
+								)
+							}}
+						</div>
+					</div>
 				</div>
 			</div>
-		</div>
 		</div>
 		<!--<div>{{ pastSessions }}</div>-->
 	</div>
@@ -279,6 +303,7 @@
 
 <script setup lang="ts">
 import type { SessionsInsert } from "../utils/db/sessions";
+import { formatDistanceToNow } from "date-fns";
 
 const user = useSupabaseUser();
 const client = useSupabaseClient();
@@ -287,7 +312,7 @@ const DIFFICULTY = ["Easy", "Medium", "Hard"];
 const MODES = ["Word", "Time", "Code"];
 const PROFILE = ref();
 const USERNAME = computed(() => {
-	return PROFILE.value? PROFILE.value.username : 'username';
+	return PROFILE.value ? PROFILE.value.username : "username";
 });
 //only change in one place
 const CAROTLEFT = ref(0);
@@ -301,6 +326,7 @@ const selectedMode = ref("Word");
 
 let startTime = Date.now();
 let endTime = Date.now();
+let sessionRunning = ref(false);
 const allWords = ref([]);
 let wpm = 0;
 let cpm = 0;
@@ -374,7 +400,7 @@ const outputData = computed((): SessionsInsert => {
 		total_missed: 0,
 	};
 });
-
+let timeoutId;
 const pastSessions: SessionsInsert[] = ref([]);
 const isOpen = useState("isOpen", () => false);
 const currentActive = ref();
@@ -566,6 +592,7 @@ function resetIndexes() {
 watch(currentActive, () => {
 	if (currentActive.value.id !== "MasterInput") {
 		resetIndexes();
+		sessionRunning.value = false;
 	}
 });
 
@@ -610,6 +637,12 @@ function handleKeydown(e: KeyboardEvent) {
 		const time = Date.now();
 		const currentWordLocation = currentWordNum.value;
 		const currentWordMetadata = allData.value[currentWordLocation];
+		if (
+			currentWordMetadata &&
+			currentWordMetadata.type !== "separator"
+		) {
+			totalCharacters++;
+		}
 		const currentWord = allData.value[currentWordLocation]?.word;
 		const currentCharLocation = currentCharNum.value;
 		const currentCharMetadata =
@@ -637,6 +670,7 @@ function handleKeydown(e: KeyboardEvent) {
 			}
 			return false;
 		};
+		let intervalCount = 1;
 		if (key === currentCorrectChar) {
 			let currentObj =
 				allData.value[currentWordLocation].characters[
@@ -654,7 +688,13 @@ function handleKeydown(e: KeyboardEvent) {
 					currentObj.status = "error";
 					currentIncorrect.value = false;
 				} else {
-					totalCorrects++;
+					if (
+						currentWordMetadata &&
+						currentWordMetadata.type !==
+							"separator"
+					) {
+						totalCorrects++;
+					}
 					currentObj.status = "correct";
 				}
 				const currCharObj = datasetObject.value.find(
@@ -691,12 +731,12 @@ function handleKeydown(e: KeyboardEvent) {
 					currentCharLocation
 				)
 			) {
+				startTime = Date.now();
 				handleStartSession(
 					selectedMode.value,
 					selectedDifficulty.value,
 					{}
 				);
-				startTime = Date.now();
 				currentObj.timing = 0;
 			} else {
 				currentObj.timing =
@@ -741,11 +781,15 @@ function handleKeydown(e: KeyboardEvent) {
 					).toFixed(2)
 				);
 				wpm = timeTaken;
-				consistency = parseFloat((wpm/raw*100).toFixed(2))
+				consistency = parseFloat(
+					((wpm / raw) * 100).toFixed(2)
+				);
 				handleEndSession();
 				pastSessions.value.push(
 					JSON.parse(
-						JSON.stringify(sessionsInsertData)
+						JSON.stringify(
+							sessionsInsertData
+						)
 					)
 				);
 				fetchData(currentChar.value);
@@ -812,7 +856,10 @@ function handleKeydown(e: KeyboardEvent) {
 				difficulty: string,
 				game_metadata: {}
 			) {
-				resetSessionData()
+				sessionRunning.value = true;
+				resetInterval();
+				timeoutId = setTimeout(updateWPM, 1000);
+				resetSessionData();
 				fillInitialData(
 					mode,
 					difficulty,
@@ -842,7 +889,7 @@ function handleKeydown(e: KeyboardEvent) {
 				}
 			}
 
-			function resetSessionData(){
+			function resetSessionData() {
 				collectedWords = [];
 				totalCharacters = 0;
 				totalCorrects = 0;
@@ -859,6 +906,7 @@ function handleKeydown(e: KeyboardEvent) {
 
 			function handleEndSession() {
 				fillFinalData();
+				sessionRunning.value = false;
 				//insertSessionToDatabase();
 
 				function fillFinalData() {
@@ -868,17 +916,24 @@ function handleKeydown(e: KeyboardEvent) {
 					sessionsInsertData.duration = 0;
 					sessionsInsertData.words =
 						collectedWords;
-					sessionsInsertData.total_characters = totalCharacters;
-					sessionsInsertData.total_corrects = totalCorrects;
-					sessionsInsertData.total_errors = totalErrors;
-					sessionsInsertData.total_words = totalWords;
-					sessionsInsertData.total_extras = totalExtras;
-					sessionsInsertData.total_missed = totalMissed;
+					sessionsInsertData.total_characters =
+						totalCharacters;
+					sessionsInsertData.total_corrects =
+						totalCorrects;
+					sessionsInsertData.total_errors =
+						totalErrors;
+					sessionsInsertData.total_words =
+						totalWords;
+					sessionsInsertData.total_extras =
+						totalExtras;
+					sessionsInsertData.total_missed =
+						totalMissed;
 					sessionsInsertData.wpm = wpm;
 					sessionsInsertData.cpm = cpm;
 					sessionsInsertData.raw = raw;
 					sessionsInsertData.accuracy = accuracy;
-					sessionsInsertData.consistency = consistency;
+					sessionsInsertData.consistency =
+						consistency;
 				}
 
 				function getWords(
@@ -924,6 +979,62 @@ function handleKeydown(e: KeyboardEvent) {
 					collectedWords.push(word);
 				}
 			}
+			function calculateWPM(correctChars, elapsedTime) {
+				const words = correctChars / 5;
+				const minutes = elapsedTime / 1000 / 60;
+				return words / minutes;
+			}
+
+			function calculateRawWPM(totalChars, elapsedTime) {
+				const words = totalChars / 5;
+				const minutes = elapsedTime / 1000 / 60;
+				return words / minutes;
+			}
+
+			function resetInterval() {
+				if (timeoutId) {
+					clearTimeout(timeoutId);
+					intervalCount = 1;
+				}
+			}
+
+			// Call the function initially to start the loop
+			function updateWPM() {
+				if (!sessionRunning.value) {
+					clearTimeout(timeoutId);
+					intervalCount = 1;
+					return;
+				}
+				if (startTime === null) {
+					startTime = Date.now();
+				}
+				const elapsedTime = Date.now() - startTime;
+
+				const wpm = parseFloat(
+					calculateWPM(
+						totalCorrects,
+						elapsedTime
+					).toFixed(2)
+				);
+				const rawWPM = parseFloat(
+					calculateRawWPM(
+						totalCharacters,
+						elapsedTime
+					).toFixed(2)
+				);
+
+				console.log(
+					"Second: ",
+					intervalCount,
+					"Raw WPM: ",
+					rawWPM,
+					"WPM: ",
+					wpm
+				);
+				intervalCount++;
+
+				timeoutId = setTimeout(updateWPM, 1000); // Log the values every second
+			}
 		}
 		// handle incorrect keys
 		else {
@@ -931,8 +1042,8 @@ function handleKeydown(e: KeyboardEvent) {
 		}
 
 		function handleIncorrectInput() {
-			if(!currentIncorrect.value){
-				totalErrors++
+			if (!currentIncorrect.value) {
+				totalErrors++;
 			}
 			currentIncorrect.value = true;
 			allData.value[currentWordNum.value].characters.splice(
@@ -985,6 +1096,8 @@ onMounted(() => {
 
 	requestAnimationFrame(setCarotPosition);
 });
+
+watch(sessionRunning, () => {});
 
 // get profile data from auth
 watchEffect(() => {
