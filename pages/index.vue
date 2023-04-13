@@ -232,16 +232,16 @@
 		/>
 		<!--<div>{{ outputData }}</div>-->
 		<div class="grid grid-cols-10 gap-x-8">
-			<div class="col-span-2 flex flex-col gap-5 py-4">
+			<div class="col-span-5 flex flex-col gap-5 py-4">
 				<div class="font-semibold text-xl">
-					All games
+					Latest sessions
 				</div>
 				<div
 					class="flex flex-col gap-3 max-h-96 overflow-scroll"
 				>
 					<div
 						v-if="!totalTime.length"
-						class="text-sm text-neutral-400 border border-neutral-700 px-4 py-2 text-center"
+						class="text-sm text-neutral-400 border border-neutral-700 px-4 py-5 text-center"
 					>
 						Your past games will show up
 						here!
@@ -250,9 +250,10 @@
 						v-for="(
 							game, index
 						) in totalTime"
-						class="border-neutral-700 border px-4 py-2 grid grid-cols-2 gap-x-2 align-top"
+						class="border-neutral-700 border px-4 py-2 flex gap-2 align-top"
 					>
-						<div class="">
+					<div class="flex-grow"><div>Name</div><div class="text-sm text-neutral-400">Rating country</div></div>
+						<div class="w-20">
 							<p
 								class="text-neutral-300 text-sm leading-4"
 							>
@@ -272,7 +273,7 @@
 								}}
 							</p>
 						</div>
-						<div class="">
+						<div class="w-20">
 							<p
 								class="text-neutral-300 text-sm leading-4"
 							>
@@ -295,18 +296,18 @@
 					</div>
 				</div>
 			</div>
-			<div class="col-span-8 grid grid-cols-10">
+			<div class="col-span-5 grid grid-cols-10">
 				<div
-					class="col-span-2 grid row-span-2 pt-4 pb-4"
+					class="col-span-2 row-span-2 grid pt-4 pb-4"
 				>
 					<div>
 						<div
-							class="text-4xl mb-1 text-neutral-400"
+							class="text-3xl mb-1 text-neutral-400"
 						>
 							wpm
 						</div>
 						<div
-							class="text-5xl text-[#3DEFE9]"
+							class="text-4xl text-[#3DEFE9]"
 						>
 							{{
 								totalTime.length
@@ -322,12 +323,12 @@
 					</div>
 					<div>
 						<div
-							class="text-4xl mb-1 text-neutral-400"
+							class="text-3xl mb-1 text-neutral-400"
 						>
 							acc
 						</div>
 						<div
-							class="text-5xl text-[#3DEFE9]"
+							class="text-4xl text-[#3DEFE9]"
 						>
 							{{
 								accArr.length
@@ -357,7 +358,7 @@
 					<div class="text-neutral-400">
 						test type
 					</div>
-					<p class="text-3xl">
+					<p class="text-2xl">
 						{{
 							currentChar
 								? `char ${currentChar}`
@@ -367,13 +368,13 @@
 				</div>
 				<div class="col-span-2">
 					<div class="text-neutral-400">raw</div>
-					<p class="text-3xl">0</p>
+					<p class="text-2xl">0</p>
 				</div>
 				<div class="col-span-2">
 					<div class="text-neutral-400">
 						characters
 					</div>
-					<p class="text-3xl">
+					<p class="text-2xl">
 						{{
 							accuracies
 								? accuracies.total_chars
@@ -389,11 +390,11 @@
 					<div class="text-neutral-400">
 						consistencies
 					</div>
-					<p class="text-3xl">0</p>
+					<p class="text-2xl">0</p>
 				</div>
 				<div class="col-span-2">
 					<div class="text-neutral-400">time</div>
-					<p class="text-3xl">
+					<p class="text-2xl">
 						{{
 							accuracies
 								? accuracies.total_time
@@ -582,6 +583,7 @@ const {
 });
 
 async function fetchData(char = "") {
+	loading.value = true;
 	currentChar.value = char.charAt(0);
 	resetIndexes();
 	const { data } = await useFetch(
@@ -590,6 +592,7 @@ async function fetchData(char = "") {
 	words.value = data.value;
 	fillData();
 	focusInput();
+	loading.value = false;
 }
 
 function fillData() {
@@ -638,6 +641,9 @@ let finalKeydown = Date.now();
 function watchKeydown(e) {
 	e.preventDefault();
 	e.stopImmediatePropagation();
+	if(loading.value){
+		return;
+	}
 	if (e.key === "Enter") {
 		typedData.value = [];
 		fetchData();
