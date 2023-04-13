@@ -641,7 +641,7 @@ function watchKeydown(e) {
 	if (e.key === "Enter") {
 		typedData.value = [];
 		fetchData();
-	} else if (e.keyCode === 8 || e.keyCode === 46) {
+	} else if (e.keyCode == 8 || e.keyCode === 46) {
 		if (typedData.value.length) {
 			typedData.value.pop();
 		}
@@ -659,6 +659,7 @@ function watchKeydown(e) {
 		}
 	} else if (
 		(e.keyCode >= 9 && e.keyCode <= 27) ||
+		(e.keyCode >= 33 && e.keyCode <= 45) ||
 		(e.keyCode >= 91 && e.keyCode <= 93) ||
 		(e.keyCode >= 112 && e.keyCode <= 183)
 	) {
