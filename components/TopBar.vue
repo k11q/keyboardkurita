@@ -44,10 +44,15 @@
 				>
 					Log out
 				</button>
-				<NuxtLink v-if="user" to="/profile"
-					><button
-						class="h-full items-center px-3 flex gap-2"
-					>
+				<HeadlessMenu
+					v-if="user"
+					as="div"
+					class="relative inline-block text-left"
+				>
+					<div>
+						<HeadlessMenuButton
+							class="inline-flex w-full justify-center rounded-md bg-black bg-opacity-20 px-4 py-2 text-sm font-medium text-white hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
+						>
 						<div>
 							{{
 								user
@@ -56,7 +61,7 @@
 							}}
 						</div>
 						<div
-							class="flex-none w-6 h-6 rounded-full overflow-clip"
+							class="ml-3 flex-none w-6 h-6 rounded-full overflow-clip"
 						>
 							<img
 								:src="
@@ -66,8 +71,16 @@
 								"
 								class=""
 							/>
-						</div></button
-				></NuxtLink>
+						</div>
+							<Icon
+								aria-hidden="true"
+								name="heroicons:chevron-down-20-solid"
+								class="ml-2 -mr-1 h-5 w-5 text-violet-200 hover:text-violet-100"
+							/>
+						</HeadlessMenuButton>
+					</div>
+					<UIDropdown />
+				</HeadlessMenu>
 			</div>
 		</div>
 	</div>
