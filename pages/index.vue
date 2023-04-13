@@ -1,39 +1,5 @@
 <template>
 	<div class="pb-10 px-10 pt-8 max-w-7xl w-full">
-		<!--
-		<div
-			class="flex mb-8 shadow-sm w-fit max-w-full overflow-scroll"
-		>
-			<button
-				:class="`h-9 hover:bg-neutral-700 hover:text-white/90 font-medium border-y border-r px-3 border-neutral-400 flex-none flex items-center justify-center first:border-l first:rounded-l last:rounded-r ${
-					!currentChar
-						? 'bg-neutral-600 text-white'
-						: 'text-white/60'
-				}`"
-				@click="fetchData('')"
-			>
-				All key
-			</button>
-			<button
-				v-for="i in 26"
-				:class="`hover:bg-neutral-700 hover:text-white/90 font-medium border-y border-r h-9 w-9 border-neutral-400 flex-none flex items-center justify-center first:border-l first:rounded-l last:rounded-r ${
-					currentChar ===
-					String.fromCharCode(i + 96)
-						? 'bg-neutral-600 text-white'
-						: 'text-white/60'
-				}`"
-				@click="
-					(e) => {
-						fetchData(
-							e.target.textContent.toLowerCase()
-						);
-					}
-				"
-			>
-				{{ String.fromCharCode(i + 64) }}
-			</button>
-		</div>
-		-->
 		<div
 			v-if="
 				currentActive &&
@@ -137,10 +103,17 @@
 				<div
 					class="col-span-2 flex gap-3 items-center justify-end"
 				>
-				<Modal />
-					<button class="text-sm pl-3 pr-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer" @click="isOpen = !isOpen">
-					<Icon name="heroicons:cog-6-tooth" class="mr-2" size="1rem"/>
-					<span>More settings</span>
+					<Modal />
+					<button
+						class="text-sm pl-3 pr-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer"
+						@click="isOpen = !isOpen"
+					>
+						<Icon
+							name="heroicons:cog-6-tooth"
+							class="mr-2"
+							size="1rem"
+						/>
+						<span>More settings</span>
 					</button>
 				</div>
 			</div>
@@ -229,10 +202,9 @@
 		<input
 			type="text"
 			id="MasterInput"
-			@keydown="watchKeydown"
+			@keydown="handleKeydown"
 			style="opacity: 0%; position: absolute"
 		/>
-		<!--<div>{{ outputData }}</div>-->
 		<div class="grid grid-cols-10 gap-x-8">
 			<div class="col-span-5 flex flex-col gap-5 py-4">
 				<div class="font-semibold text-xl">
@@ -254,7 +226,14 @@
 						) in totalTime"
 						class="border-neutral-700 border px-4 py-2 flex gap-2 align-top"
 					>
-					<div class="flex-grow"><div>Name</div><div class="text-sm text-neutral-400">Rating country</div></div>
+						<div class="flex-grow">
+							<div>Name</div>
+							<div
+								class="text-sm text-neutral-400"
+							>
+								Rating country
+							</div>
+						</div>
 						<div class="w-20">
 							<p
 								class="text-neutral-300 text-sm leading-4"
@@ -410,27 +389,33 @@
 </template>
 
 <script setup lang="ts">
-const user = useSupabaseUser()
-const router = useRouter()
+import { insertSessions } from "../utils/db/sessions";
+const user = useSupabaseUser();
+const router = useRouter();
 
-const startTime = ref(0)
-const endTime = ref(0)
-const numberOfExtras = ref(0)
-const allWords = ref([])
-const outputData = computed(()=>{
-	return {start_time: startTime.value,end_time: endTime.value, chars: accuracies.value.total_chars, errors: accuracies.value.error_chars, extras: numberOfExtras.value, words: allWords.value, char_performance: sortedDataset.value}
-})
+const startTime = ref(0);
+const endTime = ref(0);
+const numberOfExtras = ref(0);
+const currentNumberOfExtras = ref(0);
+const allWords = ref([]);
+const outputData = computed(() => {
+	return {
+		start_time: startTime.value,
+		end_time: endTime.value,
+		chars: accuracies.value.total_chars,
+		errors: accuracies.value.error_chars,
+		extras: numberOfExtras.value,
+		words: allWords.value,
+		char_performance: sortedDataset.value,
+	};
+});
 
-const pastSessions = ref([])
-
+const pastSessions = ref([]);
 const difficulty = ["Easy", "Medium", "Hard"];
 const modes = ["Word", "Time", "Code"];
 const isOpen = useState("isOpen", () => false);
 const currentActive = ref();
 const loading = ref(false);
-const model = ref("");
-const typedData = ref([]);
-const wordsData = ref([]);
 const currentChar = ref("");
 const allData = ref([]);
 const currentWordNum = ref(0);
@@ -528,12 +513,6 @@ const datasetObject = ref([
 	{ char: "y", count: 0, value: 0, totalValue: 0 },
 	{ char: "z", count: 0, value: 0, totalValue: 0 },
 ]);
-const dataset = computed(() => {
-	return datasetObject.value.flatMap((data) => {
-		return data.value;
-	});
-});
-
 const sortedDataset = computed(() => {
 	return datasetObject.value
 		.filter((i) => i.count > 0)
@@ -541,14 +520,12 @@ const sortedDataset = computed(() => {
 			return y.value - x.value;
 		});
 });
-
 const sortedDatasetData = computed(() => {
 	return sortedDataset.value.flatMap((data) => {
 		return calculateWPM(data.value);
 	});
 });
-
-function calculateWPM(time) {
+function calculateWPM(time: number) {
 	const charactersPerWord = 5;
 	const wpm = 60 / charactersPerWord / time;
 	return wpm;
@@ -585,28 +562,35 @@ async function fetchData(char = "") {
 
 function fillData() {
 	allData.value = [];
-	allWords.value = []
+	allWords.value = [];
 	if (words.value) {
-		allWords.value = words.value.all_words
-		words.value.all_words.map((i) => {
-			const characters = i.split("");
+		allWords.value = words.value.all_words;
+		let wordCount = 0;
+		for (const word of words.value.all_words) {
+			const characters = word.split("");
 			const charData = [];
+			let charCount = 0;
 			for (const char of characters) {
 				charData.push({
 					character: char,
 					timing: 0,
 					status: "pending",
+					char_index: charCount,
+					word_index: wordCount,
 				});
+				charCount++;
 			}
-
-			allData.value.push({ word: i, characters: charData });
-		});
+			allData.value.push({
+				word: word,
+				characters: charData,
+			});
+			wordCount++;
+		}
 	}
 }
 
 function resetIndexes() {
 	fillData();
-	typedData.value = [];
 	currentWordNum.value = 0;
 	currentCharNum.value = 0;
 	numberOfExtras.value = 0;
@@ -626,106 +610,235 @@ function focusInput() {
 
 let finalKeydown = Date.now();
 
-function watchKeydown(e) {
-	e.preventDefault();
-	e.stopImmediatePropagation();
-	if(loading.value){
-		return;
+function handleBackspace() {
+	if (
+		allData.value.length &&
+		allData.value[currentWordNum.value].characters[
+			currentPendingWordIndex.value - 1
+		].status === "extra"
+	) {
+		allData.value[currentWordNum.value].characters.splice(
+			currentPendingWordIndex.value - 1,
+			1
+		);
+		currentPendingWordIndex.value--;
 	}
-	if (e.key === "Enter") {
-		typedData.value = [];
-		fetchData();
-	} else if (e.keyCode == 8 || e.keyCode === 46) {
-		if (typedData.value.length) {
-			typedData.value.pop();
-		}
-		if (
-			allData.value.length &&
-			allData.value[currentWordNum.value].characters[
-				currentPendingWordIndex.value - 1
-			].status === "extra"
-		) {
-			allData.value[currentWordNum.value].characters.splice(
-				currentPendingWordIndex.value - 1,
-				1
-			);
-			currentPendingWordIndex.value--;
-		}
-	} else if (
+}
+
+const isRestrictedKeys = (e: KeyboardEvent) => {
+	if (
 		(e.keyCode >= 9 && e.keyCode <= 27) ||
 		(e.keyCode >= 33 && e.keyCode <= 45) ||
 		(e.keyCode >= 91 && e.keyCode <= 93) ||
 		(e.keyCode >= 112 && e.keyCode <= 183)
 	) {
-		console.log(e.key);
+		return true;
+	}
+	return false;
+};
+
+const isBackspace = (e: KeyboardEvent) => {
+	if (e.keyCode == 8 || e.keyCode === 46) {
+		return true;
+	}
+	return false;
+};
+
+const isStartSession = (
+	currentWordLocation: number,
+	currentCharLocation: number
+) => {
+	if (currentWordLocation === 0 && currentCharLocation === 0) {
+		return true;
+	}
+	return false;
+};
+
+const isEndSession = (
+	currentWordLocation: number,
+	currentCharLocation: number,
+	totalWords: number,
+	currentWordLength: number
+) => {
+	if (
+		currentWordLocation === totalWords - 1 &&
+		currentCharLocation === currentWordLength - 1
+	) {
+		return true;
+	}
+	return false;
+};
+
+const isStartWord = (currentCharLocation: number) => {
+	if (currentCharLocation === 0) {
+		return true;
+	}
+	return false;
+};
+
+const isEndWord = (currentCharLocation: number, currentWordLength: number) => {
+	if (currentCharLocation === currentWordLength - 1) {
+		return true;
+	}
+	return false;
+};
+
+const isBetweenWords = (
+	currentWordLocation: number,
+	currentCharLocation: number,
+	totalWords: number,
+	totalCharsCurrentWord: number
+) => {
+	if (
+		currentWordLocation !== totalWords - 1 &&
+		currentCharLocation === totalCharsCurrentWord - 1
+	) {
+		return true;
+	}
+	return false;
+};
+
+function handleKeydown(e: KeyboardEvent) {
+	e.preventDefault();
+	e.stopImmediatePropagation();
+	const key = e.key;
+	//handle unexpected erros
+	if (loading.value || !allData.value.length) {
+		return;
+	}
+	if (key === "Enter") {
+		fetchData();
+	} else if (isBackspace(e)) {
+		handleBackspace();
+	} else if (isRestrictedKeys(e)) {
+		console.log(key);
 	} else {
-		let key = e.key;
 		const time = Date.now();
-		typedData.value.length ? "" : (startingTime.value = time);
-		typedData.value = [
-			...typedData.value,
-			{
-				key: key,
-				time: time,
-				time_taken: typedData.value.length
-					? (time - finalKeydown) / 1000
-					: 0,
-			},
-		];
-		console.log(e.key);
-		if (separator.value && e.key === " ") {
-			separator.value = !separator.value;
-		} else if (
-			allData.value.length &&
-			allData.value[currentWordNum.value].characters[
-				currentPendingWordIndex.value
-			].character === e.key &&
-			!separator.value
-		) {
+		const currentWordLocation = currentWordNum.value;
+		const currentWord = "";
+		const currentCharLocation = currentCharNum.value;
+		const currentCharMetadata =
+			allData.value[currentWordLocation].characters[
+				currentCharLocation
+			];
+		const currentChar = currentCharMetadata?.character;
+		const totalWords = allData.value.length;
+		const currentWordLength =
+			allData.value[currentWordLocation].characters.length;
+		const currentCorrectCharWordLocation = 0;
+		const currentCorrectCharLocation =
+			currentPendingWordIndex.value;
+		const currentCorrectChar =
+			allData.value[currentWordLocation].characters[
+				currentCorrectCharLocation
+			].character;
+		const allowSkipExtras = true;
+		const isNoneExtra = () => {
+			if (
+				currentCharLocation ===
+				currentCorrectCharLocation
+			) {
+				return true;
+			}
+			return false;
+		};
+
+		//handle separators
+		if (separator.value && key === " ") {
 			function deleteExtras() {
-				let totalExtras =
-					currentPendingWordIndex.value -
-					currentCharNum.value;
+				let prevWordLength =
+					allData.value[currentWordLocation - 1]
+						.characters.length;
 				allData.value[
-					currentWordNum.value
+					currentWordLocation - 1
 				].characters.splice(
-					currentCharNum.value,
-					totalExtras
+					prevWordLength -
+						currentNumberOfExtras.value,
+					currentNumberOfExtras.value
 				);
 			}
-			deleteExtras();
-			const currentObj =
-				allData.value[currentWordNum.value].characters[
-					currentCharNum.value
-				];
-			if (
-				currentPendingWordIndex.value !=
-					currentCharNum.value ||
-				currentIncorrect.value
-			) {
-				currentObj.status = "error";
-				currentIncorrect.value = false;
-			} else {
-				currentObj.status = "correct";
+			if (currentNumberOfExtras.value > 0) {
+				deleteExtras();
+				currentNumberOfExtras.value = 0;
 			}
-			const currCharObj = datasetObject.value.find(
-				(i) => i.char === e.key
+			separator.value = !separator.value;
+		} else if (separator.value) {
+			allData.value[
+				currentWordLocation - 1
+			].characters.splice(
+				allData.value[currentWordLocation - 1]
+					.characters.length +
+					currentNumberOfExtras.value,
+				0,
+				{ character: e.key, timing: 0, status: "extra" }
 			);
-			currCharObj.count++;
-			currCharObj.totalValue += parseFloat(((time - finalKeydown) / 1000).toFixed(2));
-			currCharObj.value = parseFloat((currCharObj.totalValue / currCharObj.count).toFixed(2));
-			if (currentWordNum.value + currentCharNum.value == 0){
-				startTime.value = Date.now()
-				currentObj.timing = 0
-			}else{
-				currentObj.timing = (time - finalKeydown) / 1000;
+			currentNumberOfExtras.value++;
+		}
+		// handle correct keys after extras
+		else if (key === currentCorrectChar) {
+			let currentObj =
+				allData.value[currentWordLocation].characters[
+					currentCharLocation
+				];
+			if (allowSkipExtras) {
+				function deleteExtras() {
+					let totalExtras =
+						currentCorrectCharLocation -
+						currentCharLocation;
+					allData.value[
+						currentWordLocation
+					].characters.splice(
+						currentCharLocation,
+						totalExtras
+					);
+				}
+				deleteExtras();
+				currentObj =
+					allData.value[currentWordLocation]
+						.characters[
+						currentCharLocation
+					];
+				if (!isNoneExtra() || currentIncorrect.value) {
+					currentObj.status = "error";
+					currentIncorrect.value = false;
+				} else {
+					currentObj.status = "correct";
+				}
+				const currCharObj = datasetObject.value.find(
+					(i) => i.char === e.key
+				);
+				currCharObj.count++;
+				currCharObj.totalValue += parseFloat(
+					((time - finalKeydown) / 1000).toFixed(
+						2
+					)
+				);
+				currCharObj.value = parseFloat(
+					(
+						currCharObj.totalValue /
+						currCharObj.count
+					).toFixed(2)
+				);
 			}
 			if (
-				allData.value.length ===
-					currentWordNum.value + 1 &&
-				allData.value[currentWordNum.value].characters
-					.length ===
-					currentCharNum.value + 1
+				isStartSession(
+					currentWordLocation,
+					currentCharLocation
+				)
+			) {
+				startTime.value = Date.now();
+				currentObj.timing = 0;
+			} else {
+				currentObj.timing =
+					(time - finalKeydown) / 1000;
+			}
+			if (
+				isEndSession(
+					currentWordLocation,
+					currentCharLocation,
+					totalWords,
+					currentWordLength
+				)
 			) {
 				totalTime.value.push(
 					parseFloat(
@@ -749,18 +862,26 @@ function watchKeydown(e) {
 						).toFixed(2)
 					)
 				);
+				pastSessions.value.push(
+					JSON.parse(
+						JSON.stringify(outputData.value)
+					)
+				);
 				fetchData(currentChar.value);
 			} else if (
-				allData.value[currentWordNum.value].characters
-					.length ===
-				currentCharNum.value + 1
+				isEndWord(
+					currentCharLocation,
+					currentWordLength
+				)
 			) {
 				currentWordNum.value++;
 				currentCharNum.value = 0;
 				separator.value = true;
 			} else currentCharNum.value++;
 			currentPendingWordIndex.value = currentCharNum.value;
-		} else if (allData.value.length) {
+		}
+		// handle incorrect keys
+		else {
 			currentIncorrect.value = true;
 			allData.value[currentWordNum.value].characters.splice(
 				currentPendingWordIndex.value,
@@ -773,6 +894,23 @@ function watchKeydown(e) {
 		finalKeydown = time;
 	}
 }
+
+function getGameData() {
+	const data = "";
+	return data;
+}
+
+function handleStartSession() {
+	const gameData = getGameData();
+}
+
+function handleLeaveSession() {}
+
+function handleStartWord() {}
+
+function handleEndWord() {}
+
+function handleAfk() {}
 
 onMounted(() => {
 	function getCursorPosition() {
