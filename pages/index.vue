@@ -46,13 +46,13 @@
 		></div>
 		<div class="flex justify-center">
 			<div
-				class="bg-neutral-900 mb-8 px-6 py-2 h-14 rounded-[20px] text-xs items-center grid grid-cols-7 relative w-[80%]"
+				class="bg-neutral-900 mb-8 px-6 py-2 h-14 rounded-[20px] text-xs items-center flex justify-between relative w-[80%]"
 			>
 				<div class="flex gap-3 items-center col-span-2">
 					<div>Difficulty:</div>
 					<div class="relative">
 						<select
-							class="text-base relative w-32 rounded-xl bg-neutral-800 py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+							class="text-base relative w-32 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
 						>
 							<option
 								v-for="key in difficulty"
@@ -75,7 +75,7 @@
 					<div>Mode:</div>
 					<div class="relative">
 						<select
-							class="text-base relative w-32 rounded-xl bg-neutral-800 py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+							class="text-base relative w-32 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
 						>
 							<option
 								v-for="key in modes"
@@ -106,7 +106,7 @@
 											.value
 									)
 							"
-							class="text-base relative w-32 rounded-xl bg-neutral-800 py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+							class="text-base relative w-32 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
 						>
 							<option
 								value=""
@@ -135,10 +135,12 @@
 					</div>
 				</div>
 				<div
-					class="flex gap-3 items-center justify-end"
+					class="col-span-2 flex gap-3 items-center justify-end"
 				>
-					<button class="text-sm">
-						More settings
+				<Modal />
+					<button class="text-sm pl-3 pr-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer" @click="isOpen = !isOpen">
+					<Icon name="heroicons:cog-6-tooth" class="mr-2" size="1rem"/>
+					<span>More settings</span>
 					</button>
 				</div>
 			</div>
@@ -409,21 +411,7 @@
 
 <script setup lang="ts">
 const user = useSupabaseUser()
-const client = useSupabaseAuthClient()
 const router = useRouter()
-// Login method using providers
-const login = async (provider: 'github' | 'google' | 'gitlab' | 'bitbucket') => {
-  const { error } = await client.auth.signInWithOAuth({ provider })
-  if (error) {
-    return alert('Something went wrong !')
-  }
-  router.push('/')
-  console.log(user)
-}
-
-const logUser = ()=>{
-	console.log(user.value)
-}
 
 const startTime = ref(0)
 const endTime = ref(0)

@@ -15,19 +15,12 @@
 					</button></NuxtLink
 				>
 			</div>
-			<div class="h-full py-2.5 gap-4 flex">
-				<NuxtLink to="/explore"
+			<div class="h-full py-2.5 gap-4 flex text-sm">
+				<NuxtLink to="/play"
 					><button
 						class="h-full items-center px-3 hover:bg-neutral-800 rounded-lg"
 					>
-						Explore
-					</button></NuxtLink
-				>
-				<NuxtLink to="/settings"
-					><button
-						class="h-full items-center px-3 hover:bg-neutral-800 rounded-lg"
-					>
-						Settings
+						Play
 					</button></NuxtLink
 				>
 				<button
@@ -40,31 +33,31 @@
 				<HeadlessMenu
 					v-if="user"
 					as="div"
-					class="relative inline-block text-left "
+					class="relative inline-block text-left"
 				>
 					<div>
 						<HeadlessMenuButton
 							class="inline-flex w-full justify-centerbg-black items-center hover:bg-neutral-800 rounded-lg bg-opacity-20 px-4 py-1 h-[35px] text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
 						>
-						<div>
-							{{
-								user
-									.user_metadata
-									.full_name
-							}}
-						</div>
-						<div
-							class="ml-3 flex-none w-6 h-6 rounded-full overflow-clip"
-						>
-							<img
-								:src="
+							<div>
+								{{
 									user
 										.user_metadata
-										.avatar_url
-								"
-								class=""
-							/>
-						</div>
+										.full_name
+								}}
+							</div>
+							<div
+								class="ml-3 flex-none w-6 h-6 rounded-full overflow-clip"
+							>
+								<img
+									:src="
+										user
+											.user_metadata
+											.avatar_url
+									"
+									class=""
+								/>
+							</div>
 							<Icon
 								aria-hidden="true"
 								name="heroicons:chevron-down-20-solid"
@@ -87,7 +80,10 @@ const router = useRouter();
 const login = async (
 	provider: "github" | "google" | "gitlab" | "bitbucket"
 ) => {
-	const { error } = await client.auth.signInWithOAuth({ provider });
+	const { error } = await client.auth.signInWithOAuth({
+		provider,
+		options: { redirectTo: 'window.location.origin' },
+	});
 	if (error) {
 		return alert("Something went wrong !");
 	}

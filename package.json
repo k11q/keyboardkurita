@@ -20,11 +20,13 @@
   "dependencies": {
     "@nuxtjs/supabase": "^0.3.5",
     "@nuxtjs/tailwindcss": "^6.6.5",
+    "@pinia/nuxt": "^0.4.8",
     "chart.js": "^4.2.1",
     "d3-array": "^3.2.3",
     "echarts": "^5.4.2",
     "nuxt-headlessui": "^1.1.1",
     "nuxt-icon": "^0.3.3",
+    "pinia": "^2.0.34",
     "tsx": "^3.12.6",
     "vue-chartjs": "^5.2.0",
     "vue-echarts": "^6.5.4"

@@ -11,7 +11,7 @@
 				leave-to="opacity-0"
 			>
 				<div
-					class="fixed inset-0 bg-black bg-opacity-25"
+					class="fixed inset-0 bg-neutral-600 bg-opacity-25 backdrop-blur-sm"
 				/>
 			</HeadlessTransitionChild>
 
@@ -29,47 +29,28 @@
 						leave-to="opacity-0 scale-95"
 					>
 						<HeadlessDialogPanel
-							class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+							class="flex flex-col gap-2 w-full max-w-xl transform overflow-hidden rounded-2xl bg-neutral-900 px-6 pb-6 pt-8 text-left align-middle border border-neutral-700 transition-all text-white"
 						>
-							<HeadlessDialogTitle
-								as="h3"
-								class="text-lg font-medium leading-6 text-gray-900"
-							>
-								Payment
-								successful
-							</HeadlessDialogTitle>
-							<div class="mt-2">
-								<p
-									class="text-sm text-gray-500"
-								>
-									Your
-									payment
-									has been
-									successfully
-									submitted.
-									We’ve
-									sent you
-									an email
-									with all
-									of the
-									details
-									of your
-									order.
-								</p>
+						<h1 class="text-2xl font-semibold mb-2">Settings</h1>
+						<div class="flex gap-3 mb-3 shadow-[0_-2px_0_inset] shadow-neutral-700"><button v-for="tab in tabs" @click="currentTab = tab" :class="`${currentTab === tab? 'shadow-[0_-2px_0_inset] shadow-green-500' : 'text-neutral-400 hover:text-white'} py-3 px-2`">{{tab}}</button></div>
+						<div class="flex flex-col gap-4 text-neutral-200">
+							<div class="flex justify-between">
+								<div>Space to skip word</div>
+								<UISwitch />
 							</div>
-
-							<div class="mt-4">
-								<button
-									type="button"
-									class="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-									@click="
-										closeModal
-									"
-								>
-									Got it,
-									thanks!
-								</button>
+							<div class="flex justify-between">
+								<div>Cursor stop at error</div>
+								<UISwitch />
 							</div>
+							<div class="flex justify-between">
+								<div>Allow skip characters</div>
+								<UISwitch />
+							</div>
+							<div class="flex justify-between">
+								<div>Forgive extra characters</div>
+								<UISwitch />
+							</div>
+						</div>
 						</HeadlessDialogPanel>
 					</HeadlessTransitionChild>
 				</div>
@@ -87,4 +68,7 @@ function closeModal() {
 function openModal() {
 	isOpen.value = true;
 }
+
+const tabs = ['Game', 'Keyboard', 'Style']
+const currentTab = ref(tabs[0])
 </script>
