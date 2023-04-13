@@ -38,30 +38,21 @@
 					Log in
 				</button>
 				<HeadlessMenu
-					v-if="user"
 					as="div"
 					class="relative inline-block text-left "
 				>
 					<div>
 						<HeadlessMenuButton
-							class="inline-flex w-full justify-centerbg-black hover:bg-neutral-800 rounded-lg bg-opacity-20 px-4 py-1 h-[35px] text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
+							class="inline-flex w-full justify-centerbg-black items-center hover:bg-neutral-800 rounded-lg bg-opacity-20 px-4 py-1 h-[35px] text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
 						>
 						<div>
-							{{
-								user
-									.user_metadata
-									.full_name
-							}}
+							khairul
 						</div>
 						<div
 							class="ml-3 flex-none w-6 h-6 rounded-full overflow-clip"
 						>
 							<img
-								:src="
-									user
-										.user_metadata
-										.avatar_url
-								"
+								src=""
 								class=""
 							/>
 						</div>
