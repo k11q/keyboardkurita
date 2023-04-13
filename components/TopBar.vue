@@ -18,40 +18,33 @@
 			<div class="h-full py-2.5 gap-4 flex">
 				<NuxtLink to="/explore"
 					><button
-						class="h-full items-center px-3"
+						class="h-full items-center px-3 hover:bg-neutral-800 rounded-lg"
 					>
 						Explore
 					</button></NuxtLink
 				>
 				<NuxtLink to="/settings"
 					><button
-						class="h-full items-center px-3 rounded"
+						class="h-full items-center px-3 hover:bg-neutral-800 rounded-lg"
 					>
 						Settings
 					</button></NuxtLink
 				>
 				<button
-					class="h-full items-center px-3 rounded"
+					class="h-full items-center px-3 hover:bg-neutral-800 rounded-lg"
 					@click="login('google')"
 					v-if="!user"
 				>
 					Log in
 				</button>
-				<button
-					class="h-full items-center px-3 rounded"
-					@click="logout()"
-					v-if="user"
-				>
-					Log out
-				</button>
 				<HeadlessMenu
 					v-if="user"
 					as="div"
-					class="relative inline-block text-left"
+					class="relative inline-block text-left "
 				>
 					<div>
 						<HeadlessMenuButton
-							class="inline-flex w-full justify-center rounded-md bg-black bg-opacity-20 px-4 py-2 text-sm font-medium text-white hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
+							class="inline-flex w-full justify-centerbg-black hover:bg-neutral-800 rounded-lg bg-opacity-20 px-4 py-2 text-sm font-medium text-white hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
 						>
 						<div>
 							{{
