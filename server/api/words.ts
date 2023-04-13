@@ -8,7 +8,7 @@ export default defineEventHandler(async (e) => {
 	const query = getQuery(e);
 
 	const limit = query.limit || 5000;
-	const num_words = query.num || 25;
+	const num_words = query.num || 10;
 	const selected_char = query.char || "";
 
 	async function loadIndexData() {

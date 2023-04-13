@@ -16,11 +16,11 @@
 				>
 			</div>
 			<div class="h-full py-2.5 gap-4 flex text-sm">
-				<NuxtLink to="/play"
+				<NuxtLink to="/stats"
 					><button
 						class="h-full items-center px-3 hover:bg-neutral-800 rounded-lg"
 					>
-						Play
+						Stats
 					</button></NuxtLink
 				>
 				<button

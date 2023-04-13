@@ -9,6 +9,29 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      follows: {
+        Row: {
+          created_at: string | null
+          following_id: number | null
+          id: number
+          status: string | null
+          user_id: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          following_id?: number | null
+          id?: number
+          status?: string | null
+          user_id?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          following_id?: number | null
+          id?: number
+          status?: string | null
+          user_id?: number | null
+        }
+      }
       games: {
         Row: {
           created_at: string | null
@@ -27,6 +50,26 @@ export interface Database {
           id?: number
           name?: string
           type?: string
+        }
+      }
+      multiplayer_sessions: {
+        Row: {
+          created_at: string | null
+          id: number
+          player1: string | null
+          player2: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          player1?: string | null
+          player2?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          player1?: string | null
+          player2?: string | null
         }
       }
       profile: {
@@ -76,13 +119,17 @@ export interface Database {
       sessions: {
         Row: {
           accuracy: number
-          characters_per_minute: number
+          char_performance: Json | null
           consistency: number | null
+          cpm: number
           created_at: string | null
           difficulty: string
           duration: number
           end_time: string
+          game_metadata: Json | null
           id: number
+          interval_performance: Json | null
+          keystroke_logs: Json | null
           logs: Json[]
           mode: string | null
           raw: number | null
@@ -92,19 +139,26 @@ export interface Database {
           total_errors: number | null
           total_extras: number | null
           total_missed: number | null
-          user_id: string
+          total_words: number | null
+          user_id: number | null
+          user_username: string | null
+          word_performance: Json | null
           words: string[]
-          words_per_minute: number
+          wpm: number
         }
         Insert: {
           accuracy: number
-          characters_per_minute?: number
+          char_performance?: Json | null
           consistency?: number | null
+          cpm?: number
           created_at?: string | null
           difficulty?: string
           duration: number
           end_time: string
+          game_metadata?: Json | null
           id?: number
+          interval_performance?: Json | null
+          keystroke_logs?: Json | null
           logs: Json[]
           mode?: string | null
           raw?: number | null
@@ -114,19 +168,26 @@ export interface Database {
           total_errors?: number | null
           total_extras?: number | null
           total_missed?: number | null
-          user_id: string
+          total_words?: number | null
+          user_id?: number | null
+          user_username?: string | null
+          word_performance?: Json | null
           words: string[]
-          words_per_minute: number
+          wpm: number
         }
         Update: {
           accuracy?: number
-          characters_per_minute?: number
+          char_performance?: Json | null
           consistency?: number | null
+          cpm?: number
           created_at?: string | null
           difficulty?: string
           duration?: number
           end_time?: string
+          game_metadata?: Json | null
           id?: number
+          interval_performance?: Json | null
+          keystroke_logs?: Json | null
           logs?: Json[]
           mode?: string | null
           raw?: number | null
@@ -136,9 +197,12 @@ export interface Database {
           total_errors?: number | null
           total_extras?: number | null
           total_missed?: number | null
-          user_id?: string
+          total_words?: number | null
+          user_id?: number | null
+          user_username?: string | null
+          word_performance?: Json | null
           words?: string[]
-          words_per_minute?: number
+          wpm?: number
         }
       }
       subwords: {

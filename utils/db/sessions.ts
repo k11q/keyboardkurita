@@ -10,8 +10,9 @@ async function insertSessions(insertData: SessionsInsert) {
 		.from("sessions")
 		.insert(insertData);
 	if (error) {
-		console.log(error);
+                return(error)
 	}
+        return (data)
 }
 
-export { insertSessions };
+export { insertSessions, SessionsInsert };

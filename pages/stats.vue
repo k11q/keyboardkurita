@@ -1,0 +1,1 @@
+<template>Stas page</template>
