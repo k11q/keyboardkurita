@@ -14,6 +14,7 @@
 			>
 				<div class="px-1 py-1">
 					<HeadlessMenuItem v-slot="{ active }">
+                                        <NuxtLink to="/profile">
 						<button
 							:class="[
 								active
@@ -28,6 +29,7 @@
 							/></span>
 							View profile
 						</button>
+                                        </NuxtLink>
 					</HeadlessMenuItem>
 					<HeadlessMenuItem v-slot="{ active }">
 						<button
