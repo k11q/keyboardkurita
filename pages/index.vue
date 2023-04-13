@@ -128,13 +128,7 @@
 			:class="`font-mono relative transition-all ease-linear duration-1000 mb-6 min-h-[16rem] bg-neutral-900/80 pt-3 pb-6 px-6 rounded-[32px] w-full text-4xl leading-[54px]`"
 		>
 			<template v-for="(word, index) in allData">
-				<span
-					:class="` pointer-events-none ease-linear transition-opacity duration-1000 tracking-wide ${
-						index === currentWordNum &&
-						separator
-							? 'relative'
-							: ''
-					}`"
+				<span :class="``"
 					><span
 						v-for="(
 							char, charIndex
@@ -149,32 +143,25 @@
 								: char.status ===
 								  'error'
 								? 'text-[#F44250] opacity-100'
+								: char.status ===
+										'error' &&
+								  char.character ===
+										' '
+								? 'bg-red-600'
 								: 'opacity-50'
 						} ${
 							index ===
 								currentWordNum &&
 							charIndex ===
-								currentPendingWordIndex &&
-							!separator
+								currentPendingWordIndex
 								? 'cursor-key'
 								: ''
 						}`"
 						>{{
 							char.character === " "
-								? "\&nbsp"
+								? " "
 								: char.character
 						}}</span
-					>
-					<span
-						:class="`${
-							index ===
-								currentWordNum -
-									1 &&
-							separator
-								? 'cursor-key'
-								: ''
-						}`"
-						>{{ " " }}</span
 					></span
 				>
 			</template>
@@ -421,7 +408,6 @@ const allData = ref([]);
 const currentWordNum = ref(0);
 const currentCharNum = ref(0);
 const currentPendingWordIndex = ref(0);
-const separator = ref(false);
 const currentIncorrect = ref(false);
 const cursorLeft = ref(0);
 const cursorTop = ref(0);
@@ -484,6 +470,7 @@ const keyOptions = [
 	"x",
 	"y",
 	"z",
+	" ",
 ];
 const datasetObject = ref([
 	{ char: "a", count: 0, value: 0, totalValue: 0 },
@@ -512,6 +499,7 @@ const datasetObject = ref([
 	{ char: "x", count: 0, value: 0, totalValue: 0 },
 	{ char: "y", count: 0, value: 0, totalValue: 0 },
 	{ char: "z", count: 0, value: 0, totalValue: 0 },
+	{ char: " ", count: 0, value: 0, totalValue: 0 },
 ]);
 const sortedDataset = computed(() => {
 	return datasetObject.value
@@ -583,7 +571,25 @@ function fillData() {
 			allData.value.push({
 				word: word,
 				characters: charData,
+				index: wordCount,
+				type: "word",
 			});
+			if (wordCount !== words.value.all_words.length - 1) {
+				allData.value.push({
+					word: " ",
+					characters: [
+						{
+							character: " ",
+							timing: 0,
+							status: "pending",
+							char_index: 0,
+							word_index: wordCount,
+						},
+					],
+					index: wordCount,
+					type: "separator",
+				});
+			}
 			wordCount++;
 		}
 	}
@@ -595,7 +601,6 @@ function resetIndexes() {
 	currentCharNum.value = 0;
 	numberOfExtras.value = 0;
 	currentPendingWordIndex.value = 0;
-	separator.value = false;
 }
 
 watch(currentActive, () => {
@@ -715,6 +720,7 @@ function handleKeydown(e: KeyboardEvent) {
 	} else {
 		const time = Date.now();
 		const currentWordLocation = currentWordNum.value;
+		const currentWordMetadata = allData.value[currentWordLocation];
 		const currentWord = "";
 		const currentCharLocation = currentCharNum.value;
 		const currentCharMetadata =
@@ -731,7 +737,7 @@ function handleKeydown(e: KeyboardEvent) {
 		const currentCorrectChar =
 			allData.value[currentWordLocation].characters[
 				currentCorrectCharLocation
-			].character;
+			]?.character;
 		const allowSkipExtras = true;
 		const isNoneExtra = () => {
 			if (
@@ -743,39 +749,13 @@ function handleKeydown(e: KeyboardEvent) {
 			return false;
 		};
 
-		//handle separators
-		if (separator.value && key === " ") {
-			function deleteExtras() {
-				let prevWordLength =
-					allData.value[currentWordLocation - 1]
-						.characters.length;
-				allData.value[
-					currentWordLocation - 1
-				].characters.splice(
-					prevWordLength -
-						currentNumberOfExtras.value,
-					currentNumberOfExtras.value
-				);
-			}
-			if (currentNumberOfExtras.value > 0) {
-				deleteExtras();
-				currentNumberOfExtras.value = 0;
-			}
-			separator.value = !separator.value;
-		} else if (separator.value) {
-			allData.value[
-				currentWordLocation - 1
-			].characters.splice(
-				allData.value[currentWordLocation - 1]
-					.characters.length +
-					currentNumberOfExtras.value,
-				0,
-				{ character: e.key, timing: 0, status: "extra" }
-			);
-			currentNumberOfExtras.value++;
-		}
-		// handle correct keys after extras
-		else if (key === currentCorrectChar) {
+		console.log(currentWordMetadata);
+		console.log(currentCharLocation);
+		console.log(currentCharMetadata);
+		console.log(key);
+		console.log(currentCorrectChar);
+		console.log(key === currentCorrectChar);
+		if (key === currentCorrectChar) {
 			let currentObj =
 				allData.value[currentWordLocation].characters[
 					currentCharLocation
@@ -870,13 +850,12 @@ function handleKeydown(e: KeyboardEvent) {
 				fetchData(currentChar.value);
 			} else if (
 				isEndWord(
-					currentCharLocation,
+					currentCorrectCharLocation,
 					currentWordLength
 				)
 			) {
 				currentWordNum.value++;
 				currentCharNum.value = 0;
-				separator.value = true;
 			} else currentCharNum.value++;
 			currentPendingWordIndex.value = currentCharNum.value;
 		}
