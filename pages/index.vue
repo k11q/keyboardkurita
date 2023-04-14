@@ -350,8 +350,8 @@ type CharacterMetadata = {
 type WordMetadata = {
 	word: string;
 	characters: CharacterMetadata[];
-	status: CharLogStatus;
 	type: WordType;
+	index: number;
 };
 
 //db & auth
@@ -481,6 +481,7 @@ const words = ref();
 let startTime: number;
 let endTime: number;
 let currentIncorrect = false;
+let finalKeydown = Date.now();
 
 // ui states
 const isOpen = useState("isOpen", () => false);
@@ -555,48 +556,75 @@ function fillData() {
 	let wordCount = 0;
 	for (const word of words.value.all_words) {
 		const characters = word.split("");
-		const charData = [];
-		let charCount = 0;
+		const charData: CharacterMetadata[] = [];
 		// create char object
-		for (const char of characters) {
-			charData.push({
-				character: char,
-				timing: 0,
-				status: "pending",
-				char_index: charCount,
-				word_index: wordCount,
-			});
-			charCount++;
-		}
+		let charCount = insertCharObject(
+			wordCount,
+			characters,
+			charData
+		);
 		// push word object
-		allData.value.push({
-			word: word,
-			characters: charData,
-			index: wordCount,
-			type: "word",
-		});
+		let type = "word";
+		insertWordObject(word, charData, wordCount, type);
 		// push separator object
-		if (wordCount !== words.value.all_words.length - 1) {
-			allData.value.push({
-				word: " ",
-				characters: [
-					{
-						character: " ",
-						timing: 0,
-						status: "pending",
-						char_index: 0,
-						word_index: wordCount,
-					},
-				],
-				index: wordCount,
-				type: "separator",
-			});
-		}
+		insertSpacerObject(wordCount);
+
 		wordCount++;
 	}
 }
 
-let finalKeydown = Date.now();
+function insertCharObject(
+	wordCount: number,
+	characters: string[],
+	charData: CharacterMetadata[]
+) {
+	let charCount = 0;
+	for (const char of characters) {
+		charData.push({
+			character: char,
+			timing: 0,
+			status: "pending",
+			char_index: charCount,
+			word_index: wordCount,
+		});
+		charCount++;
+	}
+	return charCount;
+}
+
+function insertWordObject(
+	word: string,
+	charData: CharacterMetadata[],
+	wordCount: number,
+	type: string
+) {
+	allData.value.push({
+		word: word,
+		characters: charData,
+		index: wordCount,
+		type: type,
+	});
+}
+
+function insertSpacerObject(wordCount: number) {
+	if (wordCount === words.value.all_words.length - 1) {
+		return;
+	}
+	allData.value.push({
+		word: " ",
+		characters: [
+			{
+				character: " ",
+				timing: 0,
+				status: "pending",
+				char_index: 0,
+				word_index: wordCount,
+			},
+		],
+		index: wordCount,
+		type: "separator",
+	});
+}
 
 function handleKeydown(e: KeyboardEvent) {
 	e.preventDefault();
@@ -663,7 +691,7 @@ function handleCorrectInput(key: string) {
 		fetchWords(selectedKey.value);
 	} else if (isEndWord(currentCorrectCharLocation, currentWordLength)) {
 		handleEndWord(currentWord, currentWordMetadata.type);
-	} else currentCharNum.value++;
+	} else incrementChar();
 	currentPendingWordIndex.value = currentCharNum.value;
 }
 
@@ -845,8 +873,7 @@ function handleEndWord(word: string, type: "separator" | "word") {
 	if (type === "word") {
 		collectedWords.push(word);
 	}
-	currentWordNum.value++;
-	currentCharNum.value = 0;
+	incrementWordAndResetChar();
 }
 
 function handleLeaveSession() {}
