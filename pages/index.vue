@@ -519,13 +519,18 @@ async function fetchWords(char = "") {
 	resetAllSessionData();
 	if (words.value && words.value.next_data) {
 		words.value = words.value.next_data;
+		setupData();
 		words.value.next_data = await fetchAndReturn();
 	} else {
 		words.value = await fetchAndReturn();
+		setupData();
 	}
-	fillData();
-	focusInput();
-	loading.value = false;
+
+	function setupData() {
+		fillData();
+		focusInput();
+		loading.value = false;
+	}
 
 	async function fetchAndReturn() {
 		const { data } = await useFetch(
@@ -954,7 +959,6 @@ function resetLiveInterval() {
 	liveRawWpm.value = 0;
 	liveWpm.value = 0;
 }
-
 
 // interval to get wpm at realtime
 function resetInterval() {
