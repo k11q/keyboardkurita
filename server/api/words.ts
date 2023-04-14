@@ -7,13 +7,21 @@ import os from "os";
 export default defineEventHandler(async (e) => {
 	const query = getQuery(e);
 
-	const limit = query.limit || 5000;
-	const num_words = query.num || 10;
-	const selected_char = query.char || "";
+	const limit: number = parseInt(query.limit as string) || 5000;
+	const num_words: number = parseInt(query.num as string) || 10;
+	const selected_char = (query.char as string) || "";
+	const difficulty: "easy" | "medium" | "hard" | "extra_hard" =
+		(query.difficulty as
+			| "easy"
+			| "medium"
+			| "hard"
+			| "extra_hard") || "easy";
 
 	async function loadIndexData() {
 		const indexData = {};
-		const fileStream = fs.createReadStream("public/data/dataset3_index.jsonl");
+		const fileStream = fs.createReadStream(
+			"public/data/dataset3_index.jsonl"
+		);
 
 		const rl = readline.createInterface({
 			input: fileStream,
@@ -78,7 +86,23 @@ export default defineEventHandler(async (e) => {
 	const cumWeights = [];
 	let totalWeight = 0;
 	for (let i = 0; i < indices.length; i++) {
-		totalWeight += 1 / (i + 1);
+		// Modify the weight calculation based on the difficulty level
+		switch (difficulty) {
+			case "easy":
+				totalWeight += 1 / (i + 1);
+				break;
+			case "medium":
+				totalWeight += 1 / Math.sqrt(i + 1);
+				break;
+			case "hard":
+				totalWeight += 1;
+				break;
+			case "extra_hard":
+				totalWeight += Math.sqrt(i + 1);
+				break;
+			default:
+				totalWeight += 1 / (i + 1);
+		}
 		cumWeights.push(totalWeight);
 	}
 
@@ -140,6 +164,9 @@ export default defineEventHandler(async (e) => {
 
 	fs.closeSync(fd);
 
-	const returnVal = {all_words:selectedWords,data:[...selectedWordObjects]}
-	return (returnVal);
+	const returnVal = {
+		all_words: selectedWords,
+		data: [...selectedWordObjects],
+	};
+	return returnVal;
 });

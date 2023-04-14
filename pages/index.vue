@@ -18,6 +18,20 @@
 					<div>Difficulty:</div>
 					<div class="relative">
 						<select
+							v-model="
+								selectedDifficulty
+							"
+							@change="
+								(e) => {
+									selectedDifficulty =
+										e
+											.target
+											.value;
+									fetchData(
+										selectedKey
+									);
+								}
+							"
 							class="text-base relative w-32 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
 						>
 							<option
@@ -65,12 +79,17 @@
 					<div class="relative">
 						<select
 							@change="
-								(e) =>
+								(e) => {
+									selectedKey =
+										e
+											.target
+											.value;
 									fetchData(
 										e
 											.target
 											.value
-									)
+									);
+								}
 							"
 							class="text-base relative w-32 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
 						>
@@ -194,12 +213,12 @@
 		/>
 		<div class="flex justify-center">
 			<div
-				class="rounded-xl bg-neutral-900 w-[70%] overflow-clip"
+				class="rounded-xl bg-neutral-900 w-[70%] overflow-clip mt-6"
 			>
 				<div
-					class="flex justify-between px-6 py-4 even:bg-neutral-800"
+					class="justify-between px-6 py-4 even:bg-neutral-800 grid grid-cols-10 text-sm text-neutral-400"
 				>
-					<div>
+					<div class="col-span-2">
 						<div>username</div>
 					</div>
 					<div>
@@ -220,13 +239,7 @@
 					<div>
 						<div>mode</div>
 					</div>
-					<div>
-						<div>info</div>
-					</div>
-					<div>
-						<div>tags</div>
-					</div>
-					<div>
+					<div class="col-span-2">
 						<div>date</div>
 					</div>
 				</div>
@@ -234,9 +247,9 @@
 					v-for="session in pastSessions
 						.slice()
 						.reverse()"
-					class="flex justify-between px-6 py-4 even:bg-neutral-800"
+					class="justify-between px-6 py-4 even:bg-neutral-800 grid grid-cols-10"
 				>
-					<div>
+					<div class="col-span-2">
 						<div>
 							{{
 								session.user_username
@@ -277,13 +290,7 @@
 					<div>
 						<div>{{ session.mode }}</div>
 					</div>
-					<div>
-						<div>wpm</div>
-					</div>
-					<div>
-						<div>wpm</div>
-					</div>
-					<div>
+					<div class="col-span-2">
 						<div>
 							{{
 								formatDistanceToNow(
@@ -305,29 +312,53 @@
 import type { SessionsInsert } from "../utils/db/sessions";
 import { formatDistanceToNow } from "date-fns";
 
+//types
+type DifficultyOptions = "easy" | "medium" | "hard" | "extra_hard";
+type ModesOptions = "word" | "time";
+type ConfigDurationOptions = 10 | 20 | 30 | 60 | undefined;
+type ConfigTotalWordsOptions = 10 | 25 | 50 | undefined;
+type ConfigSelectionOptions = "default" | "supabase-docs" | "supabase code";
+
+//db & auth
 const user = useSupabaseUser();
 const client = useSupabaseClient();
+
 // readonly
-const DIFFICULTY = ["Easy", "Medium", "Hard"];
-const MODES = ["Word", "Time", "Code"];
+const DIFFICULTY: DifficultyOptions[] = [
+	"easy",
+	"medium",
+	"hard",
+	"extra_hard",
+];
+const MODES: ModesOptions[] = ["word", "time"];
+const SELECTION: ConfigSelectionOptions[] = [
+	"default",
+	"supabase-docs",
+	"supabase code",
+];
 const PROFILE = ref();
-const USERNAME = computed(() => {
+const USERNAME: globalThis.Ref<string> = computed(() => {
 	return PROFILE.value ? PROFILE.value.username : "username";
 });
-//only change in one place
-const CAROTLEFT = ref(0);
-const CAROTTOP = ref(0);
 
 // game config
-const configDuration = ref(0);
-const configTotalWords = ref(25);
-const selectedDifficulty = ref("Easy");
-const selectedMode = ref("Word");
+const configDuration: globalThis.Ref<ConfigDurationOptions> = ref(undefined);
+const configTotalWords: globalThis.Ref<ConfigTotalWordsOptions> = ref(10);
+const selectedDifficulty: globalThis.Ref<DifficultyOptions> = ref("easy");
+const selectedMode: globalThis.Ref<ModesOptions> = ref("word");
+const selectedKey = ref("");
 
-let startTime = Date.now();
-let endTime = Date.now();
+// local config
+let maxExtraWords: number | undefined = undefined;
+let allowSkipWords = false;
+let allowSkipExtras = true;
+let skipIncorrectWords = false;
+let forgiveSkipCharacters = false;
+
+// collected data, we use this to pass to the final object before inserting to db
+let startTime: number | undefined = undefined;
+let endTime: number | undefined = undefined;
 let sessionRunning = ref(false);
-const allWords = ref([]);
 let wpm = 0;
 let cpm = 0;
 let raw = 0;
@@ -340,6 +371,7 @@ let totalMissed: 0;
 let totalCharacters = 0;
 let totalWords = 0;
 let collectedWords: string[] = [];
+//final object to insert to db
 const sessionsInsertData: SessionsInsert = {
 	//required
 	user_username: "",
@@ -370,36 +402,11 @@ const sessionsInsertData: SessionsInsert = {
 	keystroke_logs: [],
 	logs: [],
 };
-// start data, filled at start of session
-const outputData = computed((): SessionsInsert => {
-	return {
-		accuracy: accuracy,
-		user_username: USERNAME.value,
-		start_time: new Date(startTime)
-			.toISOString()
-			.toLocaleString("ms-MY"),
-		end_time: new Date(endTime)
-			.toISOString()
-			.toLocaleString("ms-MY"),
-		words: allWords.value,
-		char_performance: sortedDataset.value,
-		duration: configDuration.value,
-		logs: allData.value,
-		wpm: wpm,
-		cpm: 0,
-		consistency: 0,
-		difficulty: selectedDifficulty.value,
-		mode: selectedMode.value,
-		raw: raw,
-		total_characters: accuracies.value.total_chars,
-		total_corrects:
-			accuracies.value.total_chars -
-			accuracies.value.error_chars,
-		total_errors: accuracies.value.error_chars,
-		total_extras: totalExtras,
-		total_missed: 0,
-	};
-});
+
+// variable for logging wpm and row in interval
+let charactersPerThreeSecondCount = 0;
+
+// miscs
 let timeoutId;
 const pastSessions: SessionsInsert[] = ref([]);
 const isOpen = useState("isOpen", () => false);
@@ -410,31 +417,6 @@ const allData = ref([]);
 const currentWordNum = ref(0);
 const currentCharNum = ref(0);
 const currentPendingWordIndex = ref(0);
-const currentIncorrect = ref(false);
-const accuracies = computed(() => {
-	let initialValue = 0;
-	let total_chars = 0;
-	let correct_chars = 0;
-	let error_chars = 0;
-	const arr = allData.value.flatMap((data) => {
-		return data.characters;
-	});
-	for (const d of arr) {
-		initialValue += d.timing;
-		d.status === "error"
-			? error_chars++
-			: d.status === "correct"
-			? correct_chars++
-			: "";
-		total_chars++;
-	}
-	return {
-		total_time: parseFloat(initialValue.toFixed(2)),
-		total_chars,
-		correct_chars,
-		error_chars,
-	};
-});
 const keyOptions = [
 	"a",
 	"b",
@@ -526,7 +508,9 @@ async function fetchData(char = "") {
 	currentChar.value = char.charAt(0);
 	resetIndexes();
 	const { data } = await useFetch(
-		`api/words?char=${currentChar.value.charAt(0)}`
+		`api/words?char=${selectedKey.value.charAt(0)}&difficulty=${
+			selectedDifficulty.value
+		}`
 	);
 	words.value = data.value;
 	fillData();
@@ -536,14 +520,13 @@ async function fetchData(char = "") {
 
 function fillData() {
 	allData.value = [];
-	allWords.value = [];
 	if (words.value) {
-		allWords.value = words.value.all_words;
 		let wordCount = 0;
 		for (const word of words.value.all_words) {
 			const characters = word.split("");
 			const charData = [];
 			let charCount = 0;
+			// create char object
 			for (const char of characters) {
 				charData.push({
 					character: char,
@@ -554,12 +537,14 @@ function fillData() {
 				});
 				charCount++;
 			}
+			// push word object
 			allData.value.push({
 				word: word,
 				characters: charData,
 				index: wordCount,
 				type: "word",
 			});
+			// push separator object
 			if (wordCount !== words.value.all_words.length - 1) {
 				allData.value.push({
 					word: " ",
@@ -582,7 +567,6 @@ function fillData() {
 }
 
 function resetIndexes() {
-	fillData();
 	currentWordNum.value = 0;
 	currentCharNum.value = 0;
 	totalExtras = 0;
@@ -591,8 +575,7 @@ function resetIndexes() {
 
 watch(currentActive, () => {
 	if (currentActive.value.id !== "MasterInput") {
-		resetIndexes();
-		sessionRunning.value = false;
+		handleAfkOrOutOfFocus();
 	}
 });
 
@@ -610,9 +593,12 @@ function handleKeydown(e: KeyboardEvent) {
 	if (loading.value || !allData.value.length) {
 		return;
 	}
-	if (key === "Enter") {
+	// tab used to start new game
+	if (key === "Tab") {
 		fetchData();
-	} else if (isBackspace(e)) {
+	}
+	//else if (key === "Enter") {fetchData();}
+	else if (isBackspace(e)) {
 		handleBackspace();
 
 		function handleBackspace() {
@@ -660,7 +646,7 @@ function handleKeydown(e: KeyboardEvent) {
 			allData.value[currentWordLocation]?.characters[
 				currentCorrectCharLocation
 			]?.character;
-		const allowSkipExtras = true;
+		let currentIncorrect = false;
 		const isNoneExtra = () => {
 			if (
 				currentCharLocation ===
@@ -676,17 +662,34 @@ function handleKeydown(e: KeyboardEvent) {
 				allData.value[currentWordLocation].characters[
 					currentCharLocation
 				];
+			deleteExtras();
+			if (
+				isStartSession(
+					currentWordLocation,
+					currentCharLocation
+				)
+			) {
+				handleStartSession(
+					selectedMode.value,
+					selectedDifficulty.value,
+					{}
+				);
+				startTime = Date.now();
+				currentObj.timing = 0;
+			} else {
+				currentObj.timing =
+					(time - finalKeydown) / 1000;
+			}
 			if (allowSkipExtras) {
-				deleteExtras();
-
 				currentObj =
 					allData.value[currentWordLocation]
 						.characters[
 						currentCharLocation
 					];
-				if (!isNoneExtra() || currentIncorrect.value) {
+				// handle incorrect
+				if (!isNoneExtra() || currentIncorrect) {
 					currentObj.status = "error";
-					currentIncorrect.value = false;
+					currentIncorrect = false;
 				} else {
 					if (
 						currentWordMetadata &&
@@ -712,35 +715,17 @@ function handleKeydown(e: KeyboardEvent) {
 						currCharObj.count
 					).toFixed(2)
 				);
-
-				function deleteExtras() {
-					let totalExtras =
-						currentCorrectCharLocation -
-						currentCharLocation;
-					allData.value[
-						currentWordLocation
-					].characters.splice(
-						currentCharLocation,
-						totalExtras
-					);
-				}
 			}
-			if (
-				isStartSession(
-					currentWordLocation,
-					currentCharLocation
-				)
-			) {
-				startTime = Date.now();
-				handleStartSession(
-					selectedMode.value,
-					selectedDifficulty.value,
-					{}
+			function deleteExtras() {
+				let totalExtras =
+					currentCorrectCharLocation -
+					currentCharLocation;
+				allData.value[
+					currentWordLocation
+				].characters.splice(
+					currentCharLocation,
+					totalExtras
 				);
-				currentObj.timing = 0;
-			} else {
-				currentObj.timing =
-					(time - finalKeydown) / 1000;
 			}
 			if (
 				isEndSession(
@@ -750,21 +735,16 @@ function handleKeydown(e: KeyboardEvent) {
 					currentWordLength
 				)
 			) {
-				const timeTaken = parseFloat(
+				const calculatedWPM = parseFloat(
 					(
-						Math.round(
-							accuracies.value
-								.total_chars / 5
-						) /
+						Math.round(totalCorrects / 5) /
 						((time - startTime) / 1000 / 60)
 					).toFixed(2)
 				);
 				let acc = parseFloat(
 					(
-						(accuracies.value
-							.correct_chars /
-							accuracies.value
-								.total_chars) *
+						(totalCorrects /
+							totalCharacters) *
 						100
 					).toFixed(2)
 				);
@@ -772,15 +752,14 @@ function handleKeydown(e: KeyboardEvent) {
 				raw = parseFloat(
 					(
 						Math.round(
-							(accuracies.value
-								.total_chars +
+							(totalCharacters +
 								totalExtras) /
 								5
 						) /
 						((time - startTime) / 1000 / 60)
 					).toFixed(2)
 				);
-				wpm = timeTaken;
+				wpm = calculatedWPM;
 				consistency = parseFloat(
 					((wpm / raw) * 100).toFixed(2)
 				);
@@ -859,13 +838,13 @@ function handleKeydown(e: KeyboardEvent) {
 				sessionRunning.value = true;
 				resetInterval();
 				timeoutId = setTimeout(updateWPM, 1000);
-				resetSessionData();
+				resetAllSessionData();
+				fillData();
 				fillInitialData(
 					mode,
 					difficulty,
 					game_metadata
 				);
-
 				function fillInitialData(
 					mode: string,
 					difficulty: string,
@@ -887,21 +866,6 @@ function handleKeydown(e: KeyboardEvent) {
 					sessionsInsertData.game_metadata =
 						game_metadata;
 				}
-			}
-
-			function resetSessionData() {
-				collectedWords = [];
-				totalCharacters = 0;
-				totalCorrects = 0;
-				totalErrors = 0;
-				totalWords = 0;
-				totalExtras = 0;
-				totalMissed = 0;
-				wpm = 0;
-				cpm = 0;
-				raw = 0;
-				accuracy = 0;
-				consistency = 0;
 			}
 
 			function handleEndSession() {
@@ -941,7 +905,7 @@ function handleKeydown(e: KeyboardEvent) {
 					words: string[],
 					logs: []
 				) {
-					if (mode === "Words") {
+					if (mode === "word") {
 						return words;
 					} else {
 					}
@@ -1042,10 +1006,10 @@ function handleKeydown(e: KeyboardEvent) {
 		}
 
 		function handleIncorrectInput() {
-			if (!currentIncorrect.value) {
+			if (!currentIncorrect) {
 				totalErrors++;
 			}
-			currentIncorrect.value = true;
+			currentIncorrect = true;
 			allData.value[currentWordNum.value].characters.splice(
 				currentPendingWordIndex.value,
 				0,
@@ -1078,9 +1042,34 @@ function handleKeydown(e: KeyboardEvent) {
 
 function handleLeaveSession() {}
 
-function handleAfk() {}
+function handleAfkOrOutOfFocus() {
+	resetAllSessionData();
+	resetIndexes();
+	fillData()
+	sessionRunning.value = false;
+}
+
+function resetAllSessionData() {
+	startTime = undefined;
+	endTime = undefined;
+	wpm = 0;
+	cpm = 0;
+	raw = 0;
+	accuracy = 0;
+	consistency = 0;
+	totalCorrects = 0;
+	totalErrors = 0;
+	totalExtras = 0;
+	totalMissed: 0;
+	totalCharacters = 0;
+	totalWords = 0;
+	collectedWords = [];
+}
 
 //manage carot
+const CAROTLEFT = ref(0);
+const CAROTTOP = ref(0);
+
 onMounted(() => {
 	function setCarotPosition() {
 		const cursorKey = document.querySelector(".cursor-key");
@@ -1097,11 +1086,11 @@ onMounted(() => {
 	requestAnimationFrame(setCarotPosition);
 });
 
-watch(sessionRunning, () => {});
-
 // get profile data from auth
 watchEffect(() => {
 	if (user.value) {
+		getProfile();
+
 		async function getProfile() {
 			const { data, error } = await client
 				.from("profile")
@@ -1113,7 +1102,6 @@ watchEffect(() => {
 			}
 			PROFILE.value = data;
 		}
-		getProfile();
 	}
 });
 </script>

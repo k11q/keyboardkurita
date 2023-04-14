@@ -56,33 +56,42 @@ export interface Database {
         Row: {
           created_at: string | null
           id: number
+          loser_xp_loss: number
           player1: string | null
           player2: string | null
+          winner_xp_gains: number
         }
         Insert: {
           created_at?: string | null
           id?: number
+          loser_xp_loss: number
           player1?: string | null
           player2?: string | null
+          winner_xp_gains: number
         }
         Update: {
           created_at?: string | null
           id?: number
+          loser_xp_loss?: number
           player1?: string | null
           player2?: string | null
+          winner_xp_gains?: number
         }
       }
       profile: {
         Row: {
           country: string | null
           created_at: string | null
+          elo_rating: number
           first_name: string | null
           friends: string[] | null
           id: number
           last_name: string | null
           last_online: string | null
+          level: number
           profile_picture: string | null
           status: string | null
+          total_xp: number
           twitter_url: string | null
           user_id: string
           username: string
@@ -90,13 +99,16 @@ export interface Database {
         Insert: {
           country?: string | null
           created_at?: string | null
+          elo_rating?: number
           first_name?: string | null
           friends?: string[] | null
           id?: number
           last_name?: string | null
           last_online?: string | null
+          level?: number
           profile_picture?: string | null
           status?: string | null
+          total_xp?: number
           twitter_url?: string | null
           user_id: string
           username: string
@@ -104,16 +116,39 @@ export interface Database {
         Update: {
           country?: string | null
           created_at?: string | null
+          elo_rating?: number
           first_name?: string | null
           friends?: string[] | null
           id?: number
           last_name?: string | null
           last_online?: string | null
+          level?: number
           profile_picture?: string | null
           status?: string | null
+          total_xp?: number
           twitter_url?: string | null
           user_id?: string
           username?: string
+        }
+      }
+      selections: {
+        Row: {
+          created_at: string | null
+          endpoint: string | null
+          id: number
+          name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint?: string | null
+          id?: number
+          name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string | null
+          id?: number
+          name?: string | null
         }
       }
       sessions: {
@@ -130,8 +165,9 @@ export interface Database {
           id: number
           interval_performance: Json | null
           keystroke_logs: Json | null
-          logs: Json[]
+          logs: Json[] | null
           mode: string | null
+          multiplayer_id: number | null
           raw: number | null
           start_time: string
           total_characters: number
@@ -145,6 +181,7 @@ export interface Database {
           word_performance: Json | null
           words: string[]
           wpm: number
+          xp_gains: number | null
         }
         Insert: {
           accuracy: number
@@ -159,8 +196,9 @@ export interface Database {
           id?: number
           interval_performance?: Json | null
           keystroke_logs?: Json | null
-          logs: Json[]
+          logs?: Json[] | null
           mode?: string | null
+          multiplayer_id?: number | null
           raw?: number | null
           start_time: string
           total_characters?: number
@@ -174,6 +212,7 @@ export interface Database {
           word_performance?: Json | null
           words: string[]
           wpm: number
+          xp_gains?: number | null
         }
         Update: {
           accuracy?: number
@@ -188,8 +227,9 @@ export interface Database {
           id?: number
           interval_performance?: Json | null
           keystroke_logs?: Json | null
-          logs?: Json[]
+          logs?: Json[] | null
           mode?: string | null
+          multiplayer_id?: number | null
           raw?: number | null
           start_time?: string
           total_characters?: number
@@ -203,6 +243,7 @@ export interface Database {
           word_performance?: Json | null
           words?: string[]
           wpm?: number
+          xp_gains?: number | null
         }
       }
       subwords: {
