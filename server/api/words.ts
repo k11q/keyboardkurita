@@ -173,9 +173,13 @@ export default defineEventHandler(async (e) => {
 			}
 		}
 
+		const combinedString = selectedWords.join("");
+		const numCharacters = combinedString.length;
+
 		return {
 			all_words: selectedWords,
 			data: [...selectedWordObjects],
+			no_characters: numCharacters,
 		};
 	}
 

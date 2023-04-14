@@ -84,7 +84,7 @@
 								Any key
 							</option>
 							<option
-								v-for="key in keyOptions"
+								v-for="key in KEYOPTIONS"
 								:value="key"
 							>
 								{{
@@ -337,6 +337,22 @@ type ModesOptions = "word" | "time";
 type ConfigDurationOptions = 10 | 20 | 30 | 60 | undefined;
 type ConfigTotalWordsOptions = 10 | 25 | 50 | undefined;
 type ConfigSelectionOptions = "english_50k" | "supabase-docs" | "supabase code";
+type CharLogStatus = "error" | "correct" | "pending" | "extra";
+type KeystrokeLog = { character: string; time: number; status: CharLogStatus };
+type WordType = "separator" | "word";
+type CharacterMetadata = {
+	character: string;
+	timing: number;
+	status: CharLogStatus;
+	char_index: number;
+	word_index: number;
+};
+type WordMetadata = {
+	word: string;
+	characters: CharacterMetadata[];
+	status: CharLogStatus;
+	type: WordType;
+};
 
 //db & auth
 const user = useSupabaseUser();
@@ -354,6 +370,35 @@ const SELECTION: ConfigSelectionOptions[] = [
 	"english_50k",
 	"supabase-docs",
 	"supabase code",
+];
+const KEYOPTIONS = [
+	"a",
+	"b",
+	"c",
+	"d",
+	"e",
+	"f",
+	"g",
+	"h",
+	"i",
+	"j",
+	"k",
+	"l",
+	"m",
+	"n",
+	"o",
+	"p",
+	"q",
+	"r",
+	"s",
+	"t",
+	"u",
+	"v",
+	"w",
+	"x",
+	"y",
+	"z",
+	" ",
 ];
 const PROFILE = ref();
 const USERNAME: globalThis.Ref<string> = computed(() => {
@@ -382,19 +427,7 @@ let punctuation = false;
 let numbers = false;
 
 // collected data, we use this to pass to the final object before inserting to db
-let startTime: number | undefined = undefined;
-let endTime: number | undefined = undefined;
 let sessionRunning = ref(false);
-let wpm = 0;
-let cpm = 0;
-let raw = 0;
-let accuracy = 0;
-let consistency = 0;
-let totalCorrects = 0;
-let totalErrors = 0;
-let totalExtras = 0;
-let totalMissed: 0;
-let totalCharacters = 0;
 let totalWords = 0;
 let collectedWords: string[] = [];
 //final object to insert to db
@@ -439,76 +472,25 @@ const liveWpm = ref(0);
 const liveRawWpm = ref(0);
 const liveTimer = ref(0);
 
-// miscs
-let timeoutId;
-const pastSessions: SessionsInsert[] = ref([]);
-const isOpen = useState("isOpen", () => false);
 const currentActive = ref();
-const loading = ref(false);
-const allData = ref([]);
+const allData: globalThis.Ref<WordMetadata[]> = ref([]);
 const currentWordNum = ref(0);
 const currentCharNum = ref(0);
 const currentPendingWordIndex = ref(0);
 const words = ref();
-const nextWords = ref();
-const keyOptions = [
-	"a",
-	"b",
-	"c",
-	"d",
-	"e",
-	"f",
-	"g",
-	"h",
-	"i",
-	"j",
-	"k",
-	"l",
-	"m",
-	"n",
-	"o",
-	"p",
-	"q",
-	"r",
-	"s",
-	"t",
-	"u",
-	"v",
-	"w",
-	"x",
-	"y",
-	"z",
-	" ",
-];
-const datasetObject = ref([
-	{ char: "a", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "b", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "c", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "d", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "e", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "f", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "g", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "h", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "i", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "j", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "k", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "l", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "m", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "n", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "o", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "p", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "q", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "r", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "s", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "t", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "u", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "v", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "w", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "x", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "y", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: "z", count: 0, value: 0, totalValue: 0, wpm: 0 },
-	{ char: " ", count: 0, value: 0, totalValue: 0, wpm: 0 },
-]);
+let startTime: number;
+let endTime: number;
+let currentIncorrect = false;
+
+// ui states
+const isOpen = useState("isOpen", () => false);
+const loading = ref(false);
+
+//temporary placeholder for db
+const pastSessions: globalThis.Ref<SessionsInsert[]> = ref([]);
+
+// miscs
+let timeoutId;
 
 async function fetchWords(char = "") {
 	loading.value = true;
@@ -627,188 +609,187 @@ function handleKeydown(e: KeyboardEvent) {
 	// tab used to start new game
 	if (key === "Tab") {
 		fetchWords();
-	}
-	//else if (key === "Enter") {fetchWords();}
-	else if (isBackspace(e)) {
+	} else if (isBackspace(e)) {
 		handleBackspace();
 	} else if (isRestrictedKeys(e)) {
 		console.log(key);
 	} else {
-		const time = Date.now();
-		const currentWordLocation = currentWordNum.value;
-		const currentWordMetadata = allData.value[currentWordLocation];
-		currentWordMetadata && currentWordMetadata.type !== "separator"
-			? totalCharacters++
-			: undefined;
-		const currentWord = allData.value[currentWordLocation]?.word;
-		const currentCharLocation = currentCharNum.value;
-		const currentCharMetadata =
-			allData.value[currentWordLocation]?.characters[
-				currentCharLocation
-			];
-		const currentChar = currentCharMetadata?.character;
-		totalWords = allData.value.length;
-		const currentWordLength =
-			allData.value[currentWordLocation]?.characters.length;
-		const currentCorrectCharWordLocation = 0;
-		const currentCorrectCharLocation =
-			currentPendingWordIndex.value;
-		const currentCorrectChar =
-			allData.value[currentWordLocation]?.characters[
-				currentCorrectCharLocation
-			]?.character;
-		let currentIncorrect = false;
-		const isNoneExtra = () => {
-			if (
-				currentCharLocation ===
-				currentCorrectCharLocation
-			) {
-				return true;
-			}
-			return false;
-		};
-		if (key === currentCorrectChar) {
-			let currentObj =
-				allData.value[currentWordLocation]?.characters[
-					currentCharLocation
-				];
-			deleteExtras();
-			if (
-				isStartSession(
-					currentWordLocation,
-					currentCharLocation
-				)
-			) {
-				handleStartSession(
-					selectedMode.value,
-					selectedDifficulty.value,
-					{}
-				);
-				startTime = Date.now();
-				currentObj.timing = 0;
-			} else {
-				currentObj.timing =
-					(time - finalKeydown) / 1000;
-			}
-			if (allowSkipExtras) {
-				currentObj =
-					allData.value[currentWordLocation]
-						.characters[
-						currentCharLocation
-					];
-				// handle incorrect
-				if (!isNoneExtra() || currentIncorrect) {
-					currentObj.status = "error";
-					currentIncorrect = false;
-				} else {
-					if (
-						currentWordMetadata &&
-						currentWordMetadata.type !==
-							"separator"
-					) {
-						totalCorrects++;
-					}
-					currentObj.status = "correct";
-				}
-				const currCharObj = datasetObject.value.find(
-					(i) => i.char === e.key
-				);
-				currCharObj.count++;
-				currCharObj.totalValue += parseFloat(
-					((time - finalKeydown) / 1000).toFixed(
-						2
-					)
-				);
-				currCharObj.value = parseFloat(
-					(
-						currCharObj.totalValue /
-						currCharObj.count
-					).toFixed(2)
-				);
-			}
-			function deleteExtras() {
-				let totalExtras =
-					currentCorrectCharLocation -
-					currentCharLocation;
-				allData.value[
-					currentWordLocation
-				]?.characters.splice(
-					currentCharLocation,
-					totalExtras
-				);
-			}
-			if (
-				isEndSession(
-					currentWordLocation,
-					currentCharLocation,
-					totalWords,
-					currentWordLength
-				)
-			) {
-				const calculatedWPM = parseFloat(
-					(
-						Math.round(
-							(totalCorrects +
-								totalErrors) /
-								5
-						) /
-						((time - startTime) / 1000 / 60)
-					).toFixed(2)
-				);
-				let acc = parseFloat(
-					(
-						(totalCorrects /
-							totalCharacters) *
-						100
-					).toFixed(2)
-				);
-				accuracy = acc;
-				raw = parseFloat(
-					(
-						Math.round(
-							(totalCharacters +
-								totalExtras) /
-								5
-						) /
-						((time - startTime) / 1000 / 60)
-					).toFixed(2)
-				);
-				wpm = calculatedWPM;
-				consistency = parseFloat(
-					((wpm / raw) * 100).toFixed(2)
-				);
-				handleEndSession();
-				fetchWords(selectedKey.value);
-			} else if (
-				isEndWord(
-					currentCorrectCharLocation,
-					currentWordLength
-				)
-			) {
-				handleEndWord(
-					currentWord,
-					currentWordMetadata.type
-				);
-				currentWordNum.value++;
-				currentCharNum.value = 0;
-			} else currentCharNum.value++;
-			currentPendingWordIndex.value = currentCharNum.value;
-		}
-		// handle incorrect keys
-		else {
-			handleIncorrectInput();
-		}
-
-		function handleIncorrectInput() {
-			if (!currentIncorrect) {
-				totalErrors++;
-			}
-			currentIncorrect = true;
-			insertExtraChar(key);
-			currentPendingWordIndex.value++;
-		}
-		finalKeydown = time;
+		handleInput(key);
 	}
+}
+
+function handleInput(key: string) {
+	const time = Date.now();
+	addTotalCharacters();
+	const currentCorrectChar =
+		allData.value[currentWordNum.value]?.characters[
+			currentPendingWordIndex.value
+		]?.character;
+	totalWords = allData.value.length;
+	if (key === currentCorrectChar) {
+		handleCorrectInput(key);
+	} else {
+		handleIncorrectInput(key);
+	}
+	finalKeydown = time;
+}
+
+function addTotalCharacters() {
+	const currentWordMetadata = allData.value[currentWordNum.value];
+	if (currentWordMetadata && currentWordMetadata.type !== "separator") {
+		sessionsInsertData.total_characters++;
+	}
+}
+
+function handleCorrectInput(key: string) {
+	const time = Date.now();
+	const metadata = getCurrentMetadata();
+	const currentWordLocation = currentWordNum.value;
+	const currentWordMetadata = allData.value[currentWordLocation];
+	const currentWord = allData.value[currentWordLocation]?.word;
+	const currentWordLength =
+		allData.value[currentWordLocation]?.characters.length;
+	const currentCorrectCharLocation = currentPendingWordIndex.value;
+	const noneExtra = isNoneExtra(metadata);
+	deleteExtras(metadata);
+	//check if start session
+	if (isStartSession(metadata)) {
+		handleStartSession();
+	}
+	updateTiming(time, metadata);
+	updateStatus(metadata, noneExtra);
+	if (isEndSession(metadata)) {
+		handleEndSession(time);
+		fetchWords(selectedKey.value);
+	} else if (isEndWord(currentCorrectCharLocation, currentWordLength)) {
+		handleEndWord(currentWord, currentWordMetadata.type);
+	} else currentCharNum.value++;
+	currentPendingWordIndex.value = currentCharNum.value;
+}
+
+type InputMetadata = {
+	currentWordLocation: number;
+	currentCharLocation: number;
+	currentCorrectCharLocation: number;
+	currentWordMetadata: WordMetadata;
+	currentWordLength: number;
+	currentCharMetadata: CharacterMetadata;
+};
+
+function getCurrentMetadata(): InputMetadata {
+	const currentWordLocation = currentWordNum.value;
+	const currentCharLocation = currentCharNum.value;
+	const currentCorrectCharLocation = currentPendingWordIndex.value;
+	const currentWordMetadata = allData.value[
+		currentWordLocation
+	] as WordMetadata;
+	const currentWordLength = allData.value[currentWordLocation]?.characters
+		.length as number;
+	const currentCharMetadata =
+		allData.value[currentWordLocation]?.characters[
+			currentCharLocation
+		];
+
+	return {
+		currentWordLocation,
+		currentCharLocation,
+		currentCorrectCharLocation,
+		currentWordMetadata,
+		currentWordLength,
+		currentCharMetadata,
+	};
+}
+
+function isNoneExtra(metadata: InputMetadata) {
+	return (
+		metadata.currentCharLocation ===
+		metadata.currentCorrectCharLocation
+	);
+}
+
+function updateTiming(time: number, metadata: InputMetadata) {
+	const currentObj =
+		allData.value[metadata.currentWordLocation]?.characters[
+			metadata.currentCharLocation
+		];
+	currentObj.timing = isStartSession(
+		metadata.currentWordLocation,
+		metadata.currentCharLocation
+	)
+		? 0
+		: (time - finalKeydown) / 1000;
+}
+
+function updateStatus(metadata: InputMetadata, isNoneExtra: boolean) {
+	const currentObj =
+		allData.value[metadata.currentWordLocation]?.characters[
+			metadata.currentCharLocation
+		];
+	if (!isNoneExtra || currentIncorrect) {
+		currentObj.status = "error";
+		currentIncorrect = false;
+	} else {
+		updateTotalCorrects(metadata.currentWordMetadata);
+		currentObj.status = "correct";
+	}
+}
+
+function updateTotalCorrects(currentWordMetadata: WordMetadata) {
+	if (currentWordMetadata && currentWordMetadata.type !== "separator") {
+		sessionsInsertData.total_corrects++;
+	}
+}
+/*
+function updateDataset(key, time) {
+	const currCharObj = datasetObject.value.find((i) => i.char === key);
+	currCharObj.count++;
+	currCharObj.totalValue += parseFloat(
+		((time - finalKeydown) / 1000).toFixed(2)
+	);
+	currCharObj.value = parseFloat(
+		(currCharObj.totalValue / currCharObj.count).toFixed(2)
+	);
+}
+*/
+
+function incrementWordAndResetChar() {
+	currentWordNum.value++;
+	currentCharNum.value = 0;
+}
+
+function incrementChar() {
+	currentCharNum.value++;
+}
+
+function updatePendingWordIndex() {
+	currentPendingWordIndex.value = currentCharNum.value;
+}
+
+function handleIncorrectInput(key: string) {
+	if (!currentIncorrect) {
+		sessionsInsertData.total_errors++;
+	}
+	currentIncorrect = true;
+	insertExtraChar(key);
+	currentPendingWordIndex.value++;
+}
+
+// function to delete extra values
+function deleteExtras(metadata: InputMetadata) {
+	if (
+		metadata.currentCorrectCharLocation -
+			metadata.currentCharLocation ===
+		0
+	) {
+		return;
+	}
+	let totalExtras =
+		metadata.currentCorrectCharLocation -
+		metadata.currentCharLocation;
+	allData.value[metadata.currentWordLocation]?.characters.splice(
+		metadata.currentCharLocation,
+		totalExtras
+	);
 }
 
 function handleBackspace() {
@@ -826,11 +807,10 @@ function handleBackspace() {
 	}
 }
 
-function handleStartSession(
-	mode: string,
-	difficulty: string,
-	game_metadata: {}
-) {
+function handleStartSession() {
+	const mode = selectedMode.value;
+	const difficulty = selectedDifficulty.value;
+	const game_metadata = {};
 	sessionRunning.value = true;
 	resetInterval();
 	resetLiveInterval();
@@ -845,24 +825,28 @@ function fillInitialData(mode: string, difficulty: string, game_metadata: {}) {
 	sessionsInsertData.user_id = PROFILE.value?.id;
 	sessionsInsertData.start_time = new Date()
 		.toISOString()
-		.toLocaleString("ms-MY");
+		.toLocaleString();
+	sessionsInsertData.total_characters = 1;
+	startTime = Date.now();
 	sessionsInsertData.mode = mode;
 	sessionsInsertData.difficulty = difficulty;
 	sessionsInsertData.game_metadata = game_metadata;
 }
 
-function handleEndSession() {
-	endTime = Date.now();
-	fillFinalData();
+function handleEndSession(time: number) {
+	fillFinalData(time);
 	sessionRunning.value = false;
 	// [TEMPORARY] fill the array instead of pushing to db
 	pastSessions.value.push(JSON.parse(JSON.stringify(sessionsInsertData)));
 	//insertSessionToDatabase()
 }
+
 function handleEndWord(word: string, type: "separator" | "word") {
 	if (type === "word") {
 		collectedWords.push(word);
 	}
+	currentWordNum.value++;
+	currentCharNum.value = 0;
 }
 
 function handleLeaveSession() {}
@@ -880,22 +864,24 @@ function insertExtraChar(key: string) {
 		0,
 		{ character: key, timing: 0, status: "extra" }
 	);
-	totalExtras++;
+	sessionsInsertData.total_extras++;
 }
 
 function resetAllSessionData() {
+	sessionsInsertData.start_time = undefined;
 	startTime = undefined;
+	sessionsInsertData.end_time = undefined;
 	endTime = undefined;
-	wpm = 0;
-	cpm = 0;
-	raw = 0;
-	accuracy = 0;
-	consistency = 0;
-	totalCorrects = 0;
-	totalErrors = 0;
-	totalExtras = 0;
-	totalMissed: 0;
-	totalCharacters = 0;
+	sessionsInsertData.wpm = 0;
+	sessionsInsertData.cpm = 0;
+	sessionsInsertData.raw = 0;
+	sessionsInsertData.accuracy = 0;
+	sessionsInsertData.consistency = 0;
+	sessionsInsertData.total_corrects = 0;
+	sessionsInsertData.total_errors = 0;
+	sessionsInsertData.total_extras = 0;
+	sessionsInsertData.total_missed = 0;
+	sessionsInsertData.total_characters = 0;
 	totalWords = 0;
 	collectedWords = [];
 }
@@ -903,28 +889,57 @@ function resetAllSessionData() {
 function resetIndexes() {
 	currentWordNum.value = 0;
 	currentCharNum.value = 0;
-	totalExtras = 0;
+	sessionsInsertData.total_extras = 0;
 	currentPendingWordIndex.value = 0;
 }
 
 //db insert
-function fillFinalData() {
+function fillFinalData(time: number) {
+	const corrects = sessionsInsertData.total_corrects;
+	const errors = sessionsInsertData.total_errors;
+	const extras = sessionsInsertData.total_extras;
+	sessionsInsertData.total_characters = getTotalCharacters(
+		selectedMode.value
+	);
+	const totalCharacters = sessionsInsertData.total_characters;
+	const elapsedTime = time - startTime;
+	sessionsInsertData.wpm = getWpm(corrects + errors, elapsedTime);
+	sessionsInsertData.accuracy = getAccuracy(corrects, totalCharacters);
+	sessionsInsertData.raw = getRaw(totalCharacters + extras, elapsedTime);
+	sessionsInsertData.consistency = getConsistency(
+		sessionsInsertData.wpm,
+		sessionsInsertData.raw
+	);
+	endTime = Date.now();
 	sessionsInsertData.end_time = new Date()
 		.toISOString()
 		.toLocaleString("ms-MY", {});
 	sessionsInsertData.duration = (endTime - startTime) / 1000 / 60;
 	sessionsInsertData.words = collectedWords;
-	sessionsInsertData.total_characters = totalCharacters;
-	sessionsInsertData.total_corrects = totalCorrects;
-	sessionsInsertData.total_errors = totalErrors;
 	sessionsInsertData.total_words = totalWords;
-	sessionsInsertData.total_extras = totalExtras;
-	sessionsInsertData.total_missed = totalMissed;
-	sessionsInsertData.wpm = wpm;
-	sessionsInsertData.cpm = cpm;
-	sessionsInsertData.raw = raw;
-	sessionsInsertData.accuracy = accuracy;
-	sessionsInsertData.consistency = consistency;
+}
+
+function getWpm(totalAchievedCharacters: number, elapsedTime: number) {
+	return parseFloat(
+		calculateWPM(totalAchievedCharacters, elapsedTime).toFixed(2)
+	);
+}
+
+function getAccuracy(corrects: number, totalCharacters: number) {
+	return parseFloat(((corrects / totalCharacters) * 100).toFixed(2));
+}
+
+function getRaw(totalCharacters: number, elapsedTime: number) {
+	return parseFloat(
+		(
+			Math.round(totalCharacters / 5) /
+			(elapsedTime / 1000 / 60)
+		).toFixed(2)
+	);
+}
+
+function getConsistency(wpm: number, raw: number) {
+	return parseFloat(((wpm / raw) * 100).toFixed(2));
 }
 
 async function insertSessionToDatabase() {
@@ -946,6 +961,7 @@ function updateDifficultyAndFetch(e: Event) {
 	selectedDifficulty.value = difficulty;
 	fetchFreshWords(difficulty);
 }
+
 function updateKeyAndFetch(e: Event) {
 	const element = e.target as HTMLSelectElement;
 	const key = element.value;
@@ -979,19 +995,21 @@ function updateWPM() {
 			pastSessions.value[pastSessions.value.length - 1].wpm;
 		return;
 	}
-	if (startTime === null) {
+	if (!startTime) {
 		startTime = Date.now();
 	}
 	const elapsedTime = Date.now() - startTime;
 
 	const wpm = parseFloat(
-		calculateWPM(totalCorrects + totalErrors, elapsedTime).toFixed(
-			2
-		)
+		calculateWPM(
+			sessionsInsertData.total_corrects +
+				sessionsInsertData.total_errors,
+			elapsedTime
+		).toFixed(2)
 	);
 	const rawWPM = parseFloat(
 		calculateRawWPM(
-			totalCharacters + totalExtras,
+			sessionsInsertData.total_characters,
 			elapsedTime
 		).toFixed(2)
 	);
@@ -1032,27 +1050,31 @@ onMounted(() => {
 });
 
 // get profile data from auth
-watchEffect(() => {
+watchEffect(async () => {
 	if (user.value) {
-		getProfile();
-
-		async function getProfile() {
-			const { data, error } = await client
-				.from("profile")
-				.select()
-				.eq("user_id", user.value.id)
-				.single();
-			if (error) {
-				console.log(error);
-			}
-			PROFILE.value = data;
-		}
+		PROFILE.value = await getProfile(user.value.id);
 	}
 });
 
+async function getProfile(userId: string) {
+	const { data, error } = await client
+		.from("profile")
+		.select()
+		.eq("user_id", userId)
+		.single();
+	if (error) {
+		console.log(error);
+	}
+	return data;
+}
+
 // pure functions and checkers
-function getWords(mode: string, words: string[], logs: []) {
-	return mode === "word" ? words : undefined;
+function getTotalWords(mode: string): string[] {
+	return mode === "word" ? words.value?.all_words : undefined;
+}
+
+function getTotalCharacters(mode: string): number {
+	return mode === "word" ? words.value?.no_characters : undefined;
 }
 
 function getDuration(mode: string, words: string[], logs: []) {
@@ -1072,22 +1094,18 @@ function isBackspace(e: KeyboardEvent) {
 	return e.keyCode == 8 || e.keyCode === 46;
 }
 
-function isStartSession(
-	currentWordLocation: number,
-	currentCharLocation: number
-) {
-	return currentWordLocation === 0 && currentCharLocation === 0;
+function isStartSession(metadata: InputMetadata) {
+	return (
+		metadata.currentWordLocation === 0 &&
+		metadata.currentCharLocation === 0
+	);
 }
 
-function isEndSession(
-	currentWordLocation: number,
-	currentCharLocation: number,
-	totalWords: number,
-	currentWordLength: number
-) {
+function isEndSession(metadata: InputMetadata) {
+	// if mode === word
 	return (
-		currentWordLocation === totalWords - 1 &&
-		currentCharLocation === currentWordLength - 1
+		metadata.currentWordLocation === allData.value.length - 1 &&
+		metadata.currentCharLocation === metadata.currentWordLength - 1
 	);
 }
 
@@ -1100,8 +1118,8 @@ function focusInput() {
 	document.getElementById("MasterInput")?.focus();
 }
 
-function calculateWPM(correctChars: number, elapsedTime: number) {
-	const words = correctChars / 5;
+function calculateWPM(totalChars: number, elapsedTime: number) {
+	const words = totalChars / 5;
 	const minutes = elapsedTime / 1000 / 60;
 	return words / minutes;
 }
