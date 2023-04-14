@@ -125,16 +125,34 @@
 				class="grid grid-cols-3 gap-4 [&>*]:flex [&>*]:flex-col [&>*]:items-center min-w-[300px]"
 			>
 				<div>
-					<div class="text-neutral-400 text-sm">time</div>
-					<div class="text-2xl font-medium font-mono">{{ liveTimer }}</div>
+					<div class="text-neutral-400 text-sm">
+						time
+					</div>
+					<div
+						class="text-2xl font-medium font-mono"
+					>
+						{{ liveTimer }}
+					</div>
 				</div>
 				<div>
-					<div class="text-neutral-400 text-sm">wpm</div>
-					<div class="text-2xl font-medium font-mono">{{ liveWpm.toFixed(1) }}</div>
+					<div class="text-neutral-400 text-sm">
+						wpm
+					</div>
+					<div
+						class="text-2xl font-medium font-mono"
+					>
+						{{ liveWpm.toFixed(1) }}
+					</div>
 				</div>
 				<div>
-					<div class="text-neutral-400 text-sm">raw</div>
-					<div class="text-2xl font-medium font-mono">{{ liveRawWpm.toFixed(1) }}</div>
+					<div class="text-neutral-400 text-sm">
+						raw
+					</div>
+					<div
+						class="text-2xl font-medium font-mono"
+					>
+						{{ liveRawWpm.toFixed(1) }}
+					</div>
 				</div>
 			</div>
 		</div>
@@ -646,7 +664,7 @@ function handleKeydown(e: KeyboardEvent) {
 		};
 		if (key === currentCorrectChar) {
 			let currentObj =
-				allData.value[currentWordLocation].characters[
+				allData.value[currentWordLocation]?.characters[
 					currentCharLocation
 				];
 			deleteExtras();
@@ -709,7 +727,7 @@ function handleKeydown(e: KeyboardEvent) {
 					currentCharLocation;
 				allData.value[
 					currentWordLocation
-				].characters.splice(
+				]?.characters.splice(
 					currentCharLocation,
 					totalExtras
 				);
@@ -724,7 +742,11 @@ function handleKeydown(e: KeyboardEvent) {
 			) {
 				const calculatedWPM = parseFloat(
 					(
-						Math.round(totalCorrects / 5) /
+						Math.round(
+							(totalCorrects +
+								totalErrors) /
+								5
+						) /
 						((time - startTime) / 1000 / 60)
 					).toFixed(2)
 				);
@@ -806,6 +828,7 @@ function handleStartSession(
 ) {
 	sessionRunning.value = true;
 	resetInterval();
+	resetLiveInterval();
 	timeoutId = setTimeout(updateWPM, 1000);
 	resetAllSessionData();
 	fillData();
@@ -925,6 +948,14 @@ function updateKeyAndFetch(e: Event) {
 	fetchFreshWords(key);
 }
 
+// function resetlivetimer live wpm
+function resetLiveInterval() {
+	liveTimer.value = 0;
+	liveRawWpm.value = 0;
+	liveWpm.value = 0;
+}
+
+
 // interval to get wpm at realtime
 function resetInterval() {
 	if (timeoutId) {
@@ -938,6 +969,10 @@ function updateWPM() {
 	if (!sessionRunning.value) {
 		clearTimeout(timeoutId);
 		intervalCount = 1;
+		liveRawWpm.value =
+			pastSessions.value[pastSessions.value.length - 1].raw;
+		liveWpm.value =
+			pastSessions.value[pastSessions.value.length - 1].wpm;
 		return;
 	}
 	if (startTime === null) {
@@ -946,20 +981,17 @@ function updateWPM() {
 	const elapsedTime = Date.now() - startTime;
 
 	const wpm = parseFloat(
-		calculateWPM(totalCorrects, elapsedTime).toFixed(2)
+		calculateWPM(totalCorrects + totalErrors, elapsedTime).toFixed(
+			2
+		)
 	);
 	const rawWPM = parseFloat(
-		calculateRawWPM(totalCharacters, elapsedTime).toFixed(2)
+		calculateRawWPM(
+			totalCharacters + totalExtras,
+			elapsedTime
+		).toFixed(2)
 	);
 
-	console.log(
-		"Second: ",
-		intervalCount,
-		"Raw WPM: ",
-		rawWPM,
-		"WPM: ",
-		wpm
-	);
 	liveTimer.value = intervalCount;
 	liveRawWpm.value = rawWPM;
 	liveWpm.value = wpm;
