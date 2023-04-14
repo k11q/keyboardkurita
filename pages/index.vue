@@ -176,7 +176,7 @@
 				"
 				@click="
 					!allData.length
-						? fetchData(currentKey)
+						? fetchWords(currentKey)
 						: ''
 				"
 				class="inset-0 absolute right-0 items-center justify-center flex cursor-pointer backdrop-blur rounded-[32px]"
@@ -391,6 +391,9 @@ const sessionsInsertData: SessionsInsert = {
 	interval_performance: [],
 	keystroke_logs: [],
 	logs: [],
+	xp_gains: 0,
+	//optional
+	multiplayer_id: undefined,
 };
 
 // variable for logging wpm and row in interval
@@ -408,6 +411,7 @@ const currentWordNum = ref(0);
 const currentCharNum = ref(0);
 const currentPendingWordIndex = ref(0);
 const words = ref();
+const nextWords = ref();
 const keyOptions = [
 	"a",
 	"b",
@@ -467,69 +471,102 @@ const datasetObject = ref([
 	{ char: " ", count: 0, value: 0, totalValue: 0, wpm: 0 },
 ]);
 
-async function fetchData(char = "") {
+async function fetchWords(char = "") {
 	loading.value = true;
 	if (char) {
 		selectedKey.value = char.charAt(0);
 	}
 	resetIndexes();
 	resetAllSessionData();
-	const { data } = await useFetch(
-		`api/words?char=${selectedKey.value.charAt(0)}&difficulty=${
-			selectedDifficulty.value
-		}`
-	);
-	words.value = data.value;
+	if (words.value && words.value.next_data) {
+		words.value = words.value.next_data;
+		words.value.next_data = await fetchAndReturn();
+	} else {
+		words.value = await fetchAndReturn();
+	}
 	fillData();
 	focusInput();
 	loading.value = false;
+
+	async function fetchAndReturn() {
+		const { data } = await useFetch(
+			`api/words?char=${selectedKey.value.charAt(
+				0
+			)}&difficulty=${selectedDifficulty.value}`
+		);
+		return data.value;
+	}
+}
+
+async function fetchFreshWords(char = "") {
+	loading.value = true;
+	if (char) {
+		selectedKey.value = char.charAt(0);
+	}
+	resetIndexes();
+	resetAllSessionData();
+	words.value = await fetchAndReturn();
+	fillData();
+	focusInput();
+	loading.value = false;
+
+	async function fetchAndReturn() {
+		const { data } = await useFetch(
+			`api/words?char=${selectedKey.value.charAt(
+				0
+			)}&difficulty=${selectedDifficulty.value}`
+		);
+		return data.value;
+	}
 }
 
 function fillData() {
 	allData.value = [];
-	if (words.value) {
-		let wordCount = 0;
-		for (const word of words.value.all_words) {
-			const characters = word.split("");
-			const charData = [];
-			let charCount = 0;
-			// create char object
-			for (const char of characters) {
-				charData.push({
-					character: char,
-					timing: 0,
-					status: "pending",
-					char_index: charCount,
-					word_index: wordCount,
-				});
-				charCount++;
-			}
-			// push word object
-			allData.value.push({
-				word: word,
-				characters: charData,
-				index: wordCount,
-				type: "word",
+	if (!words.value) {
+		console.log("Error: no words found to fill.");
+		return;
+	}
+	let wordCount = 0;
+	for (const word of words.value.all_words) {
+		const characters = word.split("");
+		const charData = [];
+		let charCount = 0;
+		// create char object
+		for (const char of characters) {
+			charData.push({
+				character: char,
+				timing: 0,
+				status: "pending",
+				char_index: charCount,
+				word_index: wordCount,
 			});
-			// push separator object
-			if (wordCount !== words.value.all_words.length - 1) {
-				allData.value.push({
-					word: " ",
-					characters: [
-						{
-							character: " ",
-							timing: 0,
-							status: "pending",
-							char_index: 0,
-							word_index: wordCount,
-						},
-					],
-					index: wordCount,
-					type: "separator",
-				});
-			}
-			wordCount++;
+			charCount++;
 		}
+		// push word object
+		allData.value.push({
+			word: word,
+			characters: charData,
+			index: wordCount,
+			type: "word",
+		});
+		// push separator object
+		if (wordCount !== words.value.all_words.length - 1) {
+			allData.value.push({
+				word: " ",
+				characters: [
+					{
+						character: " ",
+						timing: 0,
+						status: "pending",
+						char_index: 0,
+						word_index: wordCount,
+					},
+				],
+				index: wordCount,
+				type: "separator",
+			});
+		}
+		wordCount++;
 	}
 }
 
@@ -545,9 +582,9 @@ function handleKeydown(e: KeyboardEvent) {
 	const key = e.key;
 	// tab used to start new game
 	if (key === "Tab") {
-		fetchData();
+		fetchWords();
 	}
-	//else if (key === "Enter") {fetchData();}
+	//else if (key === "Enter") {fetchWords();}
 	else if (isBackspace(e)) {
 		handleBackspace();
 	} else if (isRestrictedKeys(e)) {
@@ -556,12 +593,9 @@ function handleKeydown(e: KeyboardEvent) {
 		const time = Date.now();
 		const currentWordLocation = currentWordNum.value;
 		const currentWordMetadata = allData.value[currentWordLocation];
-		if (
-			currentWordMetadata &&
-			currentWordMetadata.type !== "separator"
-		) {
-			totalCharacters++;
-		}
+		currentWordMetadata && currentWordMetadata.type !== "separator"
+			? totalCharacters++
+			: undefined;
 		const currentWord = allData.value[currentWordLocation]?.word;
 		const currentCharLocation = currentCharNum.value;
 		const currentCharMetadata =
@@ -696,14 +730,7 @@ function handleKeydown(e: KeyboardEvent) {
 					((wpm / raw) * 100).toFixed(2)
 				);
 				handleEndSession();
-				pastSessions.value.push(
-					JSON.parse(
-						JSON.stringify(
-							sessionsInsertData
-						)
-					)
-				);
-				fetchData(selectedKey.value);
+				fetchWords(selectedKey.value);
 			} else if (
 				isEndWord(
 					currentCorrectCharLocation,
@@ -729,12 +756,7 @@ function handleKeydown(e: KeyboardEvent) {
 				totalErrors++;
 			}
 			currentIncorrect = true;
-			allData.value[currentWordNum.value].characters.splice(
-				currentPendingWordIndex.value,
-				0,
-				{ character: e.key, timing: 0, status: "extra" }
-			);
-			totalExtras++;
+			insertExtraChar(key);
 			currentPendingWordIndex.value++;
 		}
 		finalKeydown = time;
@@ -784,8 +806,10 @@ function handleEndSession() {
 	endTime = Date.now();
 	fillFinalData();
 	sessionRunning.value = false;
+	// [TEMPORARY] fill the array instead of pushing to db
+	pastSessions.value.push(JSON.parse(JSON.stringify(sessionsInsertData)));
+	//insertSessionToDatabase()
 }
-
 function handleEndWord(word: string, type: "separator" | "word") {
 	type === "word" ? collectedWords.push(word) : undefined;
 }
@@ -797,6 +821,15 @@ function handleAfkOrOutOfFocus() {
 	resetIndexes();
 	fillData();
 	sessionRunning.value = false;
+}
+
+function insertExtraChar(key: string) {
+	allData.value[currentWordNum.value].characters.splice(
+		currentPendingWordIndex.value,
+		0,
+		{ character: key, timing: 0, status: "extra" }
+	);
+	totalExtras++;
 }
 
 function resetAllSessionData() {
@@ -856,11 +889,17 @@ async function insertSessionToDatabase() {
 }
 
 // ui functions
-function updateDifficultyAndFetch(e) {}
-
-function updateKeyAndFetch(e) {
-	selectedKey.value = e.target.value;
-	fetchData(e.target.value);
+function updateDifficultyAndFetch(e: Event) {
+	const element = e.target as HTMLSelectElement;
+	const difficulty = element.value as DifficultyOptions;
+	selectedDifficulty.value = difficulty;
+	fetchFreshWords(difficulty);
+}
+function updateKeyAndFetch(e: Event) {
+	const element = e.target as HTMLSelectElement;
+	const key = element.value;
+	selectedKey.value = key;
+	fetchFreshWords(key);
 }
 
 // interval to get wpm at realtime
@@ -996,16 +1035,16 @@ function isEndWord(currentCharLocation: number, currentWordLength: number) {
 
 // utils
 function focusInput() {
-	document.getElementById("MasterInput").focus();
+	document.getElementById("MasterInput")?.focus();
 }
 
-function calculateWPM(correctChars, elapsedTime) {
+function calculateWPM(correctChars: number, elapsedTime: number) {
 	const words = correctChars / 5;
 	const minutes = elapsedTime / 1000 / 60;
 	return words / minutes;
 }
 
-function calculateRawWPM(totalChars, elapsedTime) {
+function calculateRawWPM(totalChars: number, elapsedTime: number) {
 	const words = totalChars / 5;
 	const minutes = elapsedTime / 1000 / 60;
 	return words / minutes;

@@ -106,67 +106,83 @@ export default defineEventHandler(async (e) => {
 		cumWeights.push(totalWeight);
 	}
 
-	const selectedWords = [];
-	const selectedWordObjects = [];
-	const selectedIndices = new Set();
-
 	const fd = fs.openSync("public/data/dataset3.jsonl", "r");
 
-	while (selectedWords.length < num_words) {
-		const batchIndices = new Set();
-		const batchPromises = [];
+	async function generateWords() {
+		const selectedWords = [];
+		const selectedWordObjects = [];
+		const selectedIndices = new Set();
 
-		while (batchIndices.size < 100) {
-			const index = weightedChoice(indices, cumWeights);
+		while (selectedWords.length < num_words) {
+			const batchIndices = new Set();
+			const batchPromises = [];
 
-			if (!selectedIndices.has(index)) {
-				batchIndices.add(index);
-				selectedIndices.add(index);
-				const byteOffset = indexData[index];
-				batchPromises.push(
-					new Promise((resolve, reject) => {
-						readEntryFromFile(
-							fd,
-							byteOffset,
-							(err, entry) => {
-								if (err)
-									reject(
-										err
-									);
-								else
-									resolve(
-										entry
-									);
-							}
-						);
-					})
+			while (batchIndices.size < 100) {
+				const index = weightedChoice(
+					indices,
+					cumWeights
 				);
+
+				if (!selectedIndices.has(index)) {
+					batchIndices.add(index);
+					selectedIndices.add(index);
+					const byteOffset = indexData[index];
+					batchPromises.push(
+						new Promise(
+							(resolve, reject) => {
+								readEntryFromFile(
+									fd,
+									byteOffset,
+									(
+										err,
+										entry
+									) => {
+										if (
+											err
+										)
+											reject(
+												err
+											);
+										else
+											resolve(
+												entry
+											);
+									}
+								);
+							}
+						)
+					);
+				}
+			}
+
+			const batchResults = await Promise.all(batchPromises);
+			for (const entry of batchResults) {
+				const word = Object.keys(entry)[0];
+				if (
+					selectedWords.length < num_words &&
+					(selected_char
+						? checkContainSelectedChar(word)
+						: true)
+				) {
+					selectedWords.push(word);
+					selectedWordObjects.push({
+						word: word,
+						metadata: entry[word],
+					});
+				}
 			}
 		}
 
-		const batchResults = await Promise.all(batchPromises);
-		for (const entry of batchResults) {
-			const word = Object.keys(entry)[0];
-			if (
-				selectedWords.length < num_words &&
-				(selected_char
-					? checkContainSelectedChar(word)
-					: true)
-			) {
-				selectedWords.push(word);
-				selectedWordObjects.push({
-					word: word,
-					metadata: entry[word],
-				});
-			}
-		}
+		return {
+			all_words: selectedWords,
+			data: [...selectedWordObjects],
+		};
 	}
+
+	const returnVal = await generateWords();
+	const nextReturnVal = await generateWords();
 
 	fs.closeSync(fd);
 
-	const returnVal = {
-		all_words: selectedWords,
-		data: [...selectedWordObjects],
-	};
-	return returnVal;
+	return { ...returnVal, next_data: { ...nextReturnVal } };
 });
