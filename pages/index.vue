@@ -317,7 +317,7 @@ type DifficultyOptions = "easy" | "medium" | "hard" | "extra_hard";
 type ModesOptions = "word" | "time";
 type ConfigDurationOptions = 10 | 20 | 30 | 60 | undefined;
 type ConfigTotalWordsOptions = 10 | 25 | 50 | undefined;
-type ConfigSelectionOptions = "default" | "supabase-docs" | "supabase code";
+type ConfigSelectionOptions = "english_50k" | "supabase-docs" | "supabase code";
 
 //db & auth
 const user = useSupabaseUser();
@@ -332,7 +332,7 @@ const DIFFICULTY: DifficultyOptions[] = [
 ];
 const MODES: ModesOptions[] = ["word", "time"];
 const SELECTION: ConfigSelectionOptions[] = [
-	"default",
+	"english_50k",
 	"supabase-docs",
 	"supabase code",
 ];
@@ -341,19 +341,26 @@ const USERNAME: globalThis.Ref<string> = computed(() => {
 	return PROFILE.value ? PROFILE.value.username : "username";
 });
 
-// game config
-const configDuration: globalThis.Ref<ConfigDurationOptions> = ref(undefined);
-const configTotalWords: globalThis.Ref<ConfigTotalWordsOptions> = ref(10);
+// game settings
+const selectedDuration: globalThis.Ref<ConfigDurationOptions> = ref(undefined);
+const selectedWords: globalThis.Ref<ConfigTotalWordsOptions> = ref(10);
 const selectedDifficulty: globalThis.Ref<DifficultyOptions> = ref("easy");
 const selectedMode: globalThis.Ref<ModesOptions> = ref("word");
 const selectedKey = ref("");
+let selectedSelection: ConfigSelectionOptions = "english_50k";
 
-// local config
+// local settings
 let maxExtraWords: number | undefined = undefined;
 let allowSkipWords = false;
 let allowSkipExtras = true;
 let skipIncorrectWords = false;
 let forgiveSkipCharacters = false;
+
+// display
+let showLiveWPM = false;
+let showTimerProgress = false;
+let punctuation = false;
+let numbers = false;
 
 // collected data, we use this to pass to the final object before inserting to db
 let startTime: number | undefined = undefined;
@@ -405,6 +412,7 @@ const sessionsInsertData: SessionsInsert = {
 
 // variable for logging wpm and row in interval
 let charactersPerThreeSecondCount = 0;
+let intervalCount = 1;
 
 // miscs
 let timeoutId;
@@ -417,6 +425,7 @@ const allData = ref([]);
 const currentWordNum = ref(0);
 const currentCharNum = ref(0);
 const currentPendingWordIndex = ref(0);
+const words = ref();
 const keyOptions = [
 	"a",
 	"b",
@@ -475,38 +484,12 @@ const datasetObject = ref([
 	{ char: "z", count: 0, value: 0, totalValue: 0, wpm: 0 },
 	{ char: " ", count: 0, value: 0, totalValue: 0, wpm: 0 },
 ]);
-const sortedDataset = computed(() => {
-	return datasetObject.value
-		.filter((i) => i.count > 0)
-		.sort((x, y) => {
-			return y.value - x.value;
-		});
-});
-const sortedDatasetData = computed(() => {
-	return sortedDataset.value.flatMap((data) => {
-		return calculateWPM(data.value);
-	});
-	function calculateWPM(time: number) {
-		const charactersPerWord = 5;
-		const wpm = 60 / charactersPerWord / time;
-		return wpm;
-	}
-});
-
-const {
-	data: words,
-	refresh,
-	pending,
-	error,
-} = await useAsyncData("words", async () => {
-	const { data } = await useFetch("api/words");
-	return data.value;
-});
 
 async function fetchData(char = "") {
 	loading.value = true;
 	currentChar.value = char.charAt(0);
 	resetIndexes();
+	resetAllSessionData();
 	const { data } = await useFetch(
 		`api/words?char=${selectedKey.value.charAt(0)}&difficulty=${
 			selectedDifficulty.value
@@ -566,33 +549,16 @@ function fillData() {
 	}
 }
 
-function resetIndexes() {
-	currentWordNum.value = 0;
-	currentCharNum.value = 0;
-	totalExtras = 0;
-	currentPendingWordIndex.value = 0;
-}
-
-watch(currentActive, () => {
-	if (currentActive.value.id !== "MasterInput") {
-		handleAfkOrOutOfFocus();
-	}
-});
-
-function focusInput() {
-	document.getElementById("MasterInput").focus();
-}
-
 let finalKeydown = Date.now();
 
 function handleKeydown(e: KeyboardEvent) {
 	e.preventDefault();
 	e.stopImmediatePropagation();
-	const key = e.key;
 	//handle unexpected erros
 	if (loading.value || !allData.value.length) {
 		return;
 	}
+	const key = e.key;
 	// tab used to start new game
 	if (key === "Tab") {
 		fetchData();
@@ -600,23 +566,6 @@ function handleKeydown(e: KeyboardEvent) {
 	//else if (key === "Enter") {fetchData();}
 	else if (isBackspace(e)) {
 		handleBackspace();
-
-		function handleBackspace() {
-			if (
-				allData.value.length &&
-				allData.value[currentWordNum.value].characters[
-					currentPendingWordIndex.value - 1
-				].status === "extra"
-			) {
-				allData.value[
-					currentWordNum.value
-				].characters.splice(
-					currentPendingWordIndex.value - 1,
-					1
-				);
-				currentPendingWordIndex.value--;
-			}
-		}
 	} else if (isRestrictedKeys(e)) {
 		console.log(key);
 	} else {
@@ -656,7 +605,6 @@ function handleKeydown(e: KeyboardEvent) {
 			}
 			return false;
 		};
-		let intervalCount = 1;
 		if (key === currentCorrectChar) {
 			let currentObj =
 				allData.value[currentWordLocation].characters[
@@ -786,219 +734,6 @@ function handleKeydown(e: KeyboardEvent) {
 				currentCharNum.value = 0;
 			} else currentCharNum.value++;
 			currentPendingWordIndex.value = currentCharNum.value;
-
-			function isStartSession(
-				currentWordLocation: number,
-				currentCharLocation: number
-			) {
-				if (
-					currentWordLocation === 0 &&
-					currentCharLocation === 0
-				) {
-					return true;
-				}
-				return false;
-			}
-
-			function isEndSession(
-				currentWordLocation: number,
-				currentCharLocation: number,
-				totalWords: number,
-				currentWordLength: number
-			) {
-				if (
-					currentWordLocation ===
-						totalWords - 1 &&
-					currentCharLocation ===
-						currentWordLength - 1
-				) {
-					return true;
-				}
-				return false;
-			}
-
-			function isEndWord(
-				currentCharLocation: number,
-				currentWordLength: number
-			) {
-				if (
-					currentCharLocation ===
-					currentWordLength - 1
-				) {
-					return true;
-				}
-				return false;
-			}
-
-			function handleStartSession(
-				mode: string,
-				difficulty: string,
-				game_metadata: {}
-			) {
-				sessionRunning.value = true;
-				resetInterval();
-				timeoutId = setTimeout(updateWPM, 1000);
-				resetAllSessionData();
-				fillData();
-				fillInitialData(
-					mode,
-					difficulty,
-					game_metadata
-				);
-				function fillInitialData(
-					mode: string,
-					difficulty: string,
-					game_metadata: {}
-				) {
-					sessionsInsertData.user_username =
-						USERNAME.value;
-					sessionsInsertData.user_id =
-						PROFILE.value?.id;
-					sessionsInsertData.start_time =
-						new Date()
-							.toISOString()
-							.toLocaleString(
-								"ms-MY"
-							);
-					sessionsInsertData.mode = mode;
-					sessionsInsertData.difficulty =
-						difficulty;
-					sessionsInsertData.game_metadata =
-						game_metadata;
-				}
-			}
-
-			function handleEndSession() {
-				fillFinalData();
-				sessionRunning.value = false;
-				//insertSessionToDatabase();
-
-				function fillFinalData() {
-					sessionsInsertData.end_time = new Date()
-						.toISOString()
-						.toLocaleString("ms-MY", {});
-					sessionsInsertData.duration = 0;
-					sessionsInsertData.words =
-						collectedWords;
-					sessionsInsertData.total_characters =
-						totalCharacters;
-					sessionsInsertData.total_corrects =
-						totalCorrects;
-					sessionsInsertData.total_errors =
-						totalErrors;
-					sessionsInsertData.total_words =
-						totalWords;
-					sessionsInsertData.total_extras =
-						totalExtras;
-					sessionsInsertData.total_missed =
-						totalMissed;
-					sessionsInsertData.wpm = wpm;
-					sessionsInsertData.cpm = cpm;
-					sessionsInsertData.raw = raw;
-					sessionsInsertData.accuracy = accuracy;
-					sessionsInsertData.consistency =
-						consistency;
-				}
-
-				function getWords(
-					mode: string,
-					words: string[],
-					logs: []
-				) {
-					if (mode === "word") {
-						return words;
-					} else {
-					}
-				}
-
-				function getDuration(
-					mode: string,
-					words: string[],
-					logs: []
-				) {
-					if (mode === "time") {
-						return words;
-					} else {
-					}
-				}
-
-				async function insertSessionToDatabase() {
-					const { data, error } = await client
-						.from("sessions")
-						.insert(sessionsInsertData);
-					if (error) {
-						console.log(error);
-						return error;
-					}
-					console.log(data);
-					return data;
-				}
-			}
-
-			function handleEndWord(
-				word: string,
-				type: "separator" | "word"
-			) {
-				if (type === "word") {
-					collectedWords.push(word);
-				}
-			}
-			function calculateWPM(correctChars, elapsedTime) {
-				const words = correctChars / 5;
-				const minutes = elapsedTime / 1000 / 60;
-				return words / minutes;
-			}
-
-			function calculateRawWPM(totalChars, elapsedTime) {
-				const words = totalChars / 5;
-				const minutes = elapsedTime / 1000 / 60;
-				return words / minutes;
-			}
-
-			function resetInterval() {
-				if (timeoutId) {
-					clearTimeout(timeoutId);
-					intervalCount = 1;
-				}
-			}
-
-			// Call the function initially to start the loop
-			function updateWPM() {
-				if (!sessionRunning.value) {
-					clearTimeout(timeoutId);
-					intervalCount = 1;
-					return;
-				}
-				if (startTime === null) {
-					startTime = Date.now();
-				}
-				const elapsedTime = Date.now() - startTime;
-
-				const wpm = parseFloat(
-					calculateWPM(
-						totalCorrects,
-						elapsedTime
-					).toFixed(2)
-				);
-				const rawWPM = parseFloat(
-					calculateRawWPM(
-						totalCharacters,
-						elapsedTime
-					).toFixed(2)
-				);
-
-				console.log(
-					"Second: ",
-					intervalCount,
-					"Raw WPM: ",
-					rawWPM,
-					"WPM: ",
-					wpm
-				);
-				intervalCount++;
-
-				timeoutId = setTimeout(updateWPM, 1000); // Log the values every second
-			}
 		}
 		// handle incorrect keys
 		else {
@@ -1020,24 +755,55 @@ function handleKeydown(e: KeyboardEvent) {
 		}
 		finalKeydown = time;
 	}
-	function isRestrictedKeys(e: KeyboardEvent) {
-		if (
-			(e.keyCode >= 9 && e.keyCode <= 27) ||
-			(e.keyCode >= 33 && e.keyCode <= 45) ||
-			(e.keyCode >= 91 && e.keyCode <= 93) ||
-			(e.keyCode >= 112 && e.keyCode <= 183)
-		) {
-			return true;
-		}
-		return false;
-	}
+}
 
-	function isBackspace(e: KeyboardEvent) {
-		if (e.keyCode == 8 || e.keyCode === 46) {
-			return true;
-		}
-		return false;
+function handleBackspace() {
+	if (
+		allData.value.length &&
+		allData.value[currentWordNum.value].characters[
+			currentPendingWordIndex.value - 1
+		].status === "extra"
+	) {
+		allData.value[currentWordNum.value].characters.splice(
+			currentPendingWordIndex.value - 1,
+			1
+		);
+		currentPendingWordIndex.value--;
 	}
+}
+
+function handleStartSession(
+	mode: string,
+	difficulty: string,
+	game_metadata: {}
+) {
+	sessionRunning.value = true;
+	resetInterval();
+	timeoutId = setTimeout(updateWPM, 1000);
+	resetAllSessionData();
+	fillData();
+	fillInitialData(mode, difficulty, game_metadata);
+}
+
+function fillInitialData(mode: string, difficulty: string, game_metadata: {}) {
+	sessionsInsertData.user_username = USERNAME.value;
+	sessionsInsertData.user_id = PROFILE.value?.id;
+	sessionsInsertData.start_time = new Date()
+		.toISOString()
+		.toLocaleString("ms-MY");
+	sessionsInsertData.mode = mode;
+	sessionsInsertData.difficulty = difficulty;
+	sessionsInsertData.game_metadata = game_metadata;
+}
+
+function handleEndSession() {
+	endTime = Date.now();
+	fillFinalData();
+	sessionRunning.value = false;
+}
+
+function handleEndWord(word: string, type: "separator" | "word") {
+	type === "word" ? collectedWords.push(word) : undefined;
 }
 
 function handleLeaveSession() {}
@@ -1045,7 +811,7 @@ function handleLeaveSession() {}
 function handleAfkOrOutOfFocus() {
 	resetAllSessionData();
 	resetIndexes();
-	fillData()
+	fillData();
 	sessionRunning.value = false;
 }
 
@@ -1065,6 +831,92 @@ function resetAllSessionData() {
 	totalWords = 0;
 	collectedWords = [];
 }
+
+function resetIndexes() {
+	currentWordNum.value = 0;
+	currentCharNum.value = 0;
+	totalExtras = 0;
+	currentPendingWordIndex.value = 0;
+}
+
+//db insert
+function fillFinalData() {
+	sessionsInsertData.end_time = new Date()
+		.toISOString()
+		.toLocaleString("ms-MY", {});
+	sessionsInsertData.duration = (endTime - startTime) / 1000 / 60;
+	sessionsInsertData.words = collectedWords;
+	sessionsInsertData.total_characters = totalCharacters;
+	sessionsInsertData.total_corrects = totalCorrects;
+	sessionsInsertData.total_errors = totalErrors;
+	sessionsInsertData.total_words = totalWords;
+	sessionsInsertData.total_extras = totalExtras;
+	sessionsInsertData.total_missed = totalMissed;
+	sessionsInsertData.wpm = wpm;
+	sessionsInsertData.cpm = cpm;
+	sessionsInsertData.raw = raw;
+	sessionsInsertData.accuracy = accuracy;
+	sessionsInsertData.consistency = consistency;
+}
+
+async function insertSessionToDatabase() {
+	const { data, error } = await client
+		.from("sessions")
+		.insert(sessionsInsertData);
+	if (error) {
+		console.log(error);
+		return error;
+	}
+	console.log(data);
+	return data;
+}
+
+// interval to get wpm at realtime
+function resetInterval() {
+	if (timeoutId) {
+		clearTimeout(timeoutId);
+		intervalCount = 1;
+	}
+}
+
+// Call the function initially to start the loop
+function updateWPM() {
+	if (!sessionRunning.value) {
+		clearTimeout(timeoutId);
+		intervalCount = 1;
+		return;
+	}
+	if (startTime === null) {
+		startTime = Date.now();
+	}
+	const elapsedTime = Date.now() - startTime;
+
+	const wpm = parseFloat(
+		calculateWPM(totalCorrects, elapsedTime).toFixed(2)
+	);
+	const rawWPM = parseFloat(
+		calculateRawWPM(totalCharacters, elapsedTime).toFixed(2)
+	);
+
+	console.log(
+		"Second: ",
+		intervalCount,
+		"Raw WPM: ",
+		rawWPM,
+		"WPM: ",
+		wpm
+	);
+	intervalCount++;
+
+	timeoutId = setTimeout(updateWPM, 1000); // Log the values every second
+}
+
+//watch if input out of focus
+watch(currentActive, () => {
+	if (currentActive.value.id !== "MasterInput") {
+		handleAfkOrOutOfFocus();
+	}
+});
 
 //manage carot
 const CAROTLEFT = ref(0);
@@ -1104,4 +956,66 @@ watchEffect(() => {
 		}
 	}
 });
+
+// pure functions and checkers
+function getWords(mode: string, words: string[], logs: []) {
+	return mode === "word" ? words : undefined;
+}
+
+function getDuration(mode: string, words: string[], logs: []) {
+	return mode === "time" ? words : undefined;
+}
+
+function isRestrictedKeys(e: KeyboardEvent) {
+	return (
+		(e.keyCode >= 9 && e.keyCode <= 27) ||
+		(e.keyCode >= 33 && e.keyCode <= 45) ||
+		(e.keyCode >= 91 && e.keyCode <= 93) ||
+		(e.keyCode >= 112 && e.keyCode <= 183)
+	);
+}
+
+function isBackspace(e: KeyboardEvent) {
+	return e.keyCode == 8 || e.keyCode === 46;
+}
+
+function isStartSession(
+	currentWordLocation: number,
+	currentCharLocation: number
+) {
+	return currentWordLocation === 0 && currentCharLocation === 0;
+}
+
+function isEndSession(
+	currentWordLocation: number,
+	currentCharLocation: number,
+	totalWords: number,
+	currentWordLength: number
+) {
+	return (
+		currentWordLocation === totalWords - 1 &&
+		currentCharLocation === currentWordLength - 1
+	);
+}
+
+function isEndWord(currentCharLocation: number, currentWordLength: number) {
+	return currentCharLocation === currentWordLength - 1;
+}
+
+// utils
+function focusInput() {
+	document.getElementById("MasterInput").focus();
+}
+
+function calculateWPM(correctChars, elapsedTime) {
+	const words = correctChars / 5;
+	const minutes = elapsedTime / 1000 / 60;
+	return words / minutes;
+}
+
+function calculateRawWPM(totalChars, elapsedTime) {
+	const words = totalChars / 5;
+	const minutes = elapsedTime / 1000 / 60;
+	return words / minutes;
+}
 </script>
