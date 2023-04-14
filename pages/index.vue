@@ -12,7 +12,7 @@
 		></div>
 		<div class="flex justify-center">
 			<div
-				class="bg-neutral-900 mb-8 px-6 py-2 h-14 rounded-[20px] text-xs items-center flex justify-between relative w-[80%]"
+				class="bg-neutral-900 mb-5 px-6 py-2 h-14 rounded-[20px] text-xs items-center flex justify-between relative w-[80%]"
 			>
 				<div class="flex gap-3 items-center col-span-2">
 					<div>Difficulty:</div>
@@ -117,6 +117,24 @@
 						/>
 						<span>More settings</span>
 					</button>
+				</div>
+			</div>
+		</div>
+		<div class="flex justify-center mb-5">
+			<div
+				class="grid grid-cols-3 gap-4 [&>*]:flex [&>*]:flex-col [&>*]:items-center min-w-[300px]"
+			>
+				<div>
+					<div class="text-neutral-400 text-sm">time</div>
+					<div class="text-2xl font-medium font-mono">{{ liveTimer }}</div>
+				</div>
+				<div>
+					<div class="text-neutral-400 text-sm">wpm</div>
+					<div class="text-2xl font-medium font-mono">{{ liveWpm.toFixed(1) }}</div>
+				</div>
+				<div>
+					<div class="text-neutral-400 text-sm">raw</div>
+					<div class="text-2xl font-medium font-mono">{{ liveRawWpm.toFixed(1) }}</div>
 				</div>
 			</div>
 		</div>
@@ -399,6 +417,9 @@ const sessionsInsertData: SessionsInsert = {
 // variable for logging wpm and row in interval
 let charactersPerThreeSecondCount = 0;
 let intervalCount = 1;
+const liveWpm = ref(0);
+const liveRawWpm = ref(0);
+const liveTimer = ref(0);
 
 // miscs
 let timeoutId;
@@ -811,7 +832,9 @@ function handleEndSession() {
 	//insertSessionToDatabase()
 }
 function handleEndWord(word: string, type: "separator" | "word") {
-	type === "word" ? collectedWords.push(word) : undefined;
+	if (type === "word") {
+		collectedWords.push(word);
+	}
 }
 
 function handleLeaveSession() {}
@@ -937,6 +960,9 @@ function updateWPM() {
 		"WPM: ",
 		wpm
 	);
+	liveTimer.value = intervalCount;
+	liveRawWpm.value = rawWPM;
+	liveWpm.value = wpm;
 	intervalCount++;
 
 	timeoutId = setTimeout(updateWPM, 1000); // Log the values every second
