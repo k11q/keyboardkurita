@@ -18,19 +18,10 @@
 					<div>Difficulty:</div>
 					<div class="relative">
 						<select
-							v-model="
-								selectedDifficulty
-							"
 							@change="
-								(e) => {
-									selectedDifficulty =
-										e
-											.target
-											.value;
-									fetchData(
-										selectedKey
-									);
-								}
+								updateDifficultyAndFetch(
+									$event
+								)
 							"
 							class="text-base relative w-32 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
 						>
@@ -79,17 +70,9 @@
 					<div class="relative">
 						<select
 							@change="
-								(e) => {
-									selectedKey =
-										e
-											.target
-											.value;
-									fetchData(
-										e
-											.target
-											.value
-									);
-								}
+								updateKeyAndFetch(
+									$event
+								)
 							"
 							class="text-base relative w-32 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
 						>
@@ -193,7 +176,7 @@
 				"
 				@click="
 					!allData.length
-						? fetchData(currentChar)
+						? fetchData(currentKey)
 						: ''
 				"
 				class="inset-0 absolute right-0 items-center justify-center flex cursor-pointer backdrop-blur rounded-[32px]"
@@ -420,7 +403,6 @@ const pastSessions: SessionsInsert[] = ref([]);
 const isOpen = useState("isOpen", () => false);
 const currentActive = ref();
 const loading = ref(false);
-const currentChar = ref("");
 const allData = ref([]);
 const currentWordNum = ref(0);
 const currentCharNum = ref(0);
@@ -487,7 +469,9 @@ const datasetObject = ref([
 
 async function fetchData(char = "") {
 	loading.value = true;
-	currentChar.value = char.charAt(0);
+	if (char) {
+		selectedKey.value = char.charAt(0);
+	}
 	resetIndexes();
 	resetAllSessionData();
 	const { data } = await useFetch(
@@ -719,7 +703,7 @@ function handleKeydown(e: KeyboardEvent) {
 						)
 					)
 				);
-				fetchData(currentChar.value);
+				fetchData(selectedKey.value);
 			} else if (
 				isEndWord(
 					currentCorrectCharLocation,
@@ -869,6 +853,14 @@ async function insertSessionToDatabase() {
 	}
 	console.log(data);
 	return data;
+}
+
+// ui functions
+function updateDifficultyAndFetch(e) {}
+
+function updateKeyAndFetch(e) {
+	selectedKey.value = e.target.value;
+	fetchData(e.target.value);
 }
 
 // interval to get wpm at realtime
