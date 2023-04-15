@@ -18,6 +18,9 @@
 					<div>Difficulty:</div>
 					<div class="relative">
 						<select
+							:value="
+								selectedDifficulty
+							"
 							@change="
 								updateDifficultyAndFetch(
 									$event
@@ -46,6 +49,7 @@
 					<div>Mode:</div>
 					<div class="relative">
 						<select
+							v-model="selectedMode"
 							class="text-base relative w-32 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
 						>
 							<option
@@ -74,21 +78,15 @@
 									$event
 								)
 							"
+							:value="selectedKey"
 							class="text-base relative w-32 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
 						>
-							<option
-								value=""
-								disabled
-								selected
-							>
-								Any key
-							</option>
 							<option
 								v-for="key in KEYOPTIONS"
 								:value="key"
 							>
 								{{
-									key.toUpperCase()
+									key === "" ? "Any key" : key.toUpperCase()
 								}}
 							</option>
 						</select>
@@ -234,7 +232,8 @@
 			<div
 				class="rounded-lg border border-neutral-800 w-[80%] overflow-clip mt-6"
 			>
-				<div class="justify-between px-6 py-4 grid grid-cols-10 text-sm text-neutral-400 bg-neutral-900"
+				<div
+					class="justify-between px-6 py-4 grid grid-cols-10 text-sm text-neutral-400 bg-neutral-900"
 				>
 					<div class="col-span-2">
 						<div>username</div>
@@ -262,9 +261,11 @@
 					</div>
 				</div>
 				<div
-					v-for="session in [...pastSessions
-						.slice()
-						.reverse()].slice(0,5)"
+					v-for="session in [
+						...pastSessions
+							.slice()
+							.reverse(),
+					].slice(0, 5)"
 					class="justify-between px-6 py-4 border-t bg-neutral-800/40 border-neutral-800 grid grid-cols-10"
 				>
 					<div class="col-span-2">
@@ -275,20 +276,38 @@
 						</div>
 					</div>
 					<div>
-						<div class="text-[#6BD968]">{{ session.wpm.toFixed(1) }}</div>
-					</div>
-					<div>
-						<div class="tabular-nums">{{ session.raw.toFixed(1) }}</div>
-					</div>
-					<div>
-						<div class="tabular-nums">
-							{{ session.accuracy.toFixed(1) }}
+						<div class="text-[#6BD968]">
+							{{
+								session.wpm.toFixed(
+									1
+								)
+							}}
 						</div>
 					</div>
 					<div>
 						<div class="tabular-nums">
 							{{
-								session.consistency.toFixed(1)
+								session.raw.toFixed(
+									1
+								)
+							}}
+						</div>
+					</div>
+					<div>
+						<div class="tabular-nums">
+							{{
+								session.accuracy.toFixed(
+									1
+								)
+							}}
+						</div>
+					</div>
+					<div>
+						<div class="tabular-nums">
+							{{
+								session.consistency.toFixed(
+									1
+								)
 							}}
 						</div>
 					</div>
@@ -311,7 +330,12 @@
 					<div class="col-span-2">
 						<div class="tabular-nums">
 							{{
-								format(new Date(session.end_time), 'Pp')
+								format(
+									new Date(
+										session.end_time
+									),
+									"Pp"
+								)
 							}}
 						</div>
 					</div>
@@ -323,16 +347,20 @@
 </template>
 
 <script setup lang="ts">
+import { useHomeStore } from "@/stores/home";
 import type { SessionsInsert } from "../utils/db/sessions";
 import { format } from "date-fns";
+import { storeToRefs } from "pinia";
+import type {
+	DifficultyOptions,
+	ModesOptions,
+	ConfigDurationOptions,
+	ConfigTotalWordsOptions,
+	ConfigSelectionOptions,
+	CharLogStatus,
+} from "@/stores/home";
 
 //types
-type DifficultyOptions = "easy" | "medium" | "hard" | "extra_hard";
-type ModesOptions = "word" | "time";
-type ConfigDurationOptions = 10 | 20 | 30 | 60 | undefined;
-type ConfigTotalWordsOptions = 10 | 25 | 50 | undefined;
-type ConfigSelectionOptions = "english_50k" | "supabase-docs" | "supabase code";
-type CharLogStatus = "error" | "correct" | "pending" | "extra";
 type KeystrokeLog = { character: string; time: number; status: CharLogStatus };
 type WordType = "separator" | "word";
 type CharacterMetadata = {
@@ -353,6 +381,8 @@ type WordMetadata = {
 const user = useSupabaseUser();
 const client = useSupabaseClient();
 
+const store = useHomeStore();
+
 // readonly
 const DIFFICULTY: DifficultyOptions[] = [
 	"easy",
@@ -367,6 +397,7 @@ const SELECTION: ConfigSelectionOptions[] = [
 	"supabase code",
 ];
 const KEYOPTIONS = [
+	"",
 	"a",
 	"b",
 	"c",
@@ -393,7 +424,6 @@ const KEYOPTIONS = [
 	"x",
 	"y",
 	"z",
-	" ",
 ];
 const PROFILE = ref();
 const USERNAME: globalThis.Ref<string> = computed(() => {
@@ -401,25 +431,23 @@ const USERNAME: globalThis.Ref<string> = computed(() => {
 });
 
 // game settings
-const selectedDuration: globalThis.Ref<ConfigDurationOptions> = ref(undefined);
-const selectedWords: globalThis.Ref<ConfigTotalWordsOptions> = ref(10);
-const selectedDifficulty: globalThis.Ref<DifficultyOptions> = ref("easy");
-const selectedMode: globalThis.Ref<ModesOptions> = ref("word");
-const selectedKey = ref("");
-let selectedSelection: ConfigSelectionOptions = "english_50k";
-
-// local settings
-let maxExtraWords: number | undefined = undefined;
-let allowSkipWords = false;
-let allowSkipExtras = true;
-let skipIncorrectWords = false;
-let forgiveSkipCharacters = false;
-
-// display
-let showLiveWPM = false;
-let showTimerProgress = false;
-let punctuation = false;
-let numbers = false;
+const {
+	difficulty: selectedDifficulty,
+	duration: selectedDuration,
+	words: selectedWords,
+	mode: selectedMode,
+	key: selectedKey,
+	dataset: selectedSelection,
+	maxExtraWords,
+	allowSkipExtras,
+	allowSkipWords,
+	skipIncorrectWords,
+	forgiveSkipCharacters,
+	showLiveWPM,
+	showTimerProgress,
+	punctuation,
+	numbers,
+} = storeToRefs(store);
 
 // collected data, we use this to pass to the final object before inserting to db
 let sessionRunning = ref(false);
@@ -981,7 +1009,7 @@ function updateDifficultyAndFetch(e: Event) {
 	const element = e.target as HTMLSelectElement;
 	const difficulty = element.value as DifficultyOptions;
 	selectedDifficulty.value = difficulty;
-	fetchFreshWords(difficulty);
+	fetchFreshWords();
 }
 
 function updateKeyAndFetch(e: Event) {

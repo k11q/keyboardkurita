@@ -142,12 +142,20 @@
 										>
 											{{
 												option
+											}}{{
+												setting.title ===
+												"Duration"
+													? "s"
+													: ""
 											}}
 										</button>
 										<select
 											v-if="
 												setting.type ===
 												'select'
+											"
+											v-model="
+												setting.selected
 											"
 											class="rounded-[10px] px-3 py-1 flex-grow text-center bg-neutral-700/50 text-[#6BD968] border border-neutral-700 focus:ring-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6BD968]/70"
 										>
@@ -158,7 +166,10 @@
 												"
 											>
 												{{
-													option
+													option ===
+													""
+														? "none"
+														: option
 												}}
 											</option>
 										</select>
@@ -187,7 +198,10 @@
 </template>
 
 <script setup>
+import { useHomeStore } from "@/stores/home";
+import { storeToRefs } from "pinia";
 const isOpen = useState("isOpen");
+const store = useHomeStore();
 
 function closeModal() {
 	isOpen.value = false;
@@ -196,235 +210,6 @@ function openModal() {
 	isOpen.value = true;
 }
 
-const tabs = ref([
-	{
-		tab: "Game",
-		settings: [
-			{
-				title: "Difficulty",
-				description:
-					"Sets the difficulty of the selected words",
-				selected: "easy",
-				option: [
-					"easy",
-					"medium",
-					"hard",
-					"extra hard",
-				],
-				type: "tab",
-			},
-
-			{
-				title: "Mode",
-				description:
-					"The mode of the tests. Word means you will be tested within a duration, word means you will be tested a certain number of words.",
-				selected: "word",
-				option: ["time", "word"],
-				type: "tab",
-			},
-			{
-				title: "Total words",
-				description:
-					"Number of words that you will be tested.",
-				selected: 10,
-				option: [10, 25, 50, 100],
-				type: "tab",
-			},
-			{
-				title: "Duration",
-				description: "The duration of the tests.",
-				selected: 10,
-				option: [10, 20, 30, 60],
-				type: "tab",
-			},
-			{
-				title: "Dataset",
-				description:
-					"The source of the words that are selected.",
-				selected: "english_5k",
-				option: ["english_5k", "english_50k", "code"],
-				type: "select",
-			},
-			{
-				title: "Key",
-				description:
-					"Select a key to prioritize. If a value is selected, each selected words will contain the selected key.",
-				selected: "none",
-				option: [
-					"none",
-					"a",
-					"b",
-					"c",
-					"d",
-					"e",
-					"f",
-					"g",
-					"h",
-					"i",
-					"j",
-					"k",
-					"l",
-					"m",
-					"n",
-					"o",
-					"p",
-					"q",
-					"r",
-					"s",
-					"t",
-					"u",
-					"v",
-					"w",
-					"x",
-					"y",
-					"z",
-				],
-				type: "select",
-			},
-			{
-				title: "Max errors",
-				description:
-					"Restrict number of errors and reset the session when reached the maximum number of errors.",
-				selected: "off",
-				option: ["on", "off"],
-				type: "tab",
-			},
-		],
-	},
-	{
-		tab: "Input",
-		settings: [
-			{
-				title: "Space to skip word",
-				description:
-					"This enables using space to skip the words.",
-				selected: "off",
-				option: ["on", "off"],
-				type: "tab",
-			},
-			{
-				title: "Cursor stop at error",
-				description:
-					"Cursor will stop at error until you enter the correct character.",
-				selected: "off",
-				option: ["on", "off"],
-				type: "tab",
-			},
-			{
-				title: "Allow skip characters",
-				description:
-					"Incorrect input will skip the character and move to the next.",
-				selected: "off",
-				option: ["on", "off"],
-				type: "tab",
-			},
-			{
-				title: "Forgive extra characters",
-				description:
-					"This enables using space to skip the words.",
-				selected: "off",
-				option: ["on", "off"],
-				type: "tab",
-			},
-		],
-	},
-	{
-		tab: "Keyboard",
-		settings: [
-			{
-				title: "Space to skip word",
-				description:
-					"This enables using space to skip the words.",
-				selected: "off",
-				option: ["on", "off"],
-				type: "tab",
-			},
-			{
-				title: "Cursor stop at error",
-				description:
-					"Cursor will stop at error until you enter the correct character.",
-				selected: "off",
-				option: ["on", "off"],
-				type: "tab",
-			},
-			{
-				title: "Allow skip characters",
-				description:
-					"Incorrect input will skip the character and move to the next.",
-				selected: "off",
-				option: ["on", "off"],
-				type: "tab",
-			},
-			{
-				title: "Forgive extra characters",
-				description:
-					"This enables using space to skip the words.",
-				selected: "off",
-				option: ["on", "off"],
-				type: "tab",
-			},
-		],
-	},
-	{
-		tab: "Style",
-		settings: [
-			{
-				title: "Set carot style",
-				description:
-					"This enables using space to skip the words.",
-				selected: "on",
-				option: ["on", "off", "off", "off"],
-				type: "tab",
-			},
-			{
-				title: "Set spacer style",
-				description:
-					"Cursor will stop at error until you enter the correct character.",
-				selected: "off",
-				option: ["on", "off"],
-				type: "tab",
-			},
-			{
-				title: "Set font size",
-				description:
-					"Incorrect input will skip the character and move to the next.",
-				selected: "off",
-				option: ["on", "off"],
-				type: "tab",
-			},
-			{
-				title: "Set font",
-				description:
-					"This enables using space to skip the words.",
-				selected: "off",
-				option: ["on", "off"],
-				type: "tab",
-			},
-		],
-	},
-]);
-const gameSettings = ref([
-	{
-		title: "Space to skip word",
-		selected: "off",
-		option: ["on", "off"],
-	},
-	{
-		title: "Cursor stop at error",
-		selected: "off",
-		option: ["on", "off"],
-	},
-	{
-		title: "Allow skip characters",
-		selected: "off",
-		option: ["on", "off"],
-	},
-	{
-		title: "Forgive extra characters",
-		selected: "off",
-		option: ["on", "off"],
-	},
-]);
-
+const {settings:tabs} = storeToRefs(store)
 const currentTab = ref("Game");
 </script>
