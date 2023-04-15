@@ -8,7 +8,7 @@
 			<div class="h-full">
 				<NuxtLink to="/"
 					><button
-						class="h-full items-center px-3 font-semibold text-xl"
+						class="h-full items-center px-3 font-medium text-xl font-mono"
 					>
 						<span class="mr-3">🐙</span
 						><span>keyboardkurita</span>

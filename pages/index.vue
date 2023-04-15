@@ -122,34 +122,34 @@
 		</div>
 		<div class="flex justify-center mb-5">
 			<div
-				class="grid grid-cols-3 gap-4 [&>*]:flex [&>*]:flex-col [&>*]:items-center min-w-[300px]"
+				class="grid grid-cols-3 gap-4 [&>*]:flex [&>*]:flex-col [&>*]:items-center min-w-[340px]"
 			>
 				<div>
-					<div class="text-neutral-400 text-sm">
+					<div class="text-neutral-500 text-sm">
 						time
 					</div>
 					<div
-						class="text-2xl font-medium font-mono"
+						class="text-3xl font-medium font-mono text-[#FECC1B]"
 					>
 						{{ liveTimer }}
 					</div>
 				</div>
 				<div>
-					<div class="text-neutral-400 text-sm">
+					<div class="text-neutral-500 text-sm">
 						wpm
 					</div>
 					<div
-						class="text-2xl font-medium font-mono"
+						class="text-3xl font-medium font-mono text-[#6BD968]"
 					>
 						{{ liveWpm.toFixed(1) }}
 					</div>
 				</div>
 				<div>
-					<div class="text-neutral-400 text-sm">
+					<div class="text-neutral-500 text-sm">
 						raw
 					</div>
 					<div
-						class="text-2xl font-medium font-mono"
+						class="text-3xl font-medium font-mono text-[#3DEFE9]"
 					>
 						{{ liveRawWpm.toFixed(1) }}
 					</div>
@@ -232,10 +232,9 @@
 		/>
 		<div class="flex justify-center">
 			<div
-				class="rounded-xl bg-neutral-900 w-[70%] overflow-clip mt-6"
+				class="rounded-lg border border-neutral-800 w-[80%] overflow-clip mt-6"
 			>
-				<div
-					class="justify-between px-6 py-4 even:bg-neutral-800 grid grid-cols-10 text-sm text-neutral-400"
+				<div class="justify-between px-6 py-4 grid grid-cols-10 text-sm text-neutral-400 bg-neutral-900"
 				>
 					<div class="col-span-2">
 						<div>username</div>
@@ -263,10 +262,10 @@
 					</div>
 				</div>
 				<div
-					v-for="session in pastSessions
+					v-for="session in [...pastSessions
 						.slice()
-						.reverse()"
-					class="justify-between px-6 py-4 even:bg-neutral-800 grid grid-cols-10"
+						.reverse()].slice(0,5)"
+					class="justify-between px-6 py-4 border-t bg-neutral-800/40 border-neutral-800 grid grid-cols-10"
 				>
 					<div class="col-span-2">
 						<div>
@@ -276,25 +275,25 @@
 						</div>
 					</div>
 					<div>
-						<div>{{ session.wpm }}</div>
+						<div class="text-[#6BD968]">{{ session.wpm.toFixed(1) }}</div>
 					</div>
 					<div>
-						<div>{{ session.raw }}</div>
+						<div class="tabular-nums">{{ session.raw.toFixed(1) }}</div>
 					</div>
 					<div>
-						<div>
-							{{ session.accuracy }}
+						<div class="tabular-nums">
+							{{ session.accuracy.toFixed(1) }}
 						</div>
 					</div>
 					<div>
-						<div>
+						<div class="tabular-nums">
 							{{
-								session.consistency
+								session.consistency.toFixed(1)
 							}}
 						</div>
 					</div>
 					<div>
-						<div>
+						<div class="tabular-nums">
 							{{
 								session.total_corrects
 							}}/{{
@@ -310,13 +309,9 @@
 						<div>{{ session.mode }}</div>
 					</div>
 					<div class="col-span-2">
-						<div>
+						<div class="tabular-nums">
 							{{
-								formatDistanceToNow(
-									new Date(
-										session.end_time
-									)
-								)
+								format(new Date(session.end_time), 'Pp')
 							}}
 						</div>
 					</div>
@@ -329,7 +324,7 @@
 
 <script setup lang="ts">
 import type { SessionsInsert } from "../utils/db/sessions";
-import { formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 
 //types
 type DifficultyOptions = "easy" | "medium" | "hard" | "extra_hard";
