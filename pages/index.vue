@@ -10,9 +10,28 @@
 				CAROTTOP - 2
 			}px`"
 		></div>
-		<div class="flex justify-center">
+		<div
+			:class="`flex flex-col items-center gap-2 fixed w-screen left-0 right-0 px-10 transition-all z-10 ease-in-out duration-200 ${
+				currentActive &&
+				currentActive.id === 'MasterInput'
+					? 'bottom-10'
+					: 'bottom-1/2'
+			}`"
+		>
 			<div
-				class="bg-neutral-900 mb-5 px-6 py-2 h-14 rounded-[20px] text-xs items-center flex justify-between relative w-[80%]"
+				v-if="
+					!currentActive || (currentActive &&
+					currentActive.id !== 'MasterInput')
+				"
+				@click="!allData.length
+						? fetchWords(currentKey)
+						: focusInput()"
+				class="text-neutral-300 cursor-pointer px-6 py-5 text-xl font-mono"
+			>
+				click to activate
+			</div>
+			<div
+				class="bg-neutral-900 mb-5 px-6 py-2 h-14 rounded-full text-xs items-center flex justify-between relative max-w-4xl w-full"
 			>
 				<div class="flex gap-3 items-center col-span-2">
 					<div>Difficulty:</div>
@@ -164,7 +183,7 @@
 					? ''
 					: focusInput()
 			"
-			:class="`font-mono relative transition-all ease-linear duration-1000 mb-6 min-h-[16rem] bg-neutral-900/80 pt-3 pb-6 px-6 rounded-[32px] w-full text-4xl leading-[54px]`"
+			:class="`font-mono relative transition-all ease-linear duration-1000 mb-6 min-h-[20rem] pt-20 pb-6 px-6 rounded-[32px] w-full text-4xl leading-[54px]`"
 		>
 			<template v-for="(word, index) in allData">
 				<span :class="``"
@@ -187,7 +206,7 @@
 								  char.character ===
 										' '
 								? 'bg-red-600'
-								: 'opacity-50'
+								: 'opacity-40'
 						} ${
 							index ===
 								currentWordNum &&
@@ -217,13 +236,7 @@
 						: ''
 				"
 				class="inset-0 absolute right-0 items-center justify-center flex cursor-pointer backdrop-blur rounded-[32px]"
-			>
-				<div
-					class="text-neutral-300 pointer-events-none text-2xl"
-				>
-					click to activate
-				</div>
-			</div>
+			></div>
 		</div>
 		<input
 			type="text"
@@ -231,6 +244,7 @@
 			@keydown="handleKeydown"
 			style="opacity: 0%; position: absolute"
 		/>
+		<!--
 		<div class="flex justify-center">
 			<div
 				class="rounded-lg border border-neutral-800 w-[80%] overflow-clip mt-6"
@@ -345,13 +359,25 @@
 				</div>
 			</div>
 		</div>
-		<!--<div>{{ pastSessions }}</div>-->
+		-->
 	</div>
 </template>
 
 <script setup lang="ts">
-import { useHomeStore } from "@/stores/home";
-import type { SessionsInsert } from "../utils/db/sessions";
+import {
+	useHomeStore,
+	KEYOPTIONS,
+	DIFFICULTY,
+	MODES,
+	DATASETS,
+} from "@/stores/home";
+import type {
+	SessionsInsert,
+	CharacterPerformanceInsert,
+	WordPerformanceInsert,
+	KeystrokeLogsInsert,
+	IntervalLogsInsert,
+} from "../utils/db/sessions";
 import { format } from "date-fns";
 import { storeToRefs } from "pinia";
 import type {
@@ -362,11 +388,17 @@ import type {
 	ConfigSelectionOptions,
 	CharLogStatus,
 } from "@/stores/home";
-import { error } from "console";
+import { calculateRawWPM, calculateWPM, focusInput } from "@/utils/input";
 
 //types
 type KeystrokeLog = { character: string; time: number; status: CharLogStatus };
 type WordType = "separator" | "word";
+type ChartData = {
+	wpm: number[];
+	raw: number[];
+	error: number[];
+	time: number[];
+};
 type CharacterMetadata = {
 	character: string;
 	timing: number;
@@ -389,31 +421,6 @@ type CharacterPerformance = {
 	misses: number;
 	corrects: number;
 };
-type WordPerformance = {
-	word: string;
-	wpm: number;
-	count: number;
-	errors: number;
-	misses: number;
-};
-type IntervalPerformance = {
-	time: number;
-	word_count: number;
-	wpm: number;
-	errors: number;
-	misses: number;
-	word_index: number;
-	character_index: number;
-};
-type KeyStrokeLog = {
-	character: string;
-	time: number;
-	true: boolean;
-	error: boolean;
-	misses: boolean;
-	word_index: number;
-	character_index: number;
-};
 
 //db & auth
 const user = useSupabaseUser();
@@ -422,47 +429,6 @@ const client = useSupabaseClient();
 const store = useHomeStore();
 
 // readonly
-const DIFFICULTY: DifficultyOptions[] = [
-	"easy",
-	"medium",
-	"hard",
-	"extra_hard",
-];
-const MODES: ModesOptions[] = ["word", "time"];
-const SELECTION: ConfigSelectionOptions[] = [
-	"english_50k",
-	"supabase-docs",
-	"supabase code",
-];
-const KEYOPTIONS = [
-	"",
-	"a",
-	"b",
-	"c",
-	"d",
-	"e",
-	"f",
-	"g",
-	"h",
-	"i",
-	"j",
-	"k",
-	"l",
-	"m",
-	"n",
-	"o",
-	"p",
-	"q",
-	"r",
-	"s",
-	"t",
-	"u",
-	"v",
-	"w",
-	"x",
-	"y",
-	"z",
-];
 const PROFILE = ref();
 const USERNAME: globalThis.Ref<string> = computed(() => {
 	return PROFILE.value ? PROFILE.value.username : "username";
@@ -505,7 +471,6 @@ const sessionsInsertData: SessionsInsert = {
 	end_time: "",
 	duration: 0, //selected/calculated
 	wpm: 0,
-	cpm: 0,
 	accuracy: 0,
 	consistency: 0,
 	raw: 0,
@@ -516,21 +481,21 @@ const sessionsInsertData: SessionsInsert = {
 	total_characters: 0, //selected/calculated
 	total_words: 0,
 	words: [], //selected/calculated
-	char_performance: [],
-	word_performance: [],
-	interval_performance: [],
-	keystroke_logs: [],
 	logs: [],
 	xp_gains: 0,
-	//optional
-	multiplayer_id: undefined,
 	dataset: "english_50k",
+	chart_data: {},
+	numbers: false,
+	punctuation: false,
+	restart_count: 0,
 };
 
 const characterPerformance: CharacterPerformance[] = [];
-const wordPerformance: WordPerformance[] = [];
-const intervalPerformance: IntervalPerformance[] = [];
-const keystrokeLogs: KeyStrokeLog[] = [];
+const characterPerformance2: CharacterPerformanceInsert[] = [];
+const wordPerformance: WordPerformanceInsert[] = [];
+const intervalPerformance: IntervalLogsInsert[] = [];
+const keystrokeLogs: KeystrokeLogsInsert[] = [];
+const chartData: ChartData = { wpm: [], error: [], raw: [], time: [] };
 
 // variable for logging wpm and row in interval
 let charactersPerThreeSecondCount = 0;
@@ -538,6 +503,7 @@ let intervalCount = 1;
 const liveWpm = ref(0);
 const liveRawWpm = ref(0);
 const liveTimer = ref(0);
+let intervalError = 0;
 
 let totalCharactersCount = 0;
 let totalWordsCount = 0;
@@ -752,7 +718,7 @@ function pushCharacterPerformance(key: string, currentCorrectChar: string) {
 	let misses = getMisses();
 	let wpm = getWpm();
 
-	upsertCharacterPerformance()
+	upsertCharacterPerformance();
 
 	function getCorrects() {
 		let corrects = currentCharacterObject
@@ -937,6 +903,7 @@ function handleIncorrectInput(key: string) {
 	if (!currentIncorrect) {
 		sessionsInsertData.total_errors++;
 	}
+	intervalError++;
 	currentIncorrect = true;
 	insertExtraChar(key);
 	currentPendingWordIndex.value++;
@@ -1038,7 +1005,6 @@ function resetAllSessionData() {
 	sessionsInsertData.end_time = undefined;
 	endTime = undefined;
 	sessionsInsertData.wpm = 0;
-	sessionsInsertData.cpm = 0;
 	sessionsInsertData.raw = 0;
 	sessionsInsertData.accuracy = 0;
 	sessionsInsertData.consistency = 0;
@@ -1069,7 +1035,6 @@ function fillFinalData(time: number) {
 	const totalCharacters = sessionsInsertData.total_characters;
 	const elapsedTime = time - startTime;
 	sessionsInsertData.wpm = getWpm(corrects + errors, elapsedTime);
-	sessionsInsertData.cpm = getCpm(sessionsInsertData.wpm);
 	sessionsInsertData.accuracy = getAccuracy(corrects, totalCharacters);
 	sessionsInsertData.raw = getRaw(totalCharacters + extras, elapsedTime);
 	sessionsInsertData.consistency = getConsistency(
@@ -1087,11 +1052,8 @@ function fillFinalData(time: number) {
 	sessionsInsertData.xp_gains = parseFloat(
 		(sessionsInsertData.accuracy / 10).toFixed(2)
 	);
-	sessionsInsertData.char_performance = characterPerformance;
-	sessionsInsertData.word_performance = wordPerformance;
-	sessionsInsertData.interval_performance = intervalPerformance;
-	sessionsInsertData.keystroke_logs = keystrokeLogs;
 	sessionsInsertData.logs = allData.value;
+	Object.assign(sessionsInsertData.chart_data, chartData);
 }
 
 function getWpm(totalAchievedCharacters: number, elapsedTime: number) {
@@ -1200,7 +1162,11 @@ function updateWPM() {
 	liveRawWpm.value = rawWPM;
 	liveWpm.value = wpm;
 	intervalCount++;
-
+	chartData.wpm.push(wpm);
+	chartData.error.push(intervalError);
+	chartData.time.push(intervalCount);
+	chartData.raw.push(rawWPM);
+	intervalError = 0;
 	timeoutId = setTimeout(updateWPM, 1000); // Log the values every second
 }
 
@@ -1306,22 +1272,5 @@ function isEndSession(metadata: InputMetadata) {
 function isEndWord(currentCharLocation: number, currentWordLength: number) {
 	totalWordsCount++;
 	return currentCharLocation === currentWordLength - 1;
-}
-
-// utils
-function focusInput() {
-	document.getElementById("MasterInput")?.focus();
-}
-
-function calculateWPM(totalChars: number, elapsedTime: number) {
-	const words = totalChars / 5;
-	const minutes = elapsedTime / 1000 / 60;
-	return words / minutes;
-}
-
-function calculateRawWPM(totalChars: number, elapsedTime: number) {
-	const words = totalChars / 5;
-	const minutes = elapsedTime / 1000 / 60;
-	return words / minutes;
 }
 </script>

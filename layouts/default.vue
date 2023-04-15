@@ -33,6 +33,11 @@ select::-ms-expand {
 	display: none;
 }
 
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
 /* Set the background color and border radius of the scrollbar track */
 ::-webkit-scrollbar-track {
 	background-color: rgba(0, 0, 0, 0.1);
@@ -41,7 +46,7 @@ select::-ms-expand {
 
 /* Set the background color, border radius, and minimal height of the scrollbar thumb */
 ::-webkit-scrollbar-thumb {
-	background-color: rgba(57, 57, 57, 0.4);
+	background-color: rgba(94, 94, 94, 0.4);
 	border-radius: 10px;
 	min-height: 30px;
 	min-width: 30px;

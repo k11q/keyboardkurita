@@ -44,7 +44,7 @@ const option = computed(() => ({
 	},
 	series: [
 		{
-			type: "bar",
+			type: "chart",
 			data: props.data,
                         animation: false,
                         color: '#D83BD2',
