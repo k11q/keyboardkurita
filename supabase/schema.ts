@@ -9,6 +9,26 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      datasets: {
+        Row: {
+          created_at: string | null
+          endpoint: string | null
+          id: number
+          name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint?: string | null
+          id?: number
+          name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string | null
+          id?: number
+          name?: string | null
+        }
+      }
       follows: {
         Row: {
           created_at: string | null
@@ -131,26 +151,6 @@ export interface Database {
           username?: string
         }
       }
-      selections: {
-        Row: {
-          created_at: string | null
-          endpoint: string | null
-          id: number
-          name: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          endpoint?: string | null
-          id?: number
-          name?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          endpoint?: string | null
-          id?: number
-          name?: string | null
-        }
-      }
       sessions: {
         Row: {
           accuracy: number
@@ -158,6 +158,7 @@ export interface Database {
           consistency: number | null
           cpm: number
           created_at: string | null
+          dataset: string | null
           difficulty: string
           duration: number
           end_time: string
@@ -189,6 +190,7 @@ export interface Database {
           consistency?: number | null
           cpm?: number
           created_at?: string | null
+          dataset?: string | null
           difficulty?: string
           duration: number
           end_time: string
@@ -220,6 +222,7 @@ export interface Database {
           consistency?: number | null
           cpm?: number
           created_at?: string | null
+          dataset?: string | null
           difficulty?: string
           duration?: number
           end_time?: string

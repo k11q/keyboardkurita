@@ -90,7 +90,7 @@
 							<div
 								class="flex flex-col flex-grow overflow-y-auto text-neutral-200 bg-neutral-800/50"
 							>
-								<div
+								<template
 									v-for="setting in tabs.find(
 										(
 											i
@@ -99,95 +99,113 @@
 											currentTab
 									)
 										.settings"
-									class="flex items-center justify-between gap-6 odd:bg-neutral-900/40 pl-6 pr-2.5 h-16 flex-none"
 								>
-									<div>
-										<div
-											class=""
-										>
-											{{
-												setting.title
-											}}
-										</div>
-										<div
-											class="text-xs leading-4 text-neutral-500 line-clamp"
-											v-if="
-												setting.description
-											"
-										>
-											{{
-												setting.description
-											}}
-										</div>
-									</div>
-									<div
-										:class="`relative flex justify-evenly min-w-[300px] p-0.5 gap-0.5 rounded-xl text-sm font-medium bg-neutral-900/90`"
+									<div v-if="checkRenderDurationOrWords(
+												setting,
+												currentTab
+											)"
+										:class="`flex items-center justify-between gap-6 pl-6 pr-2.5 h-16 flex-none ${
+											!checkRenderDurationOrWords(
+												setting,
+												currentTab
+											)
+												? 'bg-neutral-800/20 opacity-20 pointer-events-none box-border border-y border-neutral-500/40'
+												: 'odd:bg-neutral-900/40'
+										}`"
 									>
-										<button
-											v-if="
-												setting.type ===
-												'tab'
-											"
-											v-for="option in setting.option"
-											:class="`rounded-[10px] px-3 py-1 flex-grow text-center ${
-												option ===
-												setting.selected
-													? 'bg-neutral-700/50 text-[#6BD968] border border-neutral-700'
-													: 'hover:bg-neutral-800/60 text-neutral-500'
-											}`"
-											@click="
-												setting.selected =
-													option
-											"
-										>
-											{{
-												option
-											}}{{
-												setting.title ===
-												"Duration"
-													? "s"
-													: ""
-											}}
-										</button>
-										<select
-											v-if="
-												setting.type ===
-												'select'
-											"
-											v-model="
-												setting.selected
-											"
-											class="rounded-[10px] px-3 py-1 flex-grow text-center bg-neutral-700/50 text-[#6BD968] border border-neutral-700 focus:ring-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6BD968]/70"
-										>
-											<option
-												v-for="option in setting.option"
-												:value="
-													option
+										<div>
+											<div
+												class=""
+											>
+												{{
+													setting.title
+												}}
+											</div>
+											<div
+												class="text-xs leading-4 text-neutral-500 line-clamp"
+												v-if="
+													setting.description
 												"
 											>
 												{{
-													option ===
-													""
-														? "none"
-														: option
+													setting.description
 												}}
-											</option>
-										</select>
-										<span
-											v-if="
-												setting.type ===
-												'select'
-											"
-											class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-neutral-500"
+											</div>
+										</div>
+										<div
+											:class="`relative flex justify-evenly min-w-[300px] p-0.5 gap-0.5 rounded-xl text-sm font-medium bg-neutral-900/90`"
 										>
-											<Icon
-												name="heroicons:chevron-down-20-solid"
-												size="1.25rem"
-											/>
-										</span>
+											<button
+												v-if="
+													setting.type ===
+													'tab'
+												"
+												v-for="option in setting.option"
+												:class="`rounded-[10px] px-3 py-1 flex-grow text-center ${
+													option ===
+													setting.selected
+														? 'bg-neutral-700/50 text-[#6BD968] border border-neutral-700'
+														: 'hover:bg-neutral-800/60 text-neutral-500'
+												}`"
+												@click="
+													setting.selected =
+														option
+												"
+											>
+												{{
+													option
+												}}{{
+													setting.title ===
+													"Duration"
+														? "s"
+														: ""
+												}}
+											</button>
+											<select
+												v-if="
+													setting.type ===
+													'select'
+												"
+												v-model="
+													setting.selected
+												"
+												class="rounded-[10px] px-3 py-1 flex-grow text-center bg-neutral-700/50 text-[#6BD968] border border-neutral-700 focus:ring-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6BD968]/70"
+											>
+												<option
+													v-for="option in setting.option"
+													:value="
+														option
+													"
+												>
+													{{
+														setting.title ===
+															"Key" &&
+														option ===
+															""
+															? "All key"
+															: setting.title ===
+															  "Key"
+															? option.toUpperCase()
+															: option
+													}}
+												</option>
+											</select>
+											<span
+												v-if="
+													setting.type ===
+													'select'
+												"
+												class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-neutral-500"
+											>
+												<Icon
+													name="heroicons:chevron-down-20-solid"
+													size="1.25rem"
+												/>
+											</span>
+										</div>
+										<!-- <UISwitch /> -->
 									</div>
-									<!-- <UISwitch /> -->
-								</div>
+								</template>
 							</div>
 						</HeadlessDialogPanel>
 					</HeadlessTransitionChild>
@@ -210,6 +228,27 @@ function openModal() {
 	isOpen.value = true;
 }
 
-const {settings:tabs} = storeToRefs(store)
+const { settings: tabs } = storeToRefs(store);
 const currentTab = ref("Game");
+
+function checkRenderDurationOrWords(setting, currentTab) {
+	return !(
+		(setting?.title === "Duration" &&
+			tabs.value
+				.find((i) => i.tab === currentTab)
+				.settings.find((i) => i?.title === "Mode")
+				.selected === "word") ||
+		(setting?.title === "Total words" &&
+			tabs.value
+				.find((i) => i.tab === currentTab)
+				.settings.find((i) => i?.title === "Mode")
+				.selected === "time") ||
+		((setting?.title === "Total words" ||
+				setting?.title === "Duration") &&
+			tabs.value
+				.find((i) => i.tab === currentTab)
+				.settings.find((i) => i?.title === "Mode")
+				.selected === "infinity")
+	);
+}
 </script>

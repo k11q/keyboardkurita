@@ -8,7 +8,7 @@ export default defineEventHandler(async (e) => {
 	const query = getQuery(e);
 
 	const limit: number = parseInt(query.limit as string) || 5000;
-	const num_words: number = parseInt(query.num as string) || 10;
+	const numWords: number = parseInt(query.num as string) || 10;
 	const selected_char = (query.char as string) || "";
 	const difficulty: "easy" | "medium" | "hard" | "extra_hard" =
 		(query.difficulty as
@@ -113,7 +113,7 @@ export default defineEventHandler(async (e) => {
 		const selectedWordObjects = [];
 		const selectedIndices = new Set();
 
-		while (selectedWords.length < num_words) {
+		while (selectedWords.length < numWords) {
 			const batchIndices = new Set();
 			const batchPromises = [];
 
@@ -159,7 +159,7 @@ export default defineEventHandler(async (e) => {
 			for (const entry of batchResults) {
 				const word = Object.keys(entry)[0];
 				if (
-					selectedWords.length < num_words &&
+					selectedWords.length < numWords &&
 					(selected_char
 						? checkContainSelectedChar(word)
 						: true)
@@ -179,7 +179,8 @@ export default defineEventHandler(async (e) => {
 		return {
 			all_words: selectedWords,
 			data: [...selectedWordObjects],
-			no_characters: numCharacters,
+			num_characters: numCharacters,
+			num_words: numWords, 
 		};
 	}
 

@@ -2,7 +2,7 @@ import { WritableComputedRef } from "vue";
 import { defineStore } from "pinia";
 
 export type DifficultyOptions = "easy" | "medium" | "hard" | "extra_hard";
-export type ModesOptions = "word" | "time";
+export type ModesOptions = "word" | "time" | "infinity";
 export type ConfigDurationOptions = 10 | 20 | 30 | 60 | undefined;
 export type ConfigTotalWordsOptions = 10 | 25 | 50 | undefined;
 export type ConfigSelectionOptions =
@@ -41,7 +41,7 @@ export const useHomeStore = defineStore("counter", () => {
 					description:
 						"The mode of the tests. Word means you will be tested within a duration, word means you will be tested a certain number of words.",
 					selected: "word",
-					option: ["time", "word"],
+					option: ["word", "time", "infinity"],
 					type: "tab",
 				},
 				{
@@ -118,52 +118,36 @@ export const useHomeStore = defineStore("counter", () => {
 				},
 				{
 					title: "Sifu mode",
-					description: "Restart if there is one",
+					description: "Restart if there is a single error",
 					selected: "off",
 					option: ["on", "off"],
+					type: "tab",
+				},
+			],
+		},
+		{
+			tab: "Navigation",
+			settings: [
+				{
+					title: "Auto restart",
+					description:
+						"Automatically opens a new session upon finished.",
+					selected: "on",
+					option: ["on", "off"],
+					type: "tab",
+				},
+				{
+					title: "Quick restart",
+					description:
+						"Enables quickly restarting a new session with entering a key.",
+					selected: "Tab",
+					option: ["Tab", "Esc", "off"],
 					type: "tab",
 				},
 			],
 		},
 		{
 			tab: "Input",
-			settings: [
-				{
-					title: "Space to skip word",
-					description:
-						"This enables using space to skip the words.",
-					selected: "off",
-					option: ["on", "off"],
-					type: "tab",
-				},
-				{
-					title: "Cursor stop at error",
-					description:
-						"Cursor will stop at error until you enter the correct character.",
-					selected: "off",
-					option: ["on", "off"],
-					type: "tab",
-				},
-				{
-					title: "Allow skip characters",
-					description:
-						"Incorrect input will skip the character and move to the next.",
-					selected: "off",
-					option: ["on", "off"],
-					type: "tab",
-				},
-				{
-					title: "Forgive extra characters",
-					description:
-						"This enables using space to skip the words.",
-					selected: "off",
-					option: ["on", "off"],
-					type: "tab",
-				},
-			],
-		},
-		{
-			tab: "Keyboard",
 			settings: [
 				{
 					title: "Space to skip word",
@@ -276,7 +260,7 @@ export const useHomeStore = defineStore("counter", () => {
 			set: (newValue): void => {
 				settings.value[0].settings.find(
 					(i) => i.title === "Total Words"
-				).selected = parseInt(newValue);
+				)!.selected = parseInt(newValue);
 			},
 		}
 	);

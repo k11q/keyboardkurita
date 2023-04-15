@@ -86,7 +86,10 @@
 								:value="key"
 							>
 								{{
-									key === "" ? "Any key" : key.toUpperCase()
+									key ===
+									""
+										? "Any key"
+										: key.toUpperCase()
 								}}
 							</option>
 						</select>
@@ -359,6 +362,7 @@ import type {
 	ConfigSelectionOptions,
 	CharLogStatus,
 } from "@/stores/home";
+import { error } from "console";
 
 //types
 type KeystrokeLog = { character: string; time: number; status: CharLogStatus };
@@ -375,6 +379,40 @@ type WordMetadata = {
 	characters: CharacterMetadata[];
 	type: WordType;
 	index: number;
+};
+type CharacterPerformance = {
+	character: string;
+	wpm: number;
+	count: number;
+	errors: number;
+	extras: number;
+	misses: number;
+	corrects: number;
+};
+type WordPerformance = {
+	word: string;
+	wpm: number;
+	count: number;
+	errors: number;
+	misses: number;
+};
+type IntervalPerformance = {
+	time: number;
+	word_count: number;
+	wpm: number;
+	errors: number;
+	misses: number;
+	word_index: number;
+	character_index: number;
+};
+type KeyStrokeLog = {
+	character: string;
+	time: number;
+	true: boolean;
+	error: boolean;
+	misses: boolean;
+	word_index: number;
+	character_index: number;
 };
 
 //db & auth
@@ -486,7 +524,13 @@ const sessionsInsertData: SessionsInsert = {
 	xp_gains: 0,
 	//optional
 	multiplayer_id: undefined,
+	dataset: "english_50k",
 };
+
+const characterPerformance: CharacterPerformance[] = [];
+const wordPerformance: WordPerformance[] = [];
+const intervalPerformance: IntervalPerformance[] = [];
+const keystrokeLogs: KeyStrokeLog[] = [];
 
 // variable for logging wpm and row in interval
 let charactersPerThreeSecondCount = 0;
@@ -495,6 +539,8 @@ const liveWpm = ref(0);
 const liveRawWpm = ref(0);
 const liveTimer = ref(0);
 
+let totalCharactersCount = 0;
+let totalWordsCount = 0;
 const currentActive = ref();
 const allData: globalThis.Ref<WordMetadata[]> = ref([]);
 const currentWordNum = ref(0);
@@ -676,7 +722,8 @@ function handleInput(key: string) {
 		allData.value[currentWordNum.value]?.characters[
 			currentPendingWordIndex.value
 		]?.character;
-	totalWords = allData.value.length;
+	totalWords = getTotalWords();
+	pushCharacterPerformance(key, currentCorrectChar);
 	if (key === currentCorrectChar) {
 		handleCorrectInput(key);
 	} else {
@@ -689,6 +736,76 @@ function addTotalCharacters() {
 	const currentWordMetadata = allData.value[currentWordNum.value];
 	if (currentWordMetadata && currentWordMetadata.type !== "separator") {
 		sessionsInsertData.total_characters++;
+		totalCharactersCount++;
+	}
+}
+
+function pushCharacterPerformance(key: string, currentCorrectChar: string) {
+	const currentCharacterObject = characterPerformance.find(
+		(i) => i.character === key
+	);
+	const character = key;
+	let corrects = getCorrects();
+	let count = getCount();
+	let errors = getError();
+	let extras = getExtras();
+	let misses = getMisses();
+	let wpm = getWpm();
+
+	upsertCharacterPerformance()
+
+	function getCorrects() {
+		let corrects = currentCharacterObject
+			? currentCharacterObject.extras | 0
+			: 0;
+		return key === currentCorrectChar ? corrects + 1 : corrects;
+	}
+	function getCount() {
+		return currentCharacterObject
+			? currentCharacterObject.count + 1
+			: 1;
+	}
+	function getError() {
+		let error = currentCharacterObject
+			? currentCharacterObject.errors | 0
+			: 0;
+		return currentIncorrect ? error : error + 1;
+	}
+	function getExtras() {
+		let extras = currentCharacterObject
+			? currentCharacterObject.extras | 0
+			: 0;
+		return extras + 1;
+	}
+	function getMisses() {
+		return 0;
+	}
+	function getWpm() {
+		return 0;
+	}
+	function upsertCharacterPerformance() {
+		const index = characterPerformance.findIndex(
+			(i) => i.character === key
+		);
+
+		const updatedCharacterObject = {
+			character,
+			count,
+			errors,
+			corrects,
+			extras,
+			misses,
+			wpm,
+		};
+
+		if (index !== -1) {
+			Object.assign(
+				characterPerformance[index],
+				updatedCharacterObject
+			);
+		} else {
+			characterPerformance.push(updatedCharacterObject);
+		}
 	}
 }
 
@@ -859,8 +976,6 @@ function handleBackspace() {
 }
 
 function handleStartSession() {
-	const mode = selectedMode.value;
-	const difficulty = selectedDifficulty.value;
 	const game_metadata = {};
 	sessionRunning.value = true;
 	resetInterval();
@@ -868,10 +983,10 @@ function handleStartSession() {
 	timeoutId = setTimeout(updateWPM, 1000);
 	resetAllSessionData();
 	fillData();
-	fillInitialData(mode, difficulty, game_metadata);
+	fillInitialData(game_metadata);
 }
 
-function fillInitialData(mode: string, difficulty: string, game_metadata: {}) {
+function fillInitialData(game_metadata: {}) {
 	sessionsInsertData.user_username = USERNAME.value;
 	sessionsInsertData.user_id = PROFILE.value?.id;
 	sessionsInsertData.start_time = new Date()
@@ -879,8 +994,8 @@ function fillInitialData(mode: string, difficulty: string, game_metadata: {}) {
 		.toLocaleString();
 	sessionsInsertData.total_characters = 1;
 	startTime = Date.now();
-	sessionsInsertData.mode = mode;
-	sessionsInsertData.difficulty = difficulty;
+	sessionsInsertData.mode = selectedMode.value;
+	sessionsInsertData.difficulty = selectedDifficulty.value;
 	sessionsInsertData.game_metadata = game_metadata;
 }
 
@@ -954,25 +1069,42 @@ function fillFinalData(time: number) {
 	const totalCharacters = sessionsInsertData.total_characters;
 	const elapsedTime = time - startTime;
 	sessionsInsertData.wpm = getWpm(corrects + errors, elapsedTime);
+	sessionsInsertData.cpm = getCpm(sessionsInsertData.wpm);
 	sessionsInsertData.accuracy = getAccuracy(corrects, totalCharacters);
 	sessionsInsertData.raw = getRaw(totalCharacters + extras, elapsedTime);
 	sessionsInsertData.consistency = getConsistency(
 		sessionsInsertData.wpm,
 		sessionsInsertData.raw
 	);
-	endTime = Date.now();
-	sessionsInsertData.end_time = new Date()
+	sessionsInsertData.end_time = new Date(time)
 		.toISOString()
 		.toLocaleString("ms-MY", {});
-	sessionsInsertData.duration = (endTime - startTime) / 1000 / 60;
+	sessionsInsertData.duration = parseFloat(
+		(elapsedTime / 1000).toFixed(2)
+	);
 	sessionsInsertData.words = collectedWords;
 	sessionsInsertData.total_words = totalWords;
+	sessionsInsertData.xp_gains = parseFloat(
+		(sessionsInsertData.accuracy / 10).toFixed(2)
+	);
+	sessionsInsertData.char_performance = characterPerformance;
+	sessionsInsertData.word_performance = wordPerformance;
+	sessionsInsertData.interval_performance = intervalPerformance;
+	sessionsInsertData.keystroke_logs = keystrokeLogs;
+	sessionsInsertData.logs = allData.value;
 }
 
 function getWpm(totalAchievedCharacters: number, elapsedTime: number) {
 	return parseFloat(
-		calculateWPM(totalAchievedCharacters, elapsedTime).toFixed(2)
+		(
+			Math.round(totalAchievedCharacters / 5) /
+			(elapsedTime / 1000 / 60)
+		).toFixed(2)
 	);
+}
+
+function getCpm(wpm: number) {
+	return wpm * 5;
 }
 
 function getAccuracy(corrects: number, totalCharacters: number) {
@@ -1119,12 +1251,24 @@ async function getProfile(userId: string) {
 }
 
 // pure functions and checkers
-function getTotalWords(mode: string): string[] {
-	return mode === "word" ? words.value?.all_words : undefined;
+function getTotalWords(): number {
+	if (selectedMode.value === "word") {
+		return words.value?.num_words;
+	} else if (selectedMode.value === "time") {
+		console.log("time not implemented yet");
+		return totalWordsCount;
+	}
+	console.log("total words not found");
 }
 
-function getTotalCharacters(mode: string): number {
-	return mode === "word" ? words.value?.no_characters : undefined;
+function getTotalCharacters(): number {
+	if (selectedMode.value === "word") {
+		return words.value?.num_characters;
+	} else if (selectedMode.value === "time") {
+		console.log("time not implemented yet");
+		return totalCharactersCount;
+	}
+	console.log("total characters not found");
 }
 
 function getDuration(mode: string, words: string[], logs: []) {
@@ -1160,6 +1304,7 @@ function isEndSession(metadata: InputMetadata) {
 }
 
 function isEndWord(currentCharLocation: number, currentWordLength: number) {
+	totalWordsCount++;
 	return currentCharLocation === currentWordLength - 1;
 }
 
