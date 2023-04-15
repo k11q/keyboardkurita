@@ -387,12 +387,12 @@ export const useHomeStore = defineStore("counter", () => {
 	const words: WritableComputedRef<ConfigTotalWordsOptions> = computed({
 		get: (): ConfigTotalWordsOptions => {
 			return settings.value[0].settings.find(
-				(i) => i.title === "Total Words"
+				(i) => i.title === "Total words"
 			)!.selected as ConfigTotalWordsOptions;
 		},
 		set: (newValue): void => {
 			settings.value[0].settings.find(
-				(i) => i.title === "Total Words"
+				(i) => i.title === "Total words"
 			)!.selected = parseInt(newValue);
 		},
 	});

@@ -11,7 +11,7 @@
 			}px`"
 		></div>
 		<div
-			:class="`flex flex-col items-center gap-2 fixed w-screen left-0 right-0 px-10 transition-all z-10 ease-in-out duration-200 ${
+			:class="`flex flex-col items-center gap-2 fixed w-screen left-0 right-0 px-10 transition-all z-10 ease-in-out duration-400 ${
 				currentActive &&
 				currentActive.id === 'MasterInput'
 					? 'bottom-10'
@@ -26,7 +26,7 @@
 				@click="!allData.length
 						? fetchWords(currentKey)
 						: focusInput()"
-				class="text-neutral-300 cursor-pointer px-6 py-5 text-xl font-mono"
+				class="text-neutral-300 hover:text-white cursor-pointer px-6 py-5 text-xl font-mono"
 			>
 				click to activate
 			</div>
@@ -554,7 +554,7 @@ async function fetchWords(char = "") {
 		const { data } = await useFetch(
 			`api/words?char=${selectedKey.value.charAt(
 				0
-			)}&difficulty=${selectedDifficulty.value}`
+			)}&difficulty=${selectedDifficulty.value}&num=${selectedWords.value}`
 		);
 		return data.value;
 	}
@@ -576,7 +576,7 @@ async function fetchFreshWords(char = "") {
 		const { data } = await useFetch(
 			`api/words?char=${selectedKey.value.charAt(
 				0
-			)}&difficulty=${selectedDifficulty.value}`
+			)}&difficulty=${selectedDifficulty.value}&num=${selectedWords.value}`
 		);
 		return data.value;
 	}
