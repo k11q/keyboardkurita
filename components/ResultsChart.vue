@@ -27,9 +27,9 @@ const option = computed(() => ({
 	},
 	grid: {
 		top: "10%",
-		bottom: "10%",
+		bottom: "13%",
 		left: "5%",
-		right: "5%",
+		right: "4%",
 		containLabels: true,
 	},
 	xAxis: {
