@@ -1,22 +1,22 @@
 <template>
-	<div class="pb-10 px-10 pt-8 max-w-7xl w-full">
+	<div class="pb-10 px-10 pt-8 max-w-6xl w-full">
 		<div
 			v-if="
 				currentActive &&
 				currentActive.id === 'MasterInput'
 			"
-			:class="`fixed z-50 h-11 w-2 bg-[#3992FF] transition-all duration-100 ease-linear`"
-			:style="`left: ${CAROTLEFT - 4}px; top: ${
+			:class="`fixed z-50 h-11 w-1.5 bg-[#3992FF] transition-all duration-100 ease-linear`"
+			:style="`left: ${CAROTLEFT - 3}px; top: ${
 				CAROTTOP - 2
 			}px`"
 		></div>
 		<div
-			:class="`flex flex-col items-center gap-2 fixed w-screen left-0 right-0 px-10 transition-all z-10 ease-in-out duration-400 ${
+			:class="`flex flex-col items-center gap-6 fixed h-fit left-0 right-0 px-10 transition-all z-10 ease-in duration-400 ${
 				currentActive &&
 				currentActive.id === 'MasterInput'
 					? 'bottom-10'
-					: 'bottom-1/2'
-			}`"
+					: 'bottom-1/2 -mb-20'
+			} ${sessionRunning && currentActive.id === 'MasterInput' ? 'translate-y-[20rem]' : 'opacity-100 translate-y-0'}`"
 		>
 			<div
 				v-if="
@@ -30,7 +30,7 @@
 						? fetchWords(currentKey)
 						: focusInput()
 				"
-				class="text-neutral-300 hover:text-white cursor-pointer px-6 py-5 text-xl font-mono"
+				class="text-neutral-300 hover:text-white cursor-pointer px-6 py-4 rounded-lg text-xl font-mono bg-[#672ab7] hover:bg-[#441780"
 			>
 				click to activate
 			</div>
@@ -181,14 +181,14 @@
 			</div>
 		</div>
 		<div
-			@click.prevent.stop="
+			:class="`pointer-events-none fixed flex items-center justify-center top-1/2 -translate-y-1/2 font-mono transition-all ease-linear duration-1000 rounded-[32px] w-full left-0 right-0 text-4xl leading-[54px]`"
+		>
+		<div class="w-full max-w-6xl px-14 pt-6 mb-20 h-[14rem] flex-none" @click.prevent.stop="
 				currentActive &&
 				currentActive.id === 'MasterInput'
 					? ''
 					: focusInput()
-			"
-			:class="`font-mono relative transition-all ease-linear duration-1000 mb-6 min-h-[20rem] pt-20 pb-6 px-6 rounded-[32px] w-full text-4xl leading-[54px]`"
-		>
+			">
 			<template v-for="(word, index) in allData">
 				<span :class="``"
 					><span
@@ -241,6 +241,7 @@
 				"
 				class="inset-0 absolute right-0 items-center justify-center flex cursor-pointer backdrop-blur rounded-[32px]"
 			></div>
+		</div>
 		</div>
 		<input
 			type="text"
@@ -476,29 +477,46 @@ const keystrokeLogs: KeystrokeLogsInsert[] = [];
 const chartData: ChartData = { wpm: [], error: [], raw: [], time: [] };
 
 // variable for logging wpm and row in interval
-let charactersPerThreeSecondCount = 0;
 let intervalCount = 1;
 const liveWpm = ref(0);
 const liveRawWpm = ref(0);
 const liveTimer = ref(0);
 let intervalError = 0;
 let intervalCharacterCount = 0;
-
+let characterCountPerFiveSeconds: number[] = [];
 let totalCharactersCount = 0;
 let totalWordsCount = 0;
 let totalErrorsCount = 0;
 let totalCorrectsCount = 0;
-let totalExtasCount = 0;
+let totalExtrasCount = 0;
+
+//
 const currentActive = ref();
 const allData: globalThis.Ref<WordMetadata[]> = ref([]);
 const currentWordNum = ref(0);
 const currentCharNum = ref(0);
 const currentPendingWordIndex = ref(0);
 const words = ref();
+
+//
 let startTime: number;
 let endTime: number;
 let currentIncorrect = false;
 let finalKeydown = Date.now();
+
+// ui states
+const isOpen = useState("isOpen", () => false);
+const loading = ref(false);
+
+//manage carot
+const CAROTLEFT = ref(0);
+const CAROTTOP = ref(0);
+
+//temporary placeholder for db
+const pastSessions: globalThis.Ref<SessionsInsert[]> = ref([]);
+
+// miscs
+let timeoutId: NodeJS.Timeout;
 
 const currentMetadata: globalThis.ComputedRef<InputMetadata> = computed(() => {
 	const currentWordLocation = currentWordNum.value;
@@ -560,20 +578,6 @@ const currentCharacterTiming: WritableComputedRef<number> = computed({
 		].timing = newValue;
 	},
 });
-
-// ui states
-const isOpen = useState("isOpen", () => false);
-const loading = ref(false);
-
-//manage carot
-const CAROTLEFT = ref(0);
-const CAROTTOP = ref(0);
-
-//temporary placeholder for db
-const pastSessions: globalThis.Ref<SessionsInsert[]> = ref([]);
-
-// miscs
-let timeoutId: NodeJS.Timeout;
 
 async function fetchWords(char = "") {
 	loading.value = true;
@@ -680,31 +684,14 @@ function pushCharacterPerformance(key: string) {
 	);
 	const currentCorrectChar = currentMetadata.value.currentCorrectChar;
 	const character = key;
-	const corrects = getCorrects();
-	const count = getCount();
-	const errors = getError();
+	const corrects = getCorrects(currentCharacterObject, key);
+	const count = getCount(currentCharacterObject);
+	const errors = getError(currentCharacterObject);
 	const wpm = getWpm();
 	let session_id: number; // fill at the end
 
 	upsertCharacterPerformance();
 
-	function getCorrects() {
-		let corrects = currentCharacterObject
-			? currentCharacterObject.corrects
-			: 0;
-		return key === currentCorrectChar ? corrects + 1 : corrects;
-	}
-	function getCount() {
-		return currentCharacterObject
-			? currentCharacterObject.count + 1
-			: 1;
-	}
-	function getError() {
-		let error = currentCharacterObject
-			? currentCharacterObject.errors | 0
-			: 0;
-		return currentIncorrect ? error : error + 1;
-	}
 	function getWpm() {
 		return 0;
 	}
@@ -731,6 +718,20 @@ function pushCharacterPerformance(key: string) {
 			characterPerformance.push(updatedCharacterObject);
 		}
 	}
+}
+
+function getCorrects(characterObject: CharacterPerformanceInsert, key: string) {
+	const currentCorrectChar = currentMetadata.value.currentCorrectChar;
+	let corrects = characterObject ? characterObject.corrects : 0;
+	return key === currentCorrectChar ? corrects + 1 : corrects;
+}
+
+function getCount(characterObject?: CharacterPerformanceInsert) {
+	return characterObject ? characterObject.count + 1 : 1;
+}
+function getError(characterObject?: CharacterPerformanceInsert) {
+	let error = characterObject ? characterObject.errors | 0 : 0;
+	return currentIncorrect ? error : error + 1;
 }
 
 function handleCorrectInput() {
@@ -920,8 +921,6 @@ function insertWord(word: string) {
 	collectedWords.push(word);
 }
 
-function handleLeaveSession() {}
-
 function handleAfkOrOutOfFocus() {
 	resetEverything();
 	fillData();
@@ -983,6 +982,9 @@ function resetCounters() {
 	totalCorrectsCount = 0;
 	totalErrorsCount = 0;
 	totalCharactersCount = 0;
+	intervalCharacterCount = 0;
+	characterCountPerFiveSeconds = [];
+	Object.assign(chartData, { wpm: [], error: [], raw: [], time: [] });
 }
 
 function resetIndexes() {
@@ -1008,10 +1010,7 @@ function fillFinalData(time: number) {
 		totalCharactersCount
 	);
 	sessionsInsertData.raw = getRaw(totalCharactersCount, elapsedTime);
-	sessionsInsertData.consistency = getConsistency(
-		sessionsInsertData.wpm,
-		sessionsInsertData.raw
-	);
+	sessionsInsertData.consistency = getConsistency(chartData);
 	sessionsInsertData.end_time = new Date(time)
 		.toISOString()
 		.toLocaleString("ms-MY", {});
@@ -1046,15 +1045,23 @@ function getAccuracy(corrects: number, totalCharacters: number) {
 
 function getRaw(totalCharacters: number, elapsedTime: number) {
 	return parseFloat(
-		(
-			Math.round(totalCharacters / 5) /
-			(elapsedTime / 1000 / 60)
-		).toFixed(2)
+		(totalCharacters / 5 / (elapsedTime / 1000 / 60)).toFixed(2)
 	);
 }
 
-function getConsistency(wpm: number, raw: number) {
-	return parseFloat(((wpm / raw) * 100).toFixed(2));
+function getConsistency(chartData: ChartData) {
+	const { wpm, raw } = chartData;
+	const length = Math.min(wpm.length, raw.length);
+
+	let sumRatios = 0;
+	for (let i = 0; i < length; i++) {
+		const ratio = wpm[i] / raw[i];
+		sumRatios += ratio;
+	}
+
+	const averageRatio = sumRatios / length;
+	const consistencyPercentage = averageRatio * 100;
+	return parseFloat(consistencyPercentage.toFixed(2));
 }
 
 async function insertSessionToDatabase() {
@@ -1111,16 +1118,23 @@ function updateWPM() {
 		setIntervalValuesOnFinishedSession();
 		return;
 	}
+	insertCharacterCountPerSecond();
 	if (!startTime) {
 		startTime = Date.now();
 	}
 	const elapsedTime = Date.now() - startTime;
 	const wpm = getWpm(totalCorrectsCount + totalErrorsCount, elapsedTime);
-	const rawWpm = getRaw(totalCharactersCount, elapsedTime);
+	let rawWpm: number;
+	if (intervalCount < 5) {
+		rawWpm = getRaw(totalCharactersCount, elapsedTime);
+	} else {
+		rawWpm = getRaw(getTotalCharactersInLastFiveSeconds(), 5000);
+	}
 
 	setIntervalValues(wpm, intervalCount, rawWpm);
 	insertChartDataLog(wpm, intervalError, intervalCount, rawWpm);
 	incrementIntervalCount();
+	resetIntervalCharacterCount();
 	resetIntervalError();
 	timeoutId = setTimeout(updateWPM, 1000); // Log the values every second
 	function setIntervalValuesOnFinishedSession() {
@@ -1135,6 +1149,19 @@ function updateWPM() {
 				].wpm;
 		}
 	}
+}
+
+function getTotalCharactersInLastFiveSeconds() {
+	const lastFiveNumbers = characterCountPerFiveSeconds.slice(-5);
+	const sum = lastFiveNumbers.reduce(
+		(accumulator, currentValue) => accumulator + currentValue,
+		0
+	);
+	return sum;
+}
+
+function insertCharacterCountPerSecond() {
+	characterCountPerFiveSeconds.push(intervalCharacterCount);
 }
 
 function setIntervalValues(wpm: number, intervalCount: number, rawWpm: number) {
@@ -1161,6 +1188,10 @@ function incrementIntervalCount(): void {
 
 function resetIntervalError(): void {
 	intervalError = 0;
+}
+
+function resetIntervalCharacterCount(): void {
+	intervalCharacterCount = 0;
 }
 
 function resetIntervalCount(): void {

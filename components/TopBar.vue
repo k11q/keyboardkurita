@@ -1,9 +1,9 @@
 <template>
 	<div
-		class="w-full h-14 flex justify-center border-b border-neutral-800 flex-none"
+		class="w-full h-14 flex justify-center border-b border-neutral-800 flex-none z-90 relative top-0"
 	>
 		<div
-			class="w-full items-center px-10 max-w-7xl flex gap-6 justify-between"
+			class="w-full items-center px-10 max-w-6xl flex gap-6 justify-between"
 		>
 			<div class="h-full">
 				<NuxtLink to="/"
