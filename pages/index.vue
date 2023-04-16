@@ -45,7 +45,7 @@
 								selectedDifficulty
 							"
 							@change="
-								updateDifficultyAndFetch(
+								changeDifficulty(
 									$event
 								)
 							"
@@ -97,7 +97,7 @@
 					<div class="relative">
 						<select
 							@change="
-								updateKeyAndFetch(
+								changeKey(
 									$event
 								)
 							"
@@ -605,9 +605,7 @@ async function fetchWords(char = "") {
 	if (char) {
 		selectedKey.value = char.charAt(0);
 	}
-	resetIndexes();
-	resetAllSessionData();
-	resetCounters();
+	resetEverything();
 	if (words.value && words.value.next_data) {
 		words.value = words.value.next_data;
 		setupData();
@@ -616,11 +614,6 @@ async function fetchWords(char = "") {
 		words.value = await fetchWordsAndReturn();
 		setupData();
 	}
-	function setupData() {
-		fillData();
-		focusInput();
-		loading.value = false;
-	}
 }
 
 async function fetchFreshWords(char = "") {
@@ -628,13 +621,9 @@ async function fetchFreshWords(char = "") {
 	if (char) {
 		selectedKey.value = char.charAt(0);
 	}
-	resetIndexes();
-	resetAllSessionData();
-	resetCounters();
+	resetEverything();
 	words.value = await fetchWordsAndReturn();
-	fillData();
-	focusInput();
-	loading.value = false;
+	setupData();
 }
 
 async function fetchWordsAndReturn() {
@@ -646,6 +635,18 @@ async function fetchWordsAndReturn() {
 	return data.value;
 }
 
+function resetEverything() {
+	resetIndexes();
+	resetAllSessionData();
+	resetCounters();
+}
+
+function setupData() {
+	fillData();
+	focusInput();
+	loading.value = false;
+}
+
 function fillData() {
 	if (!words.value || !words.value.all_data) {
 		console.log(
@@ -653,7 +654,7 @@ function fillData() {
 		);
 		return;
 	}
-	allData.value = words.value.all_data;
+	allData.value = JSON.parse(JSON.stringify(words.value.all_data));
 }
 
 function handleKeydown(e: KeyboardEvent) {
@@ -757,13 +758,14 @@ function pushCharacterPerformance(key: string) {
 function handleCorrectInput() {
 	const time = Date.now();
 
-	if (isStartSession()) {
-		handleStartSession();
-	}
 	incrementIntervalCharacterCount();
 	deleteExtras();
 	updateTiming(time);
+	if (isStartSession()) {
+		handleStartSession();
+	}
 	updateStatus();
+
 	if (isEndSession()) {
 		handleEndSession(time);
 		fetchWords(selectedKey.value);
@@ -931,9 +933,7 @@ function insertWord(word: string) {
 function handleLeaveSession() {}
 
 function handleAfkOrOutOfFocus() {
-	resetAllSessionData();
-	resetCounters();
-	resetIndexes();
+	resetEverything();
 	fillData();
 	sessionRunning.value = false;
 }
@@ -1073,19 +1073,21 @@ async function insertSessionToDatabase() {
 }
 
 // ui functions
-function updateDifficultyAndFetch(e: Event) {
+function changeDifficulty(e: Event) {
 	const element = e.target as HTMLSelectElement;
 	const difficulty = element.value as DifficultyOptions;
 	selectedDifficulty.value = difficulty;
-	fetchFreshWords();
 }
 
-function updateKeyAndFetch(e: Event) {
+function changeKey(e: Event) {
 	const element = e.target as HTMLSelectElement;
 	const key = element.value;
 	selectedKey.value = key;
-	fetchFreshWords(key);
 }
+
+watch([selectedDifficulty, selectedDuration, selectedKey, selectedMode], () => {
+	fetchFreshWords();
+});
 
 // function resetlivetimer live wpm
 function resetLiveInterval() {
@@ -1157,6 +1159,7 @@ watch(currentActive, () => {
 	}
 });
 
+// set caret position
 onMounted(() => {
 	requestAnimationFrame(setCaretPosition);
 
@@ -1188,6 +1191,9 @@ async function getProfile(userId: string) {
 		.single();
 	if (error) {
 		console.log(error);
+		console.log(
+			"no profile for users found. user needs to setup profile"
+		);
 	}
 	return data;
 }
@@ -1213,8 +1219,14 @@ function getTotalCharacters(): number | undefined {
 	console.log("total characters not found");
 }
 
-function getDuration(mode: string, words: string[], logs: []) {
-	return mode === "time" ? words : undefined;
+function getDuration() {
+	if (selectedMode.value === "word") {
+		return words.value?.num_words;
+	} else if (selectedMode.value === "time") {
+		console.log("time not implemented yet");
+		return totalWordsCount;
+	}
+	console.log("total words not found");
 }
 
 function isRestrictedKeys(e: KeyboardEvent) {
@@ -1240,14 +1252,20 @@ function isStartSession() {
 
 function isEndSession() {
 	const metadata = currentMetadata.value;
+	const currentWordLocation = metadata.currentWordLocation;
+	const currentCharLocation = metadata.currentCharLocation;
+	const currentWordLength = metadata.currentWordLength;
+
 	return (
-		metadata.currentWordLocation === allData.value.length - 1 &&
-		metadata.currentCharLocation === metadata.currentWordLength - 1
+		currentWordLocation === allData.value.length - 1 &&
+		currentCharLocation === currentWordLength - 1
 	);
 }
 
 function isEndWord() {
-	const metadata = currentMetadata.value;
-	return metadata.currentCharLocation === metadata.currentWordLength - 1;
+	const currentCharLocation = currentMetadata.value.currentCharLocation;
+	const currentWordLength = currentMetadata.value.currentWordLength;
+
+	return currentCharLocation === currentWordLength - 1;
 }
 </script>
