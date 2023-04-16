@@ -155,10 +155,143 @@
 				</div>
 			</div>
 			<div
-				class="flex justify-center px-6"
-				v-show="!currentActive || (currentActive && currentActive.id !== 'MasterInput')
+				class="flex flex-col justify-center px-6"
+				v-show="
+					!currentActive ||
+					(currentActive &&
+						currentActive.id !==
+							'MasterInput')
 				"
 			>
+				<div v-if="pastSessions.length" class="pb-10 flex flex-col gap-2">
+					<div class="flex gap-6">
+						<div
+							class="w-34 flex-none flex flex-col gap-2"
+						>
+							<div
+								class="flex flex-col h-1/2"
+							>
+								<div
+									class="text-2xl text-neutral-500"
+								>
+									wpm
+								</div>
+								<div
+									class="text-[2.5rem] leading-tight font-mono text-[#6BD968]"
+								>
+									{{
+										currentSelectionData.wpm
+									}}
+								</div>
+							</div>
+							<div
+								class="flex flex-col"
+							>
+								<div
+									class="text-2xl text-neutral-500"
+								>
+									acc
+								</div>
+								<div
+									class="text-[2.5rem] leading-tight font-mono text-[#6BD968]"
+								>
+									{{
+										currentSelectionData?.accuracy
+									}}%
+								</div>
+							</div>
+						</div>
+						<ClientOnly
+							><ResultsChart
+								:data="
+									currentSelectionData.chart_data
+								"
+						/></ClientOnly>
+					</div>
+					<div class="grid grid-cols-5 gap-6">
+						<div class="flex flex-col gap-1">
+							<div
+								class="text-base text-neutral-500"
+							>
+								type
+							</div>
+							<div
+								class="text-base leading-tight font-mono text-[#6BD968]"
+							>
+							<div>{{
+									currentSelectionData?.mode
+								}}</div>
+								<div>{{
+									currentSelectionData?.difficulty
+								}}</div>
+							</div>
+						</div>
+						<div class="flex flex-col gap-1">
+							<div
+								class="text-base text-neutral-500"
+							>
+								raw
+							</div>
+							<div
+								class="text-2xl leading-tight font-mono text-[#6BD968]"
+							>
+							<div>{{
+									currentSelectionData?.raw
+								}}</div>
+								
+							</div>
+						</div>
+						<div class="flex flex-col gap-1">
+							<div
+								class="text-base text-neutral-500"
+							>
+								characters
+							</div>
+							<div
+								class="text-2xl leading-tight font-mono text-[#6BD968]"
+							>
+								{{
+									currentSelectionData?.total_corrects
+								}}/{{
+									currentSelectionData?.total_errors
+								}}/{{
+									currentSelectionData?.total_extras
+								}}/{{
+									currentSelectionData?.total_missed
+								}}
+							</div>
+						</div>
+						<div class="flex flex-col gap-1">
+							<div
+								class="text-base text-neutral-500"
+							>
+								consistency
+							</div>
+							<div
+								class="text-2xl leading-tight font-mono text-[#6BD968]"
+							>
+								{{
+									currentSelectionData?.consistency
+								}}
+							</div>
+						</div>
+						<div class="flex flex-col gap-1">
+							<div
+								class="text-base text-neutral-500"
+							>
+								time
+							</div>
+							<div
+								class="text-2xl leading-tight font-mono text-[#6BD968]"
+							>
+								{{
+									currentSelectionData?.duration
+								}}s
+							</div>
+						</div>
+					</div>
+				</div>
+
 				<div
 					class="rounded-lg border border-neutral-700 w-full overflow-clip"
 				>
@@ -540,6 +673,14 @@ let finalKeydown = Date.now();
 // ui states
 const isOpen = useState("isOpen", () => false);
 const loading = ref(false);
+const currentSelection: globalThis.Ref<WordMetadata[]> = ref();
+const currentSelectionData = computed(() => {
+	if (pastSessions.value.length) {
+		return pastSessions.value[pastSessions.value.length - 1];
+	} else {
+		return undefined;
+	}
+});
 
 //manage carot
 const CAROTLEFT = ref(0);
@@ -1028,7 +1169,6 @@ function resetIndexes() {
 
 //db insert
 function fillFinalData(time: number) {
-	const corrects = sessionsInsertData.total_corrects;
 	const extras = sessionsInsertData.total_extras;
 	sessionsInsertData.total_characters = getTotalCharacters();
 	const elapsedTime = time - startTime;
@@ -1039,7 +1179,7 @@ function fillFinalData(time: number) {
 		elapsedTime
 	);
 	sessionsInsertData.accuracy = getAccuracy(
-		corrects,
+		totalCorrectsCount,
 		totalCharactersCount
 	);
 	sessionsInsertData.raw = getRaw(totalCharactersCount, elapsedTime);
