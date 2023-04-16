@@ -30,9 +30,9 @@ const formatTooltip = (params) => {
 	const error = props.data.error[dataIndex];
 	return `
     <div class="bg-neutral-800 w-32 rounded-lg border backdrop-blur text-neutral-200 border-neutral-700/70 px-2 py-1 text-sm flex flex-col">
-	<div class="flex gap-2 items-center"><div class="h-2.5 w-2.5 bg-[#6BD968] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="tabular-nums font-mono">${wpm}</div><div class="text-neutral-400">wpm</div></div></div>
-	<div class="flex gap-2 items-center"><div class="h-2.5 w-2.5 bg-[#525252] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="tabular-nums font-mono">${raw}</div><div class="text-neutral-400">raw</div></div></div>
-	<div class="flex gap-2 items-center"><div class="h-2.5 w-2.5 bg-[#F44250] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="tabular-nums font-mono">${error}</div><div class="text-neutral-400">error</div></div></div>
+	<div class="flex gap-2 items-center"><div class="h-2.5 w-2.5 bg-[#6BD968] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="tabular-nums font-mono tracking-wide">${wpm}</div><div class="text-neutral-400 tracking-wide">wpm</div></div></div>
+	<div class="flex gap-2 items-center"><div class="h-2.5 w-2.5 bg-[#525252] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="tabular-nums font-mono tracking-wide">${raw}</div><div class="text-neutral-400 tracking-wide">raw</div></div></div>
+	<div class="flex gap-2 items-center"><div class="h-2.5 w-2.5 bg-[#F44250] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="tabular-nums font-mono tracking-wide">${error}</div><div class="text-neutral-400 tracking-wide">error</div></div></div>
     </div>
   `;
 };
