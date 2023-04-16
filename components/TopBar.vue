@@ -1,29 +1,53 @@
 <template>
 	<div
-		class="w-full h-14 flex justify-center border-b border-neutral-800 flex-none z-90 relative top-0"
+		class="w-full h-14 flex justify-center border-b border-neutral-800 flex-none z-90 relative top-0 px-10 text-sm"
 	>
-		<div
-			class="w-full items-center px-10 max-w-6xl flex gap-6 justify-between"
-		>
-			<div class="h-full">
+	<div class="flex max-w-6xl ">
+	<div
+				class="flex-none h-full flex items-center justify-center w-14 border-x border-neutral-800"
+			>
 				<NuxtLink to="/"
 					><button
 						class="h-full items-center px-3 font-medium text-xl font-mono"
 					>
-						<span class="mr-3">🐙</span
-						><span>keyboardkurita</span>
+						<span class="">🐙</span>
 					</button></NuxtLink
 				>
 			</div>
-			<div class="h-full py-2.5 gap-4 flex text-sm">
-				<NuxtLink to="/stats"
+		<div
+			class="flex-grow items-center grid grid-cols-5 [&>*]:border-r [&>*]:border-neutral-800"
+		>
+			
+			<div
+				class="flex-grow h-full flex items-center justify-center"
+			>
+				<span>Play</span>
+			</div>
+			<div
+				class="flex-grow h-full flex items-center justify-center"
+			>
+				<span>Leaderboard</span>
+			</div>
+			<div
+				class="flex-grow h-full flex items-center justify-center"
+			>
+				<span>Sessions</span>
+			</div>
+			<div
+				class="flex-grow h-full flex items-center justify-center"
+			>
+			<NuxtLink to="/stats"
 					><button
-						class="h-full items-center px-3 hover:bg-neutral-800 rounded-lg"
+						class="h-full items-center px-3 rounded-lg"
 					>
 						Stats
 					</button></NuxtLink
 				>
-				<button
+			</div>
+			<div
+				class="flex-grow h-full flex items-center justify-center"
+			>
+			<button
 					class="h-full items-center px-3 hover:bg-neutral-800 rounded-lg"
 					@click="login('google')"
 					v-if="!user"
@@ -70,6 +94,7 @@
 			</div>
 		</div>
 	</div>
+</div>
 </template>
 
 <script setup lang="ts">
@@ -82,7 +107,7 @@ const login = async (
 ) => {
 	const { error } = await client.auth.signInWithOAuth({
 		provider,
-		options: { redirectTo: 'window.location.origin' },
+		options: { redirectTo: "window.location.origin" },
 	});
 	if (error) {
 		return alert("Something went wrong !");

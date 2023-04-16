@@ -29,7 +29,7 @@ const option = computed(() => ({
 		top: "10%",
 		bottom: "10%",
 		left: "5%",
-		right: "1%",
+		right: "5%",
 		containLabels: true,
 	},
 	xAxis: {
@@ -74,7 +74,19 @@ const option = computed(() => ({
 		{
 			type: "value",
 			position: "right",
-			show: false,
+			axisLabel: {
+				color: "#888",
+			},
+			axisLine: {
+				lineStyle: {
+					color: "#333",
+				},
+			},
+			splitLine: {
+				show: false,
+			},
+			splitNumber: 3,
+			max: Math.max(...props.data.error),
 		},
 	],
 	series: [
