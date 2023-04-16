@@ -45,7 +45,7 @@
 
 				<span>click to activate</span>
 			</div>
-			<div v-if="pastSessions.length" class="pb-6 flex flex-col gap-4">
+			<div v-if="pastSessions.length" class="pb-6 flex flex-col gap-4 w-full max-w-4xl px-4">
 					<div class="flex gap-6">
 						<div
 							class="w-36 flex-none flex flex-col gap-2"
