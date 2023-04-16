@@ -1,6 +1,11 @@
 <template>
 	<div class="w-full">
-		<v-chart class="chart" :option="option" autoresize />
+		<v-chart
+			class="chart"
+			:option="option"
+			@mousemove="onMouseMove"
+			autoresize
+		/>
 	</div>
 </template>
 
@@ -18,12 +23,35 @@ const props = defineProps({
 	data: Object,
 });
 
+const formatTooltip = (params) => {
+	const dataIndex = params[0].dataIndex;
+	const wpm = props.data.wpm[dataIndex];
+	const raw = props.data.raw[dataIndex];
+	const error = props.data.error[dataIndex];
+	return `
+    <div class="bg-neutral-800 w-32 rounded-lg border backdrop-blur text-neutral-200 border-neutral-700/70 px-2 py-1 text-sm flex flex-col">
+	<div class="flex gap-2 items-center"><div class="h-2.5 w-2.5 bg-[#6BD968] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="tabular-nums font-mono">${wpm}</div><div class="text-neutral-400">wpm</div></div></div>
+	<div class="flex gap-2 items-center"><div class="h-2.5 w-2.5 bg-[#525252] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="tabular-nums font-mono">${raw}</div><div class="text-neutral-400">raw</div></div></div>
+	<div class="flex gap-2 items-center"><div class="h-2.5 w-2.5 bg-[#F44250] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="tabular-nums font-mono">${error}</div><div class="text-neutral-400">error</div></div></div>
+    </div>
+  `;
+};
+
 const option = computed(() => ({
 	tooltip: {
 		trigger: "axis",
 		axisPointer: {
 			animation: false,
 		},
+		formatter: formatTooltip,
+		backgroundColor: "transparent", // Set the background color to transparent
+		extraCssText: `
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  `,
+		borderWidth: 0,
+		padding: 0,
 	},
 	grid: {
 		top: "10%",
