@@ -19,7 +19,7 @@
 			} ${
 				sessionRunning &&
 				currentActive.id === 'MasterInput'
-					? 'translate-y-[20rem]'
+					? 'translate-y-[28rem]'
 					: 'opacity-100 translate-y-0'
 			}`"
 		>
@@ -45,125 +45,7 @@
 
 				<span>click to activate</span>
 			</div>
-			<div
-				class="bg-neutral-800 border-neutral-700 border mb-5 px-6 py-2 h-14 rounded-full text-xs items-center flex justify-between relative max-w-4xl w-full"
-			>
-				<div class="flex gap-3 items-center col-span-2">
-					<div>Difficulty:</div>
-					<div class="relative">
-						<select
-							:value="
-								selectedDifficulty
-							"
-							@change="
-								changeDifficulty(
-									$event
-								)
-							"
-							class="text-base relative w-32 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
-						>
-							<option
-								v-for="key in DIFFICULTY"
-								:value="key"
-							>
-								{{ key }}
-							</option>
-						</select>
-						<span
-							class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
-						>
-							<Icon
-								name="heroicons:chevron-down-20-solid"
-								size="1rem"
-							/>
-						</span>
-					</div>
-				</div>
-				<div class="flex gap-3 items-center col-span-2">
-					<div>Mode:</div>
-					<div class="relative">
-						<select
-							v-model="selectedMode"
-							class="text-base relative w-32 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
-						>
-							<option
-								v-for="key in MODES"
-								:value="key"
-							>
-								{{ key }}
-							</option>
-						</select>
-						<span
-							class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
-						>
-							<Icon
-								name="heroicons:chevron-down-20-solid"
-								size="1rem"
-							/>
-						</span>
-					</div>
-				</div>
-				<div class="flex gap-3 items-center col-span-2">
-					<div>Keys:</div>
-					<div class="relative">
-						<select
-							@change="
-								changeKey(
-									$event
-								)
-							"
-							:value="selectedKey"
-							class="text-base relative w-32 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
-						>
-							<option
-								v-for="key in KEYOPTIONS"
-								:value="key"
-							>
-								{{
-									key ===
-									""
-										? "Any key"
-										: key.toUpperCase()
-								}}
-							</option>
-						</select>
-						<span
-							class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
-						>
-							<Icon
-								name="heroicons:chevron-down-20-solid"
-								size="1rem"
-							/>
-						</span>
-					</div>
-				</div>
-				<div
-					class="col-span-2 flex gap-3 items-center justify-end"
-				>
-					<Modal />
-					<button
-						class="text-sm pl-3 pr-4 py-2 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer"
-						@click="isOpen = !isOpen"
-					>
-						<Icon
-							name="heroicons:cog-6-tooth"
-							class="mr-2"
-							size="1rem"
-						/>
-						<span>More settings</span>
-					</button>
-				</div>
-			</div>
-			<div
-				class="flex flex-col justify-center px-6"
-				v-show="
-					!currentActive ||
-					(currentActive &&
-						currentActive.id !==
-							'MasterInput')
-				"
-			>
-				<div v-if="pastSessions.length" class="pb-10 flex flex-col gap-4">
+			<div v-if="pastSessions.length" class="pb-6 flex flex-col gap-4">
 					<div class="flex gap-6">
 						<div
 							class="w-36 flex-none flex flex-col gap-2"
@@ -291,6 +173,126 @@
 						</div>
 					</div>
 				</div>
+			<div
+				class="bg-neutral-800 border-neutral-700 border mb-5 px-6 py-2 h-14 rounded-full text-xs items-center flex justify-between relative max-w-4xl w-full"
+			>
+				<div class="flex gap-3 items-center col-span-2">
+					<div>Difficulty:</div>
+					<div class="relative">
+						<select
+							:value="
+								selectedDifficulty
+							"
+							@change="
+								changeDifficulty(
+									$event
+								)
+							"
+							class="text-base relative w-32 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+						>
+							<option
+								v-for="key in DIFFICULTY"
+								:value="key"
+							>
+								{{ key }}
+							</option>
+						</select>
+						<span
+							class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
+						>
+							<Icon
+								name="heroicons:chevron-down-20-solid"
+								size="1rem"
+							/>
+						</span>
+					</div>
+				</div>
+				<div class="flex gap-3 items-center col-span-2">
+					<div>Mode:</div>
+					<div class="relative">
+						<select
+							v-model="selectedMode"
+							class="text-base relative w-32 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+						>
+							<option
+								v-for="key in MODES"
+								:value="key"
+							>
+								{{ key }}
+							</option>
+						</select>
+						<span
+							class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
+						>
+							<Icon
+								name="heroicons:chevron-down-20-solid"
+								size="1rem"
+							/>
+						</span>
+					</div>
+				</div>
+				<div class="flex gap-3 items-center col-span-2">
+					<div>Keys:</div>
+					<div class="relative">
+						<select
+							@change="
+								changeKey(
+									$event
+								)
+							"
+							:value="selectedKey"
+							class="text-base relative w-32 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+						>
+							<option
+								v-for="key in KEYOPTIONS"
+								:value="key"
+							>
+								{{
+									key ===
+									""
+										? "Any key"
+										: key.toUpperCase()
+								}}
+							</option>
+						</select>
+						<span
+							class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
+						>
+							<Icon
+								name="heroicons:chevron-down-20-solid"
+								size="1rem"
+							/>
+						</span>
+					</div>
+				</div>
+				<div
+					class="col-span-2 flex gap-3 items-center justify-end"
+				>
+					<Modal />
+					<button
+						class="text-sm pl-3 pr-4 py-2 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer"
+						@click="isOpen = !isOpen"
+					>
+						<Icon
+							name="heroicons:cog-6-tooth"
+							class="mr-2"
+							size="1rem"
+						/>
+						<span>More settings</span>
+					</button>
+				</div>
+			</div>
+			
+			<div
+				class="flex flex-col justify-center px-6"
+				v-show="
+					!currentActive ||
+					(currentActive &&
+						currentActive.id !==
+							'MasterInput')
+				"
+			>
+				
 
 				<div
 					class="rounded-lg border border-neutral-700 w-full overflow-clip"
