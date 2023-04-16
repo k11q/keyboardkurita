@@ -28,7 +28,7 @@ const formatTooltip = (params) => {
 	const wpm = props.data.wpm[dataIndex];
 	const raw = props.data.raw[dataIndex];
 	const error = props.data.error[dataIndex];
-	const time = props.data.time[dataIndex];
+	const time = params[0].data[2] || props.data.time[dataIndex];
 	return `
     <div class="bg-neutral-800/50 w-32 rounded-lg border backdrop-blur text-neutral-100 border-neutral-700/70 py-1 text-sm flex flex-col">
 	<div class="px-2 flex gap-2 items-center border-b tracking-wide border-neutral-700/70 text-sm text-neutral-300"><div class="flex items-center justify-between flex-grow font-mono">${time}s</div></div>
@@ -137,6 +137,29 @@ const option = computed(() => ({
 	],
 	series: [
 		{
+			name: "Errors",
+			type: "scatter",
+			yAxisIndex: 1,
+			data: props.data.error
+				.map((value, index) =>
+					value > 0
+						? [
+								index + 1,
+								value,
+								props.data.time[
+									index
+								],
+						  ]
+						: null
+				)
+				.filter(Boolean),
+			itemStyle: {
+				color: "#F44250",
+			},
+			symbol: "image://./x.png",
+			symbolSize: 14,
+		},
+		{
 			name: "Raw",
 			type: "line",
 			data: props.data.raw.map((value, index) => [
@@ -190,21 +213,6 @@ const option = computed(() => ({
 				symbol: "circle",
 				symbolSize: 30,
 			},
-		},
-		{
-			name: "Errors",
-			type: "scatter",
-			yAxisIndex: 1,
-			data: props.data.error
-				.map((value, index) =>
-					value > 0 ? [index + 1, value] : null
-				)
-				.filter(Boolean),
-			itemStyle: {
-				color: "#F44250",
-			},
-			symbol: "image://./x.png",
-			symbolSize: 14,
 		},
 	],
 }));
