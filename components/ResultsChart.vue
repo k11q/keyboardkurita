@@ -76,6 +76,11 @@ const option = computed(() => ({
 			position: "right",
 			axisLabel: {
 				color: "#888",
+				formatter: function (value) {
+					if (Number.isInteger(value)) {
+						return value;
+					}
+				},
 			},
 			axisLine: {
 				lineStyle: {
