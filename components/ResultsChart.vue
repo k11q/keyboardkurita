@@ -138,7 +138,7 @@ const option = computed(() => ({
 
 <style>
 .chart {
-	height: 200px;
+	height: 175px;
 	width: 100%;
 }
 x-vue-echarts {

@@ -163,13 +163,13 @@
 							'MasterInput')
 				"
 			>
-				<div v-if="pastSessions.length" class="pb-10 flex flex-col gap-2">
+				<div v-if="pastSessions.length" class="pb-10 flex flex-col gap-4">
 					<div class="flex gap-6">
 						<div
-							class="w-34 flex-none flex flex-col gap-2"
+							class="w-36 flex-none flex flex-col gap-2"
 						>
 							<div
-								class="flex flex-col h-1/2"
+								class="flex flex-col"
 							>
 								<div
 									class="text-2xl text-neutral-500"
