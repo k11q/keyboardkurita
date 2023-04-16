@@ -28,11 +28,17 @@ const formatTooltip = (params) => {
 	const wpm = props.data.wpm[dataIndex];
 	const raw = props.data.raw[dataIndex];
 	const error = props.data.error[dataIndex];
+	const time = props.data.time[dataIndex];
 	return `
-    <div class="bg-neutral-800 w-32 rounded-lg border backdrop-blur text-neutral-200 border-neutral-700/70 px-2 py-1 text-sm flex flex-col">
-	<div class="flex gap-2 items-center"><div class="h-2.5 w-2.5 bg-[#6BD968] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="tabular-nums font-mono tracking-wide">${wpm}</div><div class="text-neutral-400 tracking-wide">wpm</div></div></div>
-	<div class="flex gap-2 items-center"><div class="h-2.5 w-2.5 bg-[#525252] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="tabular-nums font-mono tracking-wide">${raw}</div><div class="text-neutral-400 tracking-wide">raw</div></div></div>
-	<div class="flex gap-2 items-center"><div class="h-2.5 w-2.5 bg-[#F44250] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="tabular-nums font-mono tracking-wide">${error}</div><div class="text-neutral-400 tracking-wide">error</div></div></div>
+    <div class="bg-neutral-800/50 w-32 rounded-lg border backdrop-blur text-neutral-100 border-neutral-700/70 py-1 text-sm flex flex-col">
+	<div class="px-2 flex gap-2 items-center border-b tracking-wide border-neutral-700/70 text-sm text-neutral-300"><div class="flex items-center justify-between flex-grow font-mono">${time}s</div></div>
+	<div class="bg-neutral-800 px-2 flex gap-2 items-center mt-1 items-center"><div class="h-2 w-2 bg-[#6BD968] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="text-neutral-400 tracking-wide text-[13px]">wpm</div><div class="tabular-nums font-mono tracking-wide">${wpm.toFixed(
+		2
+	)}</div></div></div>
+	<div class="bg-neutral-800 px-2 flex gap-2 items-center"><div class="h-2 w-2 bg-[#525252] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="text-neutral-400 tracking-wide text-[13px]">raw</div><div class="tabular-nums font-mono tracking-wide">${raw.toFixed(
+		2
+	)}</div></div></div>
+	<div class="bg-neutral-800 px-2 flex gap-2 items-center"><div class="h-2 w-2 bg-[#F44250] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="text-neutral-400 tracking-wide text-[13px]">error</div><div class="tabular-nums font-mono tracking-wide">${error}</div></div></div>
     </div>
   `;
 };
@@ -42,6 +48,13 @@ const option = computed(() => ({
 		trigger: "axis",
 		axisPointer: {
 			animation: false,
+			type: "line", // Use line axisPointer
+			axis: "x", // Set the axis to 'y' for a horizontal line
+			lineStyle: {
+				color: "#6BD968", // Set the line color to green
+				type: "solid", // Set the line style to solid
+				width: 1, // Set the line width
+			},
 		},
 		formatter: formatTooltip,
 		backgroundColor: "transparent", // Set the background color to transparent
@@ -143,6 +156,14 @@ const option = computed(() => ({
 			itemStyle: {
 				color: "#525252",
 			},
+			emphasis: {
+				itemStyle: {
+					borderWidth: 2,
+					borderColor: "#525252",
+				},
+				symbol: "circle",
+				symbolSize: 30,
+			},
 		},
 		{
 			name: "WPM",
@@ -161,6 +182,14 @@ const option = computed(() => ({
 			itemStyle: {
 				color: "#6BD968",
 			},
+			emphasis: {
+				itemStyle: {
+					borderWidth: 2,
+					borderColor: "#6BD968",
+				},
+				symbol: "circle",
+				symbolSize: 30,
+			},
 		},
 		{
 			name: "Errors",
@@ -175,7 +204,7 @@ const option = computed(() => ({
 				color: "#F44250",
 			},
 			symbol: "image://./x.png",
-			symbolSize: 13,
+			symbolSize: 14,
 		},
 	],
 }));
