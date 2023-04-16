@@ -11,12 +11,17 @@
 			}px`"
 		></div>
 		<div
-			:class="`flex flex-col items-center gap-6 fixed h-fit left-0 right-0 px-10 transition-all z-10 ease-in duration-400 ${
+			:class="`flex flex-col items-center gap-6 fixed h-fit left-0 right-0 px-10 transition-all z-10 ease-in-out duration-400 ${
 				currentActive &&
 				currentActive.id === 'MasterInput'
-					? 'bottom-10'
-					: 'bottom-1/2 -mb-20'
-			} ${sessionRunning && currentActive.id === 'MasterInput' ? 'translate-y-[20rem]' : 'opacity-100 translate-y-0'}`"
+					? 'bottom-10 mt-0'
+					: 'top-1/2 -mt-52'
+			} ${
+				sessionRunning &&
+				currentActive.id === 'MasterInput'
+					? 'translate-y-[20rem]'
+					: 'opacity-100 translate-y-0'
+			}`"
 		>
 			<div
 				v-if="
@@ -30,12 +35,18 @@
 						? fetchWords(currentKey)
 						: focusInput()
 				"
-				class="text-neutral-300 hover:text-white cursor-pointer px-6 py-4 rounded-lg text-xl font-mono bg-[#672ab7] hover:bg-[#441780"
+				class="text-neutral-300 hover:text-white cursor-pointer px-6 py-8 rounded-lg text-xl font-mono"
 			>
-				click to activate
+				<span class="mr-4"
+					><Icon
+						name="lucide:mouse-pointer-click"
+						size="1.5rem"
+				/></span>
+
+				<span>click to activate</span>
 			</div>
 			<div
-				class="bg-neutral-900 mb-5 px-6 py-2 h-14 rounded-full text-xs items-center flex justify-between relative max-w-4xl w-full"
+				class="bg-neutral-800 border-neutral-700 border mb-5 px-6 py-2 h-14 rounded-full text-xs items-center flex justify-between relative max-w-4xl w-full"
 			>
 				<div class="flex gap-3 items-center col-span-2">
 					<div>Difficulty:</div>
@@ -49,7 +60,7 @@
 									$event
 								)
 							"
-							class="text-base relative w-32 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+							class="text-base relative w-32 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
 						>
 							<option
 								v-for="key in DIFFICULTY"
@@ -73,7 +84,7 @@
 					<div class="relative">
 						<select
 							v-model="selectedMode"
-							class="text-base relative w-32 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+							class="text-base relative w-32 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
 						>
 							<option
 								v-for="key in MODES"
@@ -102,7 +113,7 @@
 								)
 							"
 							:value="selectedKey"
-							class="text-base relative w-32 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+							class="text-base relative w-32 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
 						>
 							<option
 								v-for="key in KEYOPTIONS"
@@ -131,7 +142,7 @@
 				>
 					<Modal />
 					<button
-						class="text-sm pl-3 pr-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-all cursor-pointer"
+						class="text-sm pl-3 pr-4 py-2 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer"
 						@click="isOpen = !isOpen"
 					>
 						<Icon
@@ -141,6 +152,140 @@
 						/>
 						<span>More settings</span>
 					</button>
+				</div>
+			</div>
+			<div
+				class="flex justify-center px-6"
+				v-show="!currentActive || (currentActive && currentActive.id !== 'MasterInput')
+				"
+			>
+				<div
+					class="rounded-lg border border-neutral-700 w-full overflow-clip"
+				>
+					<div
+						class="justify-between px-6 py-4 grid grid-cols-10 text-sm text-neutral-400 bg-neutral-900"
+					>
+						<div class="col-span-2">
+							<div>username</div>
+						</div>
+						<div>
+							<div>wpm</div>
+						</div>
+						<div>
+							<div>raw</div>
+						</div>
+						<div>
+							<div>acc</div>
+						</div>
+						<div>
+							<div>consistency</div>
+						</div>
+						<div>
+							<div>chars</div>
+						</div>
+						<div>
+							<div>mode</div>
+						</div>
+						<div class="col-span-2">
+							<div>date</div>
+						</div>
+					</div>
+					<div
+						v-for="session in [
+							...pastSessions
+								.slice()
+								.reverse(),
+						].slice(0, 5)"
+						class="justify-between px-6 py-4 border-t bg-neutral-800/40 border-neutral-800 grid grid-cols-10"
+					>
+						<div class="col-span-2">
+							<div>
+								{{
+									session.user_username
+								}}
+							</div>
+						</div>
+						<div>
+							<div
+								class="text-[#6BD968]"
+							>
+								{{
+									session.wpm.toFixed(
+										1
+									)
+								}}
+							</div>
+						</div>
+						<div>
+							<div
+								class="tabular-nums"
+							>
+								{{
+									session.raw.toFixed(
+										1
+									)
+								}}
+							</div>
+						</div>
+						<div>
+							<div
+								class="tabular-nums"
+							>
+								{{
+									session.accuracy.toFixed(
+										1
+									)
+								}}
+							</div>
+						</div>
+						<div>
+							<div
+								class="tabular-nums"
+							>
+								{{
+									session.consistency.toFixed(
+										1
+									)
+								}}
+							</div>
+						</div>
+						<div>
+							<div
+								class="tabular-nums"
+							>
+								{{
+									session.total_corrects
+								}}/{{
+									session.total_errors
+								}}/{{
+									session.total_extras
+								}}/{{
+									session.total_missed
+								}}
+							</div>
+						</div>
+						<div>
+							<div>
+								{{
+									session.mode
+								}}
+							</div>
+						</div>
+						<div class="col-span-2">
+							<div
+								class="tabular-nums line-clamp-1"
+							>
+								{{
+									format(
+										new Date(
+											session.end_time
+										),
+										"Pp"
+									)
+								}}
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -183,65 +328,69 @@
 		<div
 			:class="`pointer-events-none fixed flex items-center justify-center top-1/2 -translate-y-1/2 font-mono transition-all ease-linear duration-1000 rounded-[32px] w-full left-0 right-0 text-4xl leading-[54px]`"
 		>
-		<div class="w-full max-w-6xl px-14 pt-6 mb-20 h-[14rem] flex-none" @click.prevent.stop="
-				currentActive &&
-				currentActive.id === 'MasterInput'
-					? ''
-					: focusInput()
-			">
-			<template v-for="(word, index) in allData">
-				<span :class="``"
-					><span
-						v-for="(
-							char, charIndex
-						) in word.characters"
-						:class="` ${
-							char.status ===
-							'correct'
-								? 'opacity-100'
-								: char.status ===
-								  'extra'
-								? 'bg-[#F44250] text-white opacity-100'
-								: char.status ===
-								  'error'
-								? 'text-[#F44250] opacity-100'
-								: char.status ===
-										'error' &&
-								  char.character ===
-										' '
-								? 'bg-red-600'
-								: 'opacity-40'
-						} ${
-							index ===
-								currentWordNum &&
-							charIndex ===
-								currentPendingWordIndex
-								? 'cursor-key'
-								: ''
-						}`"
-						>{{
-							char.character === " "
-								? " "
-								: char.character
-						}}</span
-					></span
-				>
-			</template>
 			<div
-				v-if="
-					!currentActive ||
-					(currentActive &&
-						currentActive.id !==
-							'MasterInput')
+				class="w-full max-w-6xl px-14 pt-6 mb-20 h-[14rem] flex-none"
+				@click.prevent.stop="
+					currentActive &&
+					currentActive.id === 'MasterInput'
+						? ''
+						: focusInput()
 				"
-				@click="
-					!allData.length
-						? fetchWords(currentKey)
-						: ''
-				"
-				class="inset-0 absolute right-0 items-center justify-center flex cursor-pointer backdrop-blur rounded-[32px]"
-			></div>
-		</div>
+			>
+				<template v-for="(word, index) in allData">
+					<span :class="``"
+						><span
+							v-for="(
+								char, charIndex
+							) in word.characters"
+							:class="` ${
+								char.status ===
+								'correct'
+									? 'opacity-100'
+									: char.status ===
+									  'extra'
+									? 'bg-[#F44250] text-white opacity-100'
+									: char.status ===
+									  'error'
+									? 'text-[#F44250] opacity-100'
+									: char.status ===
+											'error' &&
+									  char.character ===
+											' '
+									? 'bg-red-600'
+									: 'opacity-40'
+							} ${
+								index ===
+									currentWordNum &&
+								charIndex ===
+									currentPendingWordIndex
+									? 'cursor-key'
+									: ''
+							}`"
+							>{{
+								char.character ===
+								" "
+									? " "
+									: char.character
+							}}</span
+						></span
+					>
+				</template>
+				<div
+					v-if="
+						!currentActive ||
+						(currentActive &&
+							currentActive.id !==
+								'MasterInput')
+					"
+					@click="
+						!allData.length
+							? fetchWords(currentKey)
+							: ''
+					"
+					class="inset-0 absolute right-0 items-center justify-center flex cursor-pointer backdrop-blur bg-neutral-900/80 rounded-[32px]"
+				></div>
+			</div>
 		</div>
 		<input
 			type="text"
@@ -249,122 +398,6 @@
 			@keydown="handleKeydown"
 			style="opacity: 0%; position: absolute"
 		/>
-		<!--
-		<div class="flex justify-center">
-			<div
-				class="rounded-lg border border-neutral-800 w-[80%] overflow-clip mt-6"
-			>
-				<div
-					class="justify-between px-6 py-4 grid grid-cols-10 text-sm text-neutral-400 bg-neutral-900"
-				>
-					<div class="col-span-2">
-						<div>username</div>
-					</div>
-					<div>
-						<div>wpm</div>
-					</div>
-					<div>
-						<div>raw</div>
-					</div>
-					<div>
-						<div>acc</div>
-					</div>
-					<div>
-						<div>consistency</div>
-					</div>
-					<div>
-						<div>chars</div>
-					</div>
-					<div>
-						<div>mode</div>
-					</div>
-					<div class="col-span-2">
-						<div>date</div>
-					</div>
-				</div>
-				<div
-					v-for="session in [
-						...pastSessions
-							.slice()
-							.reverse(),
-					].slice(0, 5)"
-					class="justify-between px-6 py-4 border-t bg-neutral-800/40 border-neutral-800 grid grid-cols-10"
-				>
-					<div class="col-span-2">
-						<div>
-							{{
-								session.user_username
-							}}
-						</div>
-					</div>
-					<div>
-						<div class="text-[#6BD968]">
-							{{
-								session.wpm.toFixed(
-									1
-								)
-							}}
-						</div>
-					</div>
-					<div>
-						<div class="tabular-nums">
-							{{
-								session.raw.toFixed(
-									1
-								)
-							}}
-						</div>
-					</div>
-					<div>
-						<div class="tabular-nums">
-							{{
-								session.accuracy.toFixed(
-									1
-								)
-							}}
-						</div>
-					</div>
-					<div>
-						<div class="tabular-nums">
-							{{
-								session.consistency.toFixed(
-									1
-								)
-							}}
-						</div>
-					</div>
-					<div>
-						<div class="tabular-nums">
-							{{
-								session.total_corrects
-							}}/{{
-								session.total_errors
-							}}/{{
-								session.total_extras
-							}}/{{
-								session.total_missed
-							}}
-						</div>
-					</div>
-					<div>
-						<div>{{ session.mode }}</div>
-					</div>
-					<div class="col-span-2">
-						<div class="tabular-nums">
-							{{
-								format(
-									new Date(
-										session.end_time
-									),
-									"Pp"
-								)
-							}}
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		-->
 	</div>
 </template>
 

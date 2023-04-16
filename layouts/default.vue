@@ -12,7 +12,7 @@ useHead({
 
 <template>
 	<div
-		class="flex flex-col items-center bg-black text-white min-h-screen"
+		class="flex flex-col items-center bg-neutral-900 text-white min-h-screen"
 	>
 		<TopBar />
 		<slot />
@@ -21,7 +21,7 @@ useHead({
 
 <style>
 body {
-	background-color: black;
+	background-color: rgb(23,23,23);
 }
 select {
 	-webkit-appearance: none;

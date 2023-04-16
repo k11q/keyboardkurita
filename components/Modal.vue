@@ -7,10 +7,10 @@
 		>
 			<HeadlessTransitionChild
 				as="template"
-				enter="duration-300 ease-out"
+				enter="duration-200 ease-out"
 				enter-from="opacity-0"
 				enter-to="opacity-100"
-				leave="duration-200 ease-in"
+				leave="duration-100 ease-in"
 				leave-from="opacity-100"
 				leave-to="opacity-0"
 			>
@@ -88,7 +88,7 @@
 								</button>
 							</div>
 							<div
-								class="flex flex-col flex-grow overflow-y-auto text-neutral-200 bg-neutral-800/50"
+								class="flex flex-col flex-grow overflow-y-auto text-neutral-200 bg-neutral-800"
 							>
 								<template
 									v-for="setting in tabs.find(
