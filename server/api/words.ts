@@ -3,6 +3,9 @@ import fs from "node:fs";
 import readline from "readline";
 import { bisectLeft } from "d3-array";
 import os from "os";
+import type { CharLogStatus } from "@/stores/home";
+
+let allData: WordMetadata[] = [];
 
 export default defineEventHandler(async (e) => {
 	const query = getQuery(e);
@@ -176,11 +179,15 @@ export default defineEventHandler(async (e) => {
 		const combinedString = selectedWords.join("");
 		const numCharacters = combinedString.length;
 
+		allData = []
+		const returnedAllData = fillData(selectedWords);
+
 		return {
+			all_data: returnedAllData,
 			all_words: selectedWords,
 			data: [...selectedWordObjects],
 			num_characters: numCharacters,
-			num_words: numWords, 
+			num_words: numWords,
 		};
 	}
 
@@ -191,3 +198,98 @@ export default defineEventHandler(async (e) => {
 
 	return { ...returnVal, next_data: { ...nextReturnVal } };
 });
+
+export type WordType = "separator" | "word";
+
+export type CharacterMetadata = {
+	character: string;
+	timing: number;
+	status: CharLogStatus;
+	char_index?: number;
+	word_index?: number;
+};
+export type WordMetadata = {
+	word: string;
+	characters: CharacterMetadata[];
+	type: WordType;
+	index: number;
+};
+
+function fillData(words: string[]) {
+	if (!words.length) {
+		console.log("Error: no words found to fill.");
+		return;
+	}
+	let wordCount = 0;
+	for (const word of words) {
+		const characters = word.split("");
+		const charData: CharacterMetadata[] = [];
+		// create char object
+		let charCount = insertCharObject(
+			wordCount,
+			characters,
+			charData
+		);
+		// push word object
+		let type: WordType = "word";
+		insertWordObject(word, charData, wordCount, type);
+		// push separator object
+		insertSpacerObject(words, wordCount);
+
+		wordCount++;
+	}
+	return allData;
+}
+
+function insertCharObject(
+	wordCount: number,
+	characters: string[],
+	charData: CharacterMetadata[]
+) {
+	let charCount = 0;
+	for (const char of characters) {
+		charData.push({
+			character: char,
+			timing: 0,
+			status: "pending",
+			char_index: charCount,
+			word_index: wordCount,
+		});
+		charCount++;
+	}
+	return charCount;
+}
+
+function insertWordObject(
+	word: string,
+	charData: CharacterMetadata[],
+	wordCount: number,
+	type: WordType
+) {
+	allData.push({
+		word: word,
+		characters: charData,
+		index: wordCount,
+		type: type,
+	});
+}
+
+function insertSpacerObject(words: string[], wordCount: number) {
+	if (wordCount === words.length - 1) {
+		return;
+	}
+	allData.push({
+		word: " ",
+		characters: [
+			{
+				character: " ",
+				timing: 0,
+				status: "pending",
+				char_index: 0,
+				word_index: wordCount,
+			},
+		],
+		index: wordCount,
+		type: "separator",
+	});
+}
