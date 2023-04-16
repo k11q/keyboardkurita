@@ -1,21 +1,13 @@
 import { WritableComputedRef } from "vue";
 import { defineStore } from "pinia";
-
-export type DifficultyOptions = "easy" | "medium" | "hard" | "extra_hard";
-export type ModesOptions = "word" | "time" | "infinity";
-export type ConfigDurationOptions = 10 | 20 | 30 | 60 | undefined;
-export type ConfigTotalWordsOptions = 10 | 25 | 50 | undefined;
-export type ConfigSelectionOptions =
-	| "english_50k"
-	| "supabase-docs"
-	| "supabase code";
-export type CharLogStatus = "error" | "correct" | "pending" | "extra";
-export type KeystrokeLog = {
-	character: string;
-	time: number;
-	status: CharLogStatus;
-};
-export type WordType = "separator" | "word";
+import type {
+	DifficultyOptions,
+	ModesOptions,
+	ConfigDurationOptions,
+	ConfigTotalWordsOptions,
+	ConfigSelectionOptions,
+	CharLogStatus,
+} from "@/types";
 
 //static options
 export const KEYOPTIONS = [

@@ -3,7 +3,7 @@ import fs from "node:fs";
 import readline from "readline";
 import { bisectLeft } from "d3-array";
 import os from "os";
-import type { CharLogStatus } from "@/stores/home";
+import type { CharLogStatus, WordType, CharacterMetadata, WordMetadata } from "@/types";
 
 let allData: WordMetadata[] = [];
 
@@ -198,22 +198,6 @@ export default defineEventHandler(async (e) => {
 
 	return { ...returnVal, next_data: { ...nextReturnVal } };
 });
-
-export type WordType = "separator" | "word";
-
-export type CharacterMetadata = {
-	character: string;
-	timing: number;
-	status: CharLogStatus;
-	char_index?: number;
-	word_index?: number;
-};
-export type WordMetadata = {
-	word: string;
-	characters: CharacterMetadata[];
-	type: WordType;
-	index: number;
-};
 
 function fillData(words: string[]) {
 	if (!words.length) {

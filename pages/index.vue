@@ -392,43 +392,15 @@ import type {
 	ConfigTotalWordsOptions,
 	ConfigSelectionOptions,
 	CharLogStatus,
-} from "@/stores/home";
-import type {
 	CharacterMetadata,
 	WordMetadata,
 	WordType,
-} from "@/server/api/words";
+	ChartData,
+	CharacterPerformance,
+	InputMetadata,
+	KeystrokeLog,
+} from "@/types";
 import { calculateRawWPM, calculateWPM, focusInput } from "@/utils/input";
-
-//types
-type KeystrokeLog = { character: string; time: number; status: CharLogStatus };
-type ChartData = {
-	wpm: number[];
-	raw: number[];
-	error: number[];
-	time: number[];
-};
-type CharacterPerformance = {
-	character: string;
-	wpm: number;
-	count: number;
-	errors: number;
-	extras: number;
-	misses: number;
-	corrects: number;
-};
-
-type InputMetadata = {
-	currentWordLocation: number;
-	currentCharLocation: number;
-	currentCorrectCharLocation: number;
-	currentWordMetadata: WordMetadata;
-	currentWordLength: number;
-	currentCharMetadata: CharacterMetadata;
-	currentWord: string;
-	currentCorrectChar: string;
-	currentWordType: WordType;
-};
 
 //db & auth
 const user = useSupabaseUser();
@@ -514,6 +486,9 @@ let intervalCharacterCount = 0;
 
 let totalCharactersCount = 0;
 let totalWordsCount = 0;
+let totalErrorsCount = 0;
+let totalCorrectsCount = 0;
+let totalExtasCount = 0;
 const currentActive = ref();
 const allData: globalThis.Ref<WordMetadata[]> = ref([]);
 const currentWordNum = ref(0);
@@ -680,8 +655,11 @@ function handleKeydown(e: KeyboardEvent) {
 function handleInput(key: string) {
 	const currentCorrectChar = currentMetadata.value.currentCorrectChar;
 
+	if (isStartSession()) {
+		handleStartSession();
+	}
 	finalKeydown = Date.now();
-	incrementTotalCharacters();
+	incrementTotalCharactersCount();
 	pushCharacterPerformance(key);
 	if (key === currentCorrectChar) {
 		handleCorrectInput();
@@ -690,7 +668,7 @@ function handleInput(key: string) {
 	}
 }
 
-function incrementTotalCharacters() {
+function incrementTotalCharactersCount() {
 	if (currentMetadata.value.currentWordType !== "separator") {
 		totalCharactersCount++;
 	}
@@ -760,17 +738,14 @@ function handleCorrectInput() {
 
 	incrementIntervalCharacterCount();
 	deleteExtras();
-	updateTiming(time);
-	if (isStartSession()) {
-		handleStartSession();
-	}
-	updateStatus();
-
+	setTiming(time);
+	incrementTotalCorrectsCount();
+	setStatus();
 	if (isEndSession()) {
 		handleEndSession(time);
 		fetchWords(selectedKey.value);
+		return;
 	} else if (isEndWord()) {
-		totalWordsCount++;
 		handleEndWord();
 	} else {
 		incrementChar();
@@ -789,26 +764,29 @@ function isNoneExtra() {
 	return currentCharLocation === currentCorrectCharLocation;
 }
 
-function updateTiming(time: number) {
+function setTiming(time: number) {
 	currentCharacterTiming.value = isStartSession()
 		? 0
 		: (time - finalKeydown) / 1000;
 }
 
-function updateStatus() {
+function setStatus() {
 	if (currentIncorrect) {
 		currentCharacterStatus.value = "error";
 		currentIncorrect = false;
 	} else {
-		updateTotalCorrects();
 		currentCharacterStatus.value = "correct";
 	}
 }
 
-function updateTotalCorrects() {
+function incrementTotalCorrectsCount() {
 	const currentWordMetadata = currentMetadata.value.currentWordMetadata;
-	if (currentWordMetadata && currentWordMetadata.type !== "separator") {
-		sessionsInsertData.total_corrects++;
+	if (
+		!currentIncorrect &&
+		currentWordMetadata &&
+		currentWordMetadata.type !== "separator"
+	) {
+		totalCorrectsCount++;
 	}
 }
 
@@ -829,13 +807,21 @@ function updatePendingWordIndex() {
 }
 
 function handleIncorrectInput(key: string): void {
-	if (!currentIncorrect) {
-		sessionsInsertData.total_errors++;
-	}
-	intervalError++;
+	incrementTotalErrorsCount();
+	incrementIntervalError();
 	currentIncorrect = true;
 	insertExtraChar(key);
 	currentPendingWordIndex.value++;
+}
+
+function incrementTotalErrorsCount(): void {
+	if (!currentIncorrect) {
+		totalErrorsCount++;
+	}
+}
+
+function incrementIntervalError(): void {
+	intervalError++;
 }
 
 // function to delete extra values
@@ -875,7 +861,6 @@ function handleBackspace() {
 }
 
 function handleStartSession() {
-	const game_metadata = {};
 	sessionRunning.value = true;
 	resetInterval();
 	resetLiveInterval();
@@ -923,7 +908,12 @@ function handleEndWord() {
 		insertWord(metadata.currentWord);
 	}
 	incrementWord();
+	incrementWordCount();
 	resetCharNum();
+}
+
+function incrementWordCount(): void {
+	totalWordsCount++;
 }
 
 function insertWord(word: string) {
@@ -989,6 +979,10 @@ function resetCounters() {
 	startTime = undefined;
 	endTime = undefined;
 	collectedWords = [];
+	totalWordsCount = 0;
+	totalCorrectsCount = 0;
+	totalErrorsCount = 0;
+	totalCharactersCount = 0;
 }
 
 function resetIndexes() {
@@ -1000,16 +994,20 @@ function resetIndexes() {
 //db insert
 function fillFinalData(time: number) {
 	const corrects = sessionsInsertData.total_corrects;
-	const errors = sessionsInsertData.total_errors;
 	const extras = sessionsInsertData.total_extras;
-	sessionsInsertData.total_characters = getTotalCharacters(
-		selectedMode.value
-	);
-	const totalCharacters = sessionsInsertData.total_characters;
+	sessionsInsertData.total_characters = getTotalCharacters();
 	const elapsedTime = time - startTime;
-	sessionsInsertData.wpm = getWpm(corrects + errors, elapsedTime);
-	sessionsInsertData.accuracy = getAccuracy(corrects, totalCharacters);
-	sessionsInsertData.raw = getRaw(totalCharacters + extras, elapsedTime);
+	sessionsInsertData.total_errors = totalErrorsCount;
+	sessionsInsertData.total_corrects = totalCorrectsCount;
+	sessionsInsertData.wpm = getWpm(
+		totalCorrectsCount + totalErrorsCount,
+		elapsedTime
+	);
+	sessionsInsertData.accuracy = getAccuracy(
+		corrects,
+		totalCharactersCount
+	);
+	sessionsInsertData.raw = getRaw(totalCharactersCount, elapsedTime);
 	sessionsInsertData.consistency = getConsistency(
 		sessionsInsertData.wpm,
 		sessionsInsertData.raw
@@ -1085,6 +1083,7 @@ function changeKey(e: Event) {
 	selectedKey.value = key;
 }
 
+// watcher to get frash data when any mode/settings changed
 watch([selectedDifficulty, selectedDuration, selectedKey, selectedMode], () => {
 	fetchFreshWords();
 });
@@ -1100,7 +1099,7 @@ function resetLiveInterval() {
 function resetInterval() {
 	if (timeoutId) {
 		clearTimeout(timeoutId);
-		intervalCount = 1;
+		resetIntervalCount();
 	}
 }
 
@@ -1108,7 +1107,23 @@ function resetInterval() {
 function updateWPM() {
 	if (!sessionRunning.value) {
 		clearTimeout(timeoutId);
-		intervalCount = 1;
+		resetIntervalCount();
+		setIntervalValuesOnFinishedSession();
+		return;
+	}
+	if (!startTime) {
+		startTime = Date.now();
+	}
+	const elapsedTime = Date.now() - startTime;
+	const wpm = getWpm(totalCorrectsCount + totalErrorsCount, elapsedTime);
+	const rawWpm = getRaw(totalCharactersCount, elapsedTime);
+
+	setIntervalValues(wpm, intervalCount, rawWpm);
+	insertChartDataLog(wpm, intervalError, intervalCount, rawWpm);
+	incrementIntervalCount();
+	resetIntervalError();
+	timeoutId = setTimeout(updateWPM, 1000); // Log the values every second
+	function setIntervalValuesOnFinishedSession() {
 		if (pastSessions.value.length) {
 			liveRawWpm.value =
 				pastSessions.value[
@@ -1119,37 +1134,37 @@ function updateWPM() {
 					pastSessions.value.length - 1
 				].wpm;
 		}
-		return;
 	}
-	if (!startTime) {
-		startTime = Date.now();
-	}
-	const elapsedTime = Date.now() - startTime;
+}
 
-	const wpm = parseFloat(
-		calculateWPM(
-			sessionsInsertData.total_corrects +
-				sessionsInsertData.total_errors,
-			elapsedTime
-		).toFixed(2)
-	);
-	const rawWPM = parseFloat(
-		calculateRawWPM(
-			sessionsInsertData.total_characters,
-			elapsedTime
-		).toFixed(2)
-	);
-
+function setIntervalValues(wpm: number, intervalCount: number, rawWpm: number) {
 	liveTimer.value = intervalCount;
-	liveRawWpm.value = rawWPM;
+	liveRawWpm.value = rawWpm;
 	liveWpm.value = wpm;
-	intervalCount++;
+}
+
+function insertChartDataLog(
+	wpm: number,
+	intervalError: number,
+	intervalCount: number,
+	rawWpm: number
+) {
 	chartData.wpm.push(wpm);
 	chartData.error.push(intervalError);
 	chartData.time.push(intervalCount);
-	chartData.raw.push(rawWPM);
+	chartData.raw.push(rawWpm);
+}
+
+function incrementIntervalCount(): void {
+	intervalCount++;
+}
+
+function resetIntervalError(): void {
 	intervalError = 0;
-	timeoutId = setTimeout(updateWPM, 1000); // Log the values every second
+}
+
+function resetIntervalCount(): void {
+	intervalCount = 1;
 }
 
 //watch if input out of focus
@@ -1246,7 +1261,8 @@ function isStartSession() {
 	const metadata = currentMetadata.value;
 	return (
 		metadata.currentWordLocation === 0 &&
-		metadata.currentCharLocation === 0
+		metadata.currentCharLocation === 0 &&
+		metadata.currentCorrectCharLocation === 0
 	);
 }
 
