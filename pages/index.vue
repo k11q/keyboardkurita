@@ -318,9 +318,9 @@
 			>
 				<div
 					v-if="pastSessions.length"
-					class="flex flex-col gap-2 w-full"
+					class="flex flex-col w-full font-mono"
 				>
-					<div class="flex gap-6 font-mono">
+					<div class="grid grid-cols-5 gap-x-4 gap-y-2">
 						<div
 							class="w-36 flex-none flex flex-col gap-2"
 						>
@@ -357,6 +357,7 @@
 								</div>
 							</div>
 						</div>
+						<div class="col-span-4">
 						<ClientOnly
 							><ResultsChart
 								:data="
@@ -364,8 +365,7 @@
 								"
 						/></ClientOnly>
 					</div>
-					<div class="grid grid-cols-5 gap-6">
-						<div
+					<div
 							class="flex flex-col gap-1"
 						>
 							<div
