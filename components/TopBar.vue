@@ -1,8 +1,8 @@
 <template>
 	<div
-		class="w-full h-14 flex justify-center border-b border-neutral-800 flex-none z-90 relative top-0 px-10 text-sm"
+		class="w-full h-14 flex justify-center border-b border-neutral-800 flex-none z-90 relative top-0 text-sm"
 	>
-	<div class="flex max-w-6xl ">
+	<div class="flex max-w-6xl w-full ">
 	<div
 				class="flex-none h-full flex items-center justify-center w-14 border-x border-neutral-800"
 			>

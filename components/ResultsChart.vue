@@ -27,7 +27,10 @@ const formatTooltip = (params) => {
 	const dataIndex = params[0].dataIndex;
 	const wpm = props.data.wpm[dataIndex];
 	const raw = props.data.raw[dataIndex];
-	const error = props.data.error[dataIndex];
+	const error =
+		params.length === 3
+			? params[0].data[1]
+			: props.data.error[dataIndex]; // Use params[2].data[1] if error point exists
 	const time = params[0].data[2] || props.data.time[dataIndex];
 	return `
     <div class="bg-neutral-800/50 w-32 rounded-lg border backdrop-blur text-neutral-100 border-neutral-700/70 py-1 text-sm flex flex-col">
@@ -47,13 +50,13 @@ const option = computed(() => ({
 	tooltip: {
 		trigger: "axis",
 		axisPointer: {
+			show: false,
 			animation: false,
 			type: "line", // Use line axisPointer
 			axis: "x", // Set the axis to 'y' for a horizontal line
 			lineStyle: {
-				color: "#6BD968", // Set the line color to green
-				type: "solid", // Set the line style to solid
-				width: 1, // Set the line width
+				show: false,
+				color: "transparent",
 			},
 		},
 		formatter: formatTooltip,
@@ -151,8 +154,8 @@ const option = computed(() => ({
 								],
 						  ]
 						: null
-				)
-				.filter(Boolean),
+				) // Filter out values <= 0
+				.filter((item) => item !== null), // Remove null values from the array
 			itemStyle: {
 				color: "#F44250",
 			},
