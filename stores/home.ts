@@ -415,15 +415,45 @@ export const useHomeStore = defineStore("counter", () => {
 	const dataset: WritableComputedRef<ConfigSelectionOptions> = computed({
 		get: (): ConfigSelectionOptions => {
 			return settings.value[0].settings.find(
-				(i) => i.title === "Key"
+				(i) => i.title === "Dataset"
 			)!.selected as ConfigSelectionOptions;
 		},
 		set: (newValue): void => {
 			settings.value[0].settings.find(
-				(i) => i.title === "Key"
+				(i) => i.title === "Dataset"
 			).selected = newValue;
 		},
 	});
+
+	const durationOptions = computed(()=>{
+		return settings.value[0].settings.find(
+					(i) => i.title === "Duration"
+				).option
+	})
+
+	const totalWordsOptions = computed(()=>{
+		return settings.value[0].settings.find(
+					(i) => i.title === "Total words"
+				).option
+	})
+	
+	const difficultyOptions = computed(()=>{
+		return settings.value[0].settings.find(
+					(i) => i.title === "Difficulty"
+				).option
+	})
+	
+	const keyOptions = computed(()=>{
+		return settings.value[0].settings.find(
+					(i) => i.title === "Key"
+				).option
+	})
+	
+	const datasetOptions = computed(()=>{
+		return settings.value[0].settings.find(
+					(i) => i.title === "Dataset"
+				).option
+	})
 
 	// local settings
 	const maxExtraWords = ref(NaN);
@@ -445,6 +475,11 @@ export const useHomeStore = defineStore("counter", () => {
 		mode,
 		key,
 		dataset,
+		durationOptions,
+		totalWordsOptions,
+		keyOptions,
+		difficultyOptions,
+		datasetOptions,
 		maxExtraWords,
 		allowSkipExtras,
 		allowSkipWords,
@@ -455,5 +490,6 @@ export const useHomeStore = defineStore("counter", () => {
 		punctuation,
 		numbers,
 		settings,
+
 	};
 });

@@ -34,7 +34,7 @@ const formatTooltip = (params) => {
 	const time = params[0].data[2] || props.data.time[dataIndex];
 	return `
     <div class="bg-neutral-800/50 w-32 rounded-lg border backdrop-blur text-neutral-100 border-neutral-700/70 py-1 text-sm flex flex-col">
-	<div class="px-2 flex gap-2 items-center border-b tracking-wide border-neutral-700/70 text-sm text-neutral-300"><div class="flex items-center justify-between flex-grow font-mono">${time}s</div></div>
+	<div class="px-2 flex gap-2 items-center border-b tracking-wide border-neutral-700/70 text-sm text-neutral-300"><div class="flex items-center justify-between flex-grow font-mono">${time}</div></div>
 	<div class="bg-neutral-800 px-2 flex gap-2 items-center mt-1 items-center"><div class="h-2 w-2 bg-[#6BD968] rounded-full"></div><div class="flex items-center justify-between flex-grow"><div class="text-neutral-400 tracking-wide text-[13px]">wpm</div><div class="tabular-nums font-mono tracking-wide">${wpm.toFixed(
 		2
 	)}</div></div></div>
@@ -143,6 +143,7 @@ const option = computed(() => ({
 			name: "Errors",
 			type: "scatter",
 			yAxisIndex: 1,
+			z: 10,
 			data: props.data.error
 				.map((value, index) =>
 					value > 0
@@ -158,6 +159,9 @@ const option = computed(() => ({
 				.filter((item) => item !== null), // Remove null values from the array
 			itemStyle: {
 				color: "#F44250",
+			},
+			emphasis: {
+				symbolSize: 18,
 			},
 			symbol: "image://./x.png",
 			symbolSize: 14,
@@ -183,6 +187,9 @@ const option = computed(() => ({
 				color: "#525252",
 			},
 			emphasis: {
+				areaStyle: {
+					color: "#202020",
+				},
 				itemStyle: {
 					borderWidth: 2,
 					borderColor: "#525252",

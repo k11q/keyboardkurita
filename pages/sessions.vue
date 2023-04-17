@@ -1,0 +1,1 @@
+<template>Sessions page</template>

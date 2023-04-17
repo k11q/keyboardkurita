@@ -45,384 +45,283 @@
 
 				<span>click to activate</span>
 			</div>
-			<div v-if="pastSessions.length" class="pb-6 flex flex-col gap-4 w-full max-w-4xl px-4">
-					<div class="flex gap-6">
-						<div
-							class="w-36 flex-none flex flex-col gap-2"
-						>
+			<div
+				v-if="pastSessions.length"
+				class="pb-6 flex flex-col gap-4 w-full max-w-4xl px-4"
+			>
+				<div class="flex gap-6">
+					<div
+						class="w-36 flex-none flex flex-col gap-2"
+					>
+						<div class="flex flex-col">
 							<div
-								class="flex flex-col"
+								class="text-2xl text-neutral-500"
 							>
-								<div
-									class="text-2xl text-neutral-500"
-								>
-									wpm
-								</div>
-								<div
-									class="text-[2.5rem] leading-tight font-mono text-[#6BD968]"
-								>
-									{{
-										currentSelectionData.wpm
-									}}
-								</div>
+								wpm
 							</div>
 							<div
-								class="flex flex-col"
-							>
-								<div
-									class="text-2xl text-neutral-500"
-								>
-									acc
-								</div>
-								<div
-									class="text-[2.5rem] leading-tight font-mono text-[#6BD968]"
-								>
-									{{
-										currentSelectionData?.accuracy
-									}}%
-								</div>
-							</div>
-						</div>
-						<ClientOnly
-							><ResultsChart
-								:data="
-									currentSelectionData.chart_data
-								"
-						/></ClientOnly>
-					</div>
-					<div class="grid grid-cols-5 gap-6">
-						<div class="flex flex-col gap-1">
-							<div
-								class="text-base text-neutral-500"
-							>
-								type
-							</div>
-							<div
-								class="text-base leading-tight font-mono text-[#6BD968]"
-							>
-							<div>{{
-									currentSelectionData?.mode
-								}}</div>
-								<div>{{
-									currentSelectionData?.difficulty
-								}}</div>
-							</div>
-						</div>
-						<div class="flex flex-col gap-1">
-							<div
-								class="text-base text-neutral-500"
-							>
-								raw
-							</div>
-							<div
-								class="text-2xl leading-tight font-mono text-[#6BD968]"
-							>
-							<div>{{
-									currentSelectionData?.raw
-								}}</div>
-								
-							</div>
-						</div>
-						<div class="flex flex-col gap-1">
-							<div
-								class="text-base text-neutral-500"
-							>
-								characters
-							</div>
-							<div
-								class="text-2xl leading-tight font-mono text-[#6BD968]"
+								class="text-[2.5rem] leading-tight font-mono text-[#6BD968]"
 							>
 								{{
-									currentSelectionData?.total_corrects
-								}}/{{
-									currentSelectionData?.total_errors
-								}}/{{
-									currentSelectionData?.total_extras
-								}}/{{
-									currentSelectionData?.total_missed
+									currentSelectionData.wpm
 								}}
 							</div>
 						</div>
-						<div class="flex flex-col gap-1">
+						<div class="flex flex-col">
 							<div
-								class="text-base text-neutral-500"
+								class="text-2xl text-neutral-500"
 							>
-								consistency
+								acc
 							</div>
 							<div
-								class="text-2xl leading-tight font-mono text-[#6BD968]"
+								class="text-[2.5rem] leading-tight font-mono text-[#6BD968]"
 							>
 								{{
-									currentSelectionData?.consistency
+									currentSelectionData?.accuracy
 								}}%
 							</div>
 						</div>
-						<div class="flex flex-col gap-1">
-							<div
-								class="text-base text-neutral-500"
-							>
-								time
-							</div>
-							<div
-								class="text-2xl leading-tight font-mono text-[#6BD968]"
-							>
-								{{
-									currentSelectionData?.duration
-								}}s
-							</div>
-						</div>
 					</div>
-				</div>
-			<div
-				class="bg-neutral-800 border-neutral-700 border mb-5 px-6 py-2 h-14 rounded-full text-xs items-center flex justify-between relative max-w-4xl w-full"
-			>
-				<div class="flex gap-3 items-center col-span-2">
-					<div>Difficulty:</div>
-					<div class="relative">
-						<select
-							:value="
-								selectedDifficulty
+					<ClientOnly
+						><ResultsChart
+							:data="
+								currentSelectionData.chart_data
 							"
-							@change="
-								changeDifficulty(
-									$event
-								)
-							"
-							class="text-base relative w-32 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
-						>
-							<option
-								v-for="key in DIFFICULTY"
-								:value="key"
-							>
-								{{ key }}
-							</option>
-						</select>
-						<span
-							class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
-						>
-							<Icon
-								name="heroicons:chevron-down-20-solid"
-								size="1rem"
-							/>
-						</span>
-					</div>
+					/></ClientOnly>
 				</div>
-				<div class="flex gap-3 items-center col-span-2">
-					<div>Mode:</div>
-					<div class="relative">
-						<select
-							v-model="selectedMode"
-							class="text-base relative w-32 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
+				<div class="grid grid-cols-5 gap-6">
+					<div class="flex flex-col gap-1">
+						<div
+							class="text-base text-neutral-500"
 						>
-							<option
-								v-for="key in MODES"
-								:value="key"
-							>
-								{{ key }}
-							</option>
-						</select>
-						<span
-							class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
+							type
+						</div>
+						<div
+							class="text-base leading-tight font-mono text-[#6BD968]"
 						>
-							<Icon
-								name="heroicons:chevron-down-20-solid"
-								size="1rem"
-							/>
-						</span>
-					</div>
-				</div>
-				<div class="flex gap-3 items-center col-span-2">
-					<div>Keys:</div>
-					<div class="relative">
-						<select
-							@change="
-								changeKey(
-									$event
-								)
-							"
-							:value="selectedKey"
-							class="text-base relative w-32 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer py-2 pl-[10px] pr-10 text-left focus:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm"
-						>
-							<option
-								v-for="key in KEYOPTIONS"
-								:value="key"
-							>
-								{{
-									key ===
-									""
-										? "Any key"
-										: key.toUpperCase()
-								}}
-							</option>
-						</select>
-						<span
-							class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
-						>
-							<Icon
-								name="heroicons:chevron-down-20-solid"
-								size="1rem"
-							/>
-						</span>
-					</div>
-				</div>
-				<div
-					class="col-span-2 flex gap-3 items-center justify-end"
-				>
-					<Modal />
-					<button
-						class="text-sm pl-3 pr-4 py-2 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 border-neutral-600 border transition-all cursor-pointer"
-						@click="isOpen = !isOpen"
-					>
-						<Icon
-							name="heroicons:cog-6-tooth"
-							class="mr-2"
-							size="1rem"
-						/>
-						<span>More settings</span>
-					</button>
-				</div>
-			</div>
-			
-			<div
-				class="flex flex-col justify-center px-6"
-				v-show="
-					!currentActive ||
-					(currentActive &&
-						currentActive.id !==
-							'MasterInput')
-				"
-			>
-				
-
-				<div
-					class="rounded-lg border border-neutral-700 w-full overflow-clip"
-				>
-					<div
-						class="justify-between px-6 py-4 grid grid-cols-10 text-sm text-neutral-400 bg-neutral-900"
-					>
-						<div class="col-span-2">
-							<div>username</div>
-						</div>
-						<div>
-							<div>wpm</div>
-						</div>
-						<div>
-							<div>raw</div>
-						</div>
-						<div>
-							<div>acc</div>
-						</div>
-						<div>
-							<div>consistency</div>
-						</div>
-						<div>
-							<div>chars</div>
-						</div>
-						<div>
-							<div>mode</div>
-						</div>
-						<div class="col-span-2">
-							<div>date</div>
-						</div>
-					</div>
-					<div
-						v-for="session in [
-							...pastSessions
-								.slice()
-								.reverse(),
-						].slice(0, 5)"
-						class="justify-between px-6 py-4 border-t bg-neutral-800/40 border-neutral-800 grid grid-cols-10"
-					>
-						<div class="col-span-2">
 							<div>
 								{{
-									session.user_username
+									currentSelectionData?.mode
 								}}
 							</div>
-						</div>
-						<div>
-							<div
-								class="text-[#6BD968]"
-							>
-								{{
-									session.wpm.toFixed(
-										1
-									)
-								}}
-							</div>
-						</div>
-						<div>
-							<div
-								class="tabular-nums"
-							>
-								{{
-									session.raw.toFixed(
-										1
-									)
-								}}
-							</div>
-						</div>
-						<div>
-							<div
-								class="tabular-nums"
-							>
-								{{
-									session.accuracy.toFixed(
-										1
-									)
-								}}
-							</div>
-						</div>
-						<div>
-							<div
-								class="tabular-nums"
-							>
-								{{
-									session.consistency.toFixed(
-										1
-									)
-								}}
-							</div>
-						</div>
-						<div>
-							<div
-								class="tabular-nums"
-							>
-								{{
-									session.total_corrects
-								}}/{{
-									session.total_errors
-								}}/{{
-									session.total_extras
-								}}/{{
-									session.total_missed
-								}}
-							</div>
-						</div>
-						<div>
 							<div>
 								{{
-									session.mode
+									currentSelectionData?.difficulty
 								}}
 							</div>
 						</div>
-						<div class="col-span-2">
-							<div
-								class="tabular-nums line-clamp-1"
-							>
+					</div>
+					<div class="flex flex-col gap-1">
+						<div
+							class="text-base text-neutral-500"
+						>
+							raw
+						</div>
+						<div
+							class="text-2xl leading-tight font-mono text-[#6BD968]"
+						>
+							<div>
 								{{
-									format(
-										new Date(
-											session.end_time
-										),
-										"Pp"
-									)
+									currentSelectionData?.raw
 								}}
 							</div>
+						</div>
+					</div>
+					<div class="flex flex-col gap-1">
+						<div
+							class="text-base text-neutral-500"
+						>
+							characters
+						</div>
+						<div
+							class="text-2xl leading-tight font-mono text-[#6BD968]"
+						>
+							{{
+								currentSelectionData?.total_corrects
+							}}/{{
+								currentSelectionData?.total_errors
+							}}/{{
+								currentSelectionData?.total_extras
+							}}/{{
+								currentSelectionData?.total_missed
+							}}
+						</div>
+					</div>
+					<div class="flex flex-col gap-1">
+						<div
+							class="text-base text-neutral-500"
+						>
+							consistency
+						</div>
+						<div
+							class="text-2xl leading-tight font-mono text-[#6BD968]"
+						>
+							{{
+								currentSelectionData?.consistency
+							}}%
+						</div>
+					</div>
+					<div class="flex flex-col gap-1">
+						<div
+							class="text-base text-neutral-500"
+						>
+							time
+						</div>
+						<div
+							class="text-2xl leading-tight font-mono text-[#6BD968]"
+						>
+							{{
+								currentSelectionData?.duration
+							}}s
 						</div>
 					</div>
 				</div>
 			</div>
+			<SettingsBar />
+			<template v-if="pastSessions.length">
+				<div
+					class="flex flex-col justify-center px-6"
+					v-show="
+						!currentActive ||
+						(currentActive &&
+							currentActive.id !==
+								'MasterInput')
+					"
+				>
+					<div
+						class="rounded-lg border border-neutral-700 w-full overflow-clip"
+					>
+						<div
+							class="justify-between px-6 py-4 grid grid-cols-10 text-sm text-neutral-400 bg-neutral-900"
+						>
+							<div class="col-span-2">
+								<div>
+									username
+								</div>
+							</div>
+							<div>
+								<div>wpm</div>
+							</div>
+							<div>
+								<div>raw</div>
+							</div>
+							<div>
+								<div>acc</div>
+							</div>
+							<div>
+								<div>
+									consistency
+								</div>
+							</div>
+							<div>
+								<div>chars</div>
+							</div>
+							<div>
+								<div>mode</div>
+							</div>
+							<div class="col-span-2">
+								<div>date</div>
+							</div>
+						</div>
+						<div
+							v-for="session in [
+								...pastSessions
+									.slice()
+									.reverse(),
+							].slice(0, 5)"
+							class="justify-between px-6 py-4 border-t bg-neutral-800/40 border-neutral-800 grid grid-cols-10"
+						>
+							<div class="col-span-2">
+								<div>
+									{{
+										session.user_username
+									}}
+								</div>
+							</div>
+							<div>
+								<div
+									class="text-[#6BD968]"
+								>
+									{{
+										session.wpm.toFixed(
+											1
+										)
+									}}
+								</div>
+							</div>
+							<div>
+								<div
+									class="tabular-nums"
+								>
+									{{
+										session.raw.toFixed(
+											1
+										)
+									}}
+								</div>
+							</div>
+							<div>
+								<div
+									class="tabular-nums"
+								>
+									{{
+										session.accuracy.toFixed(
+											1
+										)
+									}}
+								</div>
+							</div>
+							<div>
+								<div
+									class="tabular-nums"
+								>
+									{{
+										session.consistency.toFixed(
+											1
+										)
+									}}
+								</div>
+							</div>
+							<div>
+								<div
+									class="tabular-nums"
+								>
+									{{
+										session.total_corrects
+									}}/{{
+										session.total_errors
+									}}/{{
+										session.total_extras
+									}}/{{
+										session.total_missed
+									}}
+								</div>
+							</div>
+							<div>
+								<div>
+									{{
+										session.mode
+									}}
+								</div>
+							</div>
+							<div class="col-span-2">
+								<div
+									class="tabular-nums line-clamp-1"
+								>
+									{{
+										format(
+											new Date(
+												session.end_time
+											),
+											"Pp"
+										)
+									}}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</template>
 		</div>
 		<div class="flex justify-center mb-5">
 			<div
@@ -798,7 +697,6 @@ function resetEverything() {
 
 function setupData() {
 	fillData();
-	focusInput();
 	loading.value = false;
 }
 

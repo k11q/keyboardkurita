@@ -15,40 +15,46 @@
 				>
 			</div>
 		<div
-			class="flex-grow items-center grid grid-cols-5 [&>*]:border-r [&>*]:border-neutral-800"
+			class="flex-grow items-center grid grid-cols-5 [&>*]:border-r [&>*]:border-neutral-800 hover:[&>*]:bg-neutral-700/20 [&>*]:transtion-all"
 		>
 			
 			<div
 				class="flex-grow h-full flex items-center justify-center"
 			>
-				<span>Play</span>
-			</div>
-			<div
-				class="flex-grow h-full flex items-center justify-center"
-			>
-				<span>Leaderboard</span>
-			</div>
-			<div
-				class="flex-grow h-full flex items-center justify-center"
-			>
-				<span>Sessions</span>
-			</div>
-			<div
-				class="flex-grow h-full flex items-center justify-center"
-			>
-			<NuxtLink to="/stats"
-					><button
-						class="h-full items-center px-3 rounded-lg"
+			<NuxtLink to="/" class="h-full w-full flex justify-center items-center px-3 rounded-lg"
 					>
-						Stats
-					</button></NuxtLink
+						<span>Play</span></NuxtLink
+				>
+			</div>
+			<div
+				class="flex-grow h-full flex items-center justify-center"
+			>
+			<NuxtLink to="/leaderboard" class="h-full w-full flex justify-center items-center px-3 rounded-lg"
+					>
+						<span>Leaderboard</span></NuxtLink
+				>
+			</div>
+			<div
+				class="flex-grow h-full flex items-center justify-center"
+			>
+			<NuxtLink to="/sessions" class="h-full w-full flex justify-center items-center px-3 rounded-lg"
+					>
+						<span>Sessions</span></NuxtLink
+				>
+			</div>
+			<div
+				class="flex-grow h-full flex items-center justify-center"
+			>
+			<NuxtLink to="/stats" class="h-full w-full flex justify-center items-center px-3 rounded-lg"
+					>
+						<span>Stats</span></NuxtLink
 				>
 			</div>
 			<div
 				class="flex-grow h-full flex items-center justify-center"
 			>
 			<button
-					class="h-full items-center px-3 hover:bg-neutral-800 rounded-lg"
+					class="h-full items-center px-3 rounded-lg"
 					@click="login('google')"
 					v-if="!user"
 				>
@@ -61,7 +67,7 @@
 				>
 					<div>
 						<HeadlessMenuButton
-							class="inline-flex w-full justify-centerbg-black items-center hover:bg-neutral-800 rounded-lg bg-opacity-20 px-4 py-1 h-[35px] text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
+							class="inline-flex w-full justify-centerbg-black items-center rounded-lg bg-opacity-20 px-4 py-1 h-[35px] text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
 						>
 							<div>
 								{{
