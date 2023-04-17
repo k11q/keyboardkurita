@@ -1,11 +1,16 @@
 <template>
-	<div class="w-full">
+	<div class="w-full relative">
 		<v-chart
 			class="chart"
 			:option="option"
 			@mousemove="onMouseMove"
 			autoresize
 		/>
+		<div
+			class="absolute top-1/2 right-0 transform -translate-y-1/2 -mt-4 translate-x-2 text-[11px] text-[#666] rotate-90"
+		>
+			Errors
+		</div>
 	</div>
 </template>
 
@@ -72,7 +77,7 @@ const option = computed(() => ({
 	grid: {
 		top: "10%",
 		bottom: "13%",
-		left: "5%",
+		left: "6.5%",
 		right: "4%",
 		containLabels: true,
 	},
@@ -101,7 +106,7 @@ const option = computed(() => ({
 			type: "value",
 			position: "left",
 			axisLabel: {
-				color: "#888",
+				color: "#666",
 			},
 			axisLine: {
 				lineStyle: {
@@ -114,12 +119,20 @@ const option = computed(() => ({
 				},
 			},
 			splitNumber: 3,
+			name: "Words per minute",
+			nameLocation: "center",
+			nameGap: 40,
+			nameTextStyle: {
+				fontSize: 11,
+				color: "#666",
+				fontFamily: "ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace",
+			},
 		},
 		{
 			type: "value",
 			position: "right",
 			axisLabel: {
-				color: "#888",
+				color: "#666",
 				formatter: function (value) {
 					if (Number.isInteger(value)) {
 						return value;

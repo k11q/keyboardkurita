@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="w-full h-14 flex justify-center border-b border-neutral-800 flex-none z-90 relative top-0 text-sm"
+		class="w-full h-14 flex justify-center border-b border-neutral-800 flex-none z-20 relative top-0 text-sm"
 	>
 	<div class="flex max-w-6xl w-full ">
 	<div

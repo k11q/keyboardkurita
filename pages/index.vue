@@ -1,47 +1,37 @@
 <template>
-	<div class="pb-10 px-10 pt-8 max-w-6xl w-full">
+	<div class="max-w-6xl w-full flex flex-col flex-grow relative">
+		<Modal />
+		<!--CARET COMPONENT-->
 		<div
 			v-if="
 				currentActive &&
 				currentActive.id === 'MasterInput'
 			"
-			:class="`fixed z-50 h-11 w-1.5 bg-[#3992FF] transition-all duration-100 ease-linear`"
+			:class="`fixed z-40 h-11 w-1.5 bg-[#3992FF] transition-all duration-100 ease-linear`"
 			:style="`left: ${CAROTLEFT - 3}px; top: ${
 				CAROTTOP - 2
 			}px`"
 		></div>
+		<!--CLICK TO ACTIVATE OVERLAY-->
 		<div
-			:class="`flex flex-col items-center gap-6 fixed h-fit left-0 right-0 px-10 transition-all z-10 ease-in-out duration-400 ${
-				currentActive &&
-				currentActive.id === 'MasterInput'
-					? 'bottom-10 mt-0'
-					: 'top-1/2 -mt-52'
-			} ${
-				sessionRunning &&
-				currentActive.id === 'MasterInput'
-					? 'translate-y-[28rem]'
-					: 'opacity-100 translate-y-0'
-			}`"
+			v-show="
+				!currentActive ||
+				(currentActive &&
+					currentActive.id !== 'MasterInput')
+			"
+			
+			class="text-neutral-300 hover:text-white px-6 py-8 z-20 rounded-lg text-xl font-mono absolute inset-0 bg-neutral-900/20 backdrop-blur-sm flex flex-col items-center justify-center"
 		>
-			<div
-				v-if="
-					!currentActive ||
-					(currentActive &&
-						currentActive.id !==
-							'MasterInput')
-				"
-				@click="
-					() => {
-						if (!allData.length) {
-							fetchWords(currentKey);
-							focusInput();
-						} else {
-							focusInput();
-						}
+			<button class="py-6 px-8" @click="
+				() => {
+					if (!allData.length) {
+						fetchWords(currentKey);
+						focusInput();
+					} else {
+						focusInput();
 					}
-				"
-				class="text-neutral-300 hover:text-white cursor-pointer px-6 py-8 rounded-lg text-xl font-mono"
-			>
+				}
+			">
 				<span class="mr-4"
 					><Icon
 						name="lucide:mouse-pointer-click"
@@ -49,141 +39,34 @@
 				/></span>
 
 				<span>click to activate</span>
+			</button>
+			<!--MENU/SETTINGS BAR-->
+			<div class="flex justify-center">
+				<SettingsBar />
 			</div>
-			<div
-				v-if="pastSessions.length"
-				class="pb-6 flex flex-col gap-4 w-full max-w-4xl px-4"
-			>
-				<div class="flex gap-6">
-					<div
-						class="w-36 flex-none flex flex-col gap-2"
-					>
-						<div class="flex flex-col">
-							<div
-								class="text-2xl text-neutral-500"
-							>
-								wpm
-							</div>
-							<div
-								class="text-[2.5rem] leading-tight font-mono text-[#6BD968]"
-							>
-								{{
-									currentSelectionData.wpm
-								}}
-							</div>
-						</div>
-						<div class="flex flex-col">
-							<div
-								class="text-2xl text-neutral-500"
-							>
-								acc
-							</div>
-							<div
-								class="text-[2.5rem] leading-tight font-mono text-[#6BD968]"
-							>
-								{{
-									currentSelectionData?.accuracy
-								}}%
-							</div>
-						</div>
-					</div>
-					<ClientOnly
-						><ResultsChart
-							:data="
-								currentSelectionData.chart_data
-							"
-					/></ClientOnly>
-				</div>
-				<div class="grid grid-cols-5 gap-6">
-					<div class="flex flex-col gap-1">
-						<div
-							class="text-base text-neutral-500"
-						>
-							type
-						</div>
-						<div
-							class="text-base leading-tight font-mono text-[#6BD968]"
-						>
-							<div>
-								{{
-									currentSelectionData?.mode
-								}}
-							</div>
-							<div>
-								{{
-									currentSelectionData?.difficulty
-								}}
-							</div>
-						</div>
-					</div>
-					<div class="flex flex-col gap-1">
-						<div
-							class="text-base text-neutral-500"
-						>
-							raw
-						</div>
-						<div
-							class="text-2xl leading-tight font-mono text-[#6BD968]"
-						>
-							<div>
-								{{
-									currentSelectionData?.raw
-								}}
-							</div>
-						</div>
-					</div>
-					<div class="flex flex-col gap-1">
-						<div
-							class="text-base text-neutral-500"
-						>
-							characters
-						</div>
-						<div
-							class="text-2xl leading-tight font-mono text-[#6BD968]"
-						>
-							{{
-								currentSelectionData?.total_corrects
-							}}/{{
-								currentSelectionData?.total_errors
-							}}/{{
-								currentSelectionData?.total_extras
-							}}/{{
-								currentSelectionData?.total_missed
-							}}
-						</div>
-					</div>
-					<div class="flex flex-col gap-1">
-						<div
-							class="text-base text-neutral-500"
-						>
-							consistency
-						</div>
-						<div
-							class="text-2xl leading-tight font-mono text-[#6BD968]"
-						>
-							{{
-								currentSelectionData?.consistency
-							}}%
-						</div>
-					</div>
-					<div class="flex flex-col gap-1">
-						<div
-							class="text-base text-neutral-500"
-						>
-							time
-						</div>
-						<div
-							class="text-2xl leading-tight font-mono text-[#6BD968]"
-						>
-							{{
-								currentSelectionData?.duration
-							}}s
-						</div>
-					</div>
-				</div>
-			</div>
-			<SettingsBar />
-			<Modal />
+		</div>
+		<!--TABLE(ON HOLD)-->
+		<!--
+		<div
+			v-show="
+				!(
+					currentActive &&
+					currentActive.id === 'MasterInput' &&
+					!sessionRunning
+				)
+			"
+			:class="`flex flex-col items-center gap-6 flex-grow left-0 right-0 px-10 transition-all z-10 ease-in-out duration-400 ${
+				currentActive &&
+				currentActive.id === 'MasterInput'
+					? ''
+					: 'top-1/2 -mt-52 h-screen'
+			} ${
+				sessionRunning &&
+				currentActive.id === 'MasterInput'
+					? 'translate-y-[28rem]'
+					: 'translate-y-0'
+			}`"
+		>
 			<template v-if="pastSessions.length">
 				<div
 					class="flex flex-col justify-center px-6"
@@ -329,7 +212,12 @@
 				</div>
 			</template>
 		</div>
-		<div class="flex justify-center mb-5">
+		-->
+		<!--LIVE TIMER INTERVAL WPM RAW-->
+		<div
+			v-show="!showResults"
+			class="flex justify-center mb-5 absolute top-0 left-0 right-0 pt-10"
+		>
 			<div
 				class="grid grid-cols-3 gap-4 [&>*]:flex [&>*]:flex-col [&>*]:items-center min-w-[340px]"
 			>
@@ -365,8 +253,9 @@
 				</div>
 			</div>
 		</div>
+		<!--TEXT COMPONENT-->
 		<div
-			:class="`pointer-events-none fixed flex items-center justify-center top-1/2 -translate-y-1/2 font-mono transition-all ease-linear duration-1000 rounded-[32px] w-full left-0 right-0 text-4xl leading-[54px]`"
+			:class="`pointer-events-none absolute flex items-center justify-center top-1/2 -translate-y-1/2 font-mono transition-all ease-linear duration-1000 rounded-[32px] w-full left-0 right-0 text-4xl leading-[54px]`"
 		>
 			<div
 				class="w-full max-w-6xl px-14 pt-6 mb-20 h-[14rem] flex-none"
@@ -416,35 +305,248 @@
 						></span
 					>
 				</template>
-				<div
-					v-if="
-						!currentActive ||
-						(currentActive &&
-							currentActive.id !==
-								'MasterInput')
-					"
-					@click="
-						() => {
-							if (!allData.length) {
-								fetchWords(
-									currentKey
-								);
-								focusInput();
-							} else {
-								focusInput();
-							}
-						}
-					"
-					class="inset-0 absolute right-0 items-center justify-center flex cursor-pointer backdrop-blur bg-neutral-900/80 rounded-[32px]"
-				></div>
 			</div>
 		</div>
+		<!--CHART COMPONENT-->
+		<div
+			v-show="showResults"
+			class="flex-grow flex flex-col justify-center z-50 gap-10 bg-neutral-900 "
+		>
+			<!--CHART COMPONENT-->
+			<div
+				class="w-full flex flex-col items-center justify-center"
+			>
+				<div
+					v-if="pastSessions.length"
+					class="flex flex-col gap-2 w-full"
+				>
+					<div class="flex gap-6 font-mono">
+						<div
+							class="w-36 flex-none flex flex-col gap-2"
+						>
+							<div
+								class="flex flex-col"
+							>
+								<div
+									class="text-3xl text-neutral-500"
+								>
+									wpm
+								</div>
+								<div
+									class="text-5xl leading-tight font-mono text-[#6BD968]"
+								>
+									{{
+										currentSelectionData.wpm
+									}}
+								</div>
+							</div>
+							<div
+								class="flex flex-col"
+							>
+								<div
+									class="text-3xl text-neutral-500"
+								>
+									acc
+								</div>
+								<div
+									class="text-5xl leading-tight font-mono text-[#6BD968]"
+								>
+									{{
+										currentSelectionData?.accuracy
+									}}%
+								</div>
+							</div>
+						</div>
+						<ClientOnly
+							><ResultsChart
+								:data="
+									currentSelectionData.chart_data
+								"
+						/></ClientOnly>
+					</div>
+					<div class="grid grid-cols-5 gap-6">
+						<div
+							class="flex flex-col gap-1"
+						>
+							<div
+								class="text-base text-neutral-500"
+							>
+								type
+							</div>
+							<div
+								class="text-base leading-tight font-mono text-[#6BD968]"
+							>
+								<div>
+									{{
+										currentSelectionData?.mode
+									}}
+								</div>
+								<div>
+									{{
+										currentSelectionData?.difficulty
+									}}
+								</div>
+							</div>
+						</div>
+						<div class="flex flex-col">
+							<div
+								class="text-base text-neutral-500"
+							>
+								raw
+							</div>
+							<div
+								class="text-3xl leading-tight font-mono text-[#6BD968]"
+							>
+								<div>
+									{{
+										currentSelectionData?.raw
+									}}
+								</div>
+							</div>
+						</div>
+						<div class="flex flex-col">
+							<div
+								class="text-base text-neutral-500"
+							>
+								characters
+							</div>
+							<div
+								class="text-3xl leading-tight font-mono text-[#6BD968]"
+							>
+								{{
+									currentSelectionData?.total_corrects
+								}}/{{
+									currentSelectionData?.total_errors
+								}}/{{
+									currentSelectionData?.total_extras
+								}}/{{
+									currentSelectionData?.total_missed
+								}}
+							</div>
+						</div>
+						<div class="flex flex-col">
+							<div
+								class="text-base text-neutral-500"
+							>
+								consistency
+							</div>
+							<div
+								class="text-3xl leading-tight font-mono text-[#6BD968]"
+							>
+								{{
+									currentSelectionData?.consistency
+								}}%
+							</div>
+						</div>
+						<div class="flex flex-col">
+							<div
+								class="text-base text-neutral-500"
+							>
+								time
+							</div>
+							<div
+								class="text-3xl leading-tight font-mono text-[#6BD968]"
+							>
+								{{
+									currentSelectionData?.duration
+								}}s
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!--MENU COMPONENT-->
+			<div
+				class="flex justify-center text-neutral-500 text-sm"
+			>
+				<div
+					class="justify-evenly flex gap-6 hover:[&>*]:text-white hover:[&>*]:bg-neutral-800 [&>*]:bg-neutral-900 focus:[&>*]:ring-2 focus:[&>*]:ring-[#6BD968] focus:[&>*]:outline-none [&>*]:transition-all [&>*]:duration-200"
+				>
+					<button
+						id="nextTest"
+						class="rounded-md h-20 w-20"
+						@click="
+							() => {
+								showResults = false;
+								fetchWords();
+								focusInput();
+							}
+						"
+					>
+						Next
+					</button>
+					<button
+						class="rounded-md h-20 w-20"
+						@click="
+							() => {
+								showResults = false;
+								fetchWords();
+								focusInput();
+							}
+						"
+					>
+						Repeat
+					</button>
+					<button
+						class="rounded-md h-20 w-20"
+						@click="
+							() => {
+								showResults = false;
+								fetchWords();
+								focusInput();
+							}
+						"
+					>
+						Practice Mistakes
+					</button>
+					<button
+						class="rounded-md h-20 w-20"
+						@click="
+							() => {
+								showResults = false;
+								fetchWords();
+								focusInput();
+							}
+						"
+					>
+						Toggle Word
+					</button>
+					<button
+						class="rounded-md h-20 w-20"
+						@click="
+							() => {
+								showResults = false;
+								fetchWords();
+								focusInput();
+							}
+						"
+					>
+						Replay
+					</button>
+					<button
+						class="rounded-md h-20 w-20"
+						@click="
+							() => {
+								showResults = false;
+								fetchWords();
+								focusInput();
+							}
+						"
+					>
+						Screenshot
+					</button>
+				</div>
+			</div>
+		</div>
+		<!--INPUT COMPONENT-->
 		<input
 			type="text"
 			id="MasterInput"
 			@keydown="handleKeydown"
 			style="opacity: 0%; position: absolute"
 		/>
+		<!--FOOT COMPONENT-->
+		<div class="h-11 z-40 text-neutral-500 text-sm">Footer</div>
 	</div>
 </template>
 
@@ -516,6 +618,7 @@ const {
 
 // collected data, we use this to pass to the final object before inserting to db
 let sessionRunning = ref(false);
+const showResults = ref(false);
 let collectedWords: string[] = [];
 //final object to insert to db
 let sessionsInsertData: SessionsInsert = {
@@ -988,6 +1091,14 @@ function handleEndSession(time: number) {
 	// [TEMPORARY] fill the array instead of pushing to db
 	pastSessions.value.push(JSON.parse(JSON.stringify(sessionsInsertData)));
 	//insertSessionToDatabase()
+	setShowResults();
+}
+
+function setShowResults() {
+	showResults.value = true;
+	setTimeout(() => {
+		document.getElementById("nextTest").focus();
+	}, 0);
 }
 
 function handleEndWord() {
