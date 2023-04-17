@@ -22,6 +22,7 @@ useHead({
 <style>
 body {
 	background-color: rgb(23,23,23);
+	overflow: overlay;
 }
 select {
 	-webkit-appearance: none;

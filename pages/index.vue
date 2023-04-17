@@ -31,9 +31,14 @@
 							'MasterInput')
 				"
 				@click="
-					!allData.length
-						? fetchWords(currentKey)
-						: focusInput()
+					() => {
+						if (!allData.length) {
+							fetchWords(currentKey);
+							focusInput();
+						} else {
+							focusInput();
+						}
+					}
 				"
 				class="text-neutral-300 hover:text-white cursor-pointer px-6 py-8 rounded-lg text-xl font-mono"
 			>
@@ -419,9 +424,16 @@
 								'MasterInput')
 					"
 					@click="
-						!allData.length
-							? fetchWords(currentKey)
-							: ''
+						() => {
+							if (!allData.length) {
+								fetchWords(
+									currentKey
+								);
+								focusInput();
+							} else {
+								focusInput();
+							}
+						}
 					"
 					class="inset-0 absolute right-0 items-center justify-center flex cursor-pointer backdrop-blur bg-neutral-900/80 rounded-[32px]"
 				></div>
