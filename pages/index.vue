@@ -19,19 +19,21 @@
 				(currentActive &&
 					currentActive.id !== 'MasterInput')
 			"
-			
-			class="text-neutral-300 hover:text-white pb-20 z-20 rounded-lg text-xl font-mono absolute inset-0 bg-neutral-900/40 backdrop-blur-sm flex flex-col items-center justify-center"
+			class="pb-20 z-20 rounded-lg text-xl font-mono absolute inset-0 bg-neutral-900/40 backdrop-blur-sm flex flex-col items-center justify-center"
 		>
-			<button class="py-10 mb-2 px-8" @click="
-				() => {
-					if (!allData.length) {
-						fetchWords(currentKey);
-						focusInput();
-					} else {
-						focusInput();
+			<button
+				class="py-10 mb-2 px-8 text-neutral-300 hover:text-white"
+				@click="
+					() => {
+						if (!allData.length) {
+							fetchWords(currentKey);
+							focusInput();
+						} else {
+							focusInput();
+						}
 					}
-				}
-			">
+				"
+			>
 				<span class="mr-4"
 					><Icon
 						name="lucide:mouse-pointer-click"
@@ -215,7 +217,7 @@
 		-->
 		<!--LIVE TIMER INTERVAL WPM RAW-->
 		<div
-			v-show="!showResults"
+			v-show="sessionRunning"
 			class="flex justify-center mb-5 absolute top-0 left-0 right-0 pt-10"
 		>
 			<div
@@ -254,65 +256,72 @@
 			</div>
 		</div>
 		<!--TEXT COMPONENT-->
-		<div v-show="!showResults" class="flex-grow flex items-center justify-center">
 		<div
-			:class="`pointer-events-none flex items-center justify-center font-mono transition-all ease-linear duration-1000 rounded-[32px] w-full left-0 right-0 text-4xl leading-[54px]`"
+			v-show="!showResults"
+			class="flex-grow flex items-center justify-center"
 		>
 			<div
-				class="w-full max-w-6xl px-6 mb-20 h-[14rem] flex-none"
-				@click.prevent.stop="
-					currentActive &&
-					currentActive.id === 'MasterInput'
-						? ''
-						: focusInput()
-				"
+				:class="`pointer-events-none flex items-center justify-center font-mono transition-all ease-linear duration-1000 rounded-[32px] w-full left-0 right-0 text-4xl leading-[54px]`"
 			>
-				<template v-for="(word, index) in allData">
-					<span :class="``"
-						><span
-							v-for="(
-								char, charIndex
-							) in word.characters"
-							:class="` ${
-								char.status ===
-								'correct'
-									? 'opacity-100'
-									: char.status ===
-									  'extra'
-									? 'bg-[#F44250] text-white opacity-100'
-									: char.status ===
-									  'error'
-									? 'text-[#F44250] opacity-100'
-									: char.status ===
-											'error' &&
-									  char.character ===
-											' '
-									? 'bg-red-600'
-									: 'opacity-40'
-							} ${
-								index ===
-									currentWordNum &&
-								charIndex ===
-									currentPendingWordIndex
-									? 'cursor-key'
-									: ''
-							}`"
-							>{{
-								char.character ===
-								" "
-									? " "
-									: char.character
-							}}</span
-						></span
+				<div
+					class="w-full max-w-6xl px-6 mb-20 h-[14rem] flex-none"
+					@click.prevent.stop="
+						currentActive &&
+						currentActive.id ===
+							'MasterInput'
+							? ''
+							: focusInput()
+					"
+				>
+					<template
+						v-for="(word, index) in allData"
 					>
-				</template>
+						<span :class="``"
+							><span
+								v-for="(
+									char,
+									charIndex
+								) in word.characters"
+								:class="` ${
+									char.status ===
+									'correct'
+										? 'opacity-100'
+										: char.status ===
+										  'extra'
+										? 'bg-[#F44250] text-white opacity-100'
+										: char.status ===
+										  'error'
+										? 'text-[#F44250] opacity-100'
+										: char.status ===
+												'error' &&
+										  char.character ===
+												' '
+										? 'bg-red-600'
+										: 'opacity-40'
+								} ${
+									index ===
+										currentWordNum &&
+									charIndex ===
+										currentPendingWordIndex
+										? 'cursor-key'
+										: ''
+								}`"
+								>{{
+									char.character ===
+									" "
+										? " "
+										: char.character
+								}}</span
+							></span
+						>
+					</template>
+				</div>
 			</div>
 		</div>
-	</div>
 		<!--CHART COMPONENT-->
 		<div
 			v-show="showResults"
-			class="flex-grow flex flex-col justify-center z-50 gap-10 bg-neutral-900 "
+			class="flex-grow flex flex-col justify-center z-50 gap-10 bg-neutral-900"
 		>
 			<!--CHART COMPONENT-->
 			<div
@@ -322,7 +331,9 @@
 					v-if="pastSessions.length"
 					class="flex flex-col w-full font-mono"
 				>
-					<div class="grid grid-cols-5 gap-x-4 gap-y-2">
+					<div
+						class="grid grid-cols-5 gap-x-2 gap-y-2"
+					>
 						<div
 							class="w-36 flex-none flex flex-col gap-2"
 						>
@@ -334,12 +345,16 @@
 								>
 									wpm
 								</div>
-								<div
-									class="text-5xl leading-tight font-mono text-[#6BD968]"
-								>
-									{{
-										currentSelectionData.wpm
-									}}
+								<div class="text-6xl leading-none font-mono text-[#6BD968]">
+									<CounterAnimation
+										:value="
+											currentSelectionData?.wpm
+										"
+										:duration="
+											1000
+										"
+										:digits="2"
+									/>
 								</div>
 							</div>
 							<div
@@ -351,23 +366,32 @@
 									acc
 								</div>
 								<div
-									class="text-5xl leading-tight font-mono text-[#6BD968]"
+									class="text-6xl leading-none font-mono text-[#6BD968]"
 								>
-									{{
-										currentSelectionData?.accuracy
-									}}%
+									<CounterAnimation
+										:value="
+											currentSelectionData?.accuracy
+										"
+										:duration="
+											1000
+										"
+										:digits="2"
+									/>%
 								</div>
 							</div>
 						</div>
-						<div class="col-span-4">
-						<ClientOnly
-							><ResultsChart
-								:data="
-									currentSelectionData.chart_data
-								"
-						/></ClientOnly>
-					</div>
-					<div
+						<div
+							class="col-span-4 -ml-5"
+							v-if="showResults"
+						>
+							<ClientOnly
+								><ResultsChart
+									:data="
+										currentSelectionData.chart_data
+									"
+							/></ClientOnly>
+						</div>
+						<div
 							class="flex flex-col gap-1"
 						>
 							<div
@@ -400,9 +424,15 @@
 								class="text-3xl leading-tight font-mono text-[#6BD968]"
 							>
 								<div>
-									{{
-										currentSelectionData?.raw
-									}}
+									<CounterAnimation
+										:value="
+											currentSelectionData?.raw
+										"
+										:duration="
+											1000
+										"
+										:digits="2"
+									/>%
 								</div>
 							</div>
 						</div>
@@ -415,15 +445,35 @@
 							<div
 								class="text-3xl leading-tight font-mono text-[#6BD968]"
 							>
-								{{
-									currentSelectionData?.total_corrects
-								}}/{{
-									currentSelectionData?.total_errors
-								}}/{{
-									currentSelectionData?.total_extras
-								}}/{{
-									currentSelectionData?.total_missed
-								}}
+								<CounterAnimation
+									:value="
+										currentSelectionData?.total_corrects
+									"
+									:duration="
+										1000
+									"
+								/>/<CounterAnimation
+									:value="
+										currentSelectionData?.total_errors
+									"
+									:duration="
+										1000
+									"
+								/>/<CounterAnimation
+									:value="
+										currentSelectionData?.total_extras
+									"
+									:duration="
+										1000
+									"
+								/>/<CounterAnimation
+									:value="
+										currentSelectionData?.total_missed
+									"
+									:duration="
+										1000
+									"
+								/>
 							</div>
 						</div>
 						<div class="flex flex-col">
@@ -435,9 +485,15 @@
 							<div
 								class="text-3xl leading-tight font-mono text-[#6BD968]"
 							>
-								{{
-									currentSelectionData?.consistency
-								}}%
+								<CounterAnimation
+									:value="
+										currentSelectionData?.consistency
+									"
+									:duration="
+										1000
+									"
+									:digits="2"
+								/>%
 							</div>
 						</div>
 						<div class="flex flex-col">
@@ -449,9 +505,15 @@
 							<div
 								class="text-3xl leading-tight font-mono text-[#6BD968]"
 							>
-								{{
-									currentSelectionData?.duration
-								}}s
+								<CounterAnimation
+									:value="
+										currentSelectionData?.duration
+									"
+									:digits="2"
+									:duration="
+										1000
+									"
+								/>s
 							</div>
 						</div>
 					</div>
@@ -462,7 +524,7 @@
 				class="flex justify-center text-neutral-500 text-sm"
 			>
 				<div
-					class="justify-evenly flex gap-6 hover:[&>*]:text-white hover:[&>*]:bg-neutral-800 [&>*]:bg-neutral-900 focus:[&>*]:ring-2 focus:[&>*]:ring-[#6BD968] focus:[&>*]:outline-none [&>*]:transition-all [&>*]:duration-200"
+					class="justify-evenly flex gap-6 hover:[&>*]:text-white hover:[&>*]:bg-neutral-800 [&>*]:bg-neutral-900 focus:[&>*]:ring-2 focus:[&>*]:ring-[#6BD968] focus:[&>*]:text-[#6BD968] focus:[&>*]:outline-none [&>*]:transition-all [&>*]:duration-200"
 				>
 					<button
 						id="nextTest"
@@ -548,7 +610,18 @@
 			style="opacity: 0%; position: absolute"
 		/>
 		<!--FOOT COMPONENT-->
-		<div class="h-11 z-40 text-neutral-500 text-sm">Footer</div>
+		<div
+			class="h-14 z-40 text-neutral-500 text-xs flex gap-6 items-center"
+		>
+			<div>Contact</div>
+			<div>Support</div>
+			<div>Github</div>
+			<div>Discord</div>
+			<div>Twitters</div>
+			<div>Terms</div>
+			<div>Security</div>
+			<div>Privacy</div>
+		</div>
 	</div>
 </template>
 

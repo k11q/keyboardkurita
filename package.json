@@ -29,6 +29,7 @@
     "nuxt-headlessui": "^1.1.1",
     "nuxt-icon": "^0.3.3",
     "pinia": "^2.0.34",
+    "vue-animated-counter": "^0.0.3",
     "vue-chartjs": "^5.2.0",
     "vue-echarts": "^6.5.4"
   }
