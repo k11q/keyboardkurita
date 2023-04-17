@@ -12,7 +12,7 @@
 				CAROTTOP - 2
 			}px`"
 		></div>
-		<!--CLICK TO ACTIVATE OVERLAY-->
+		<!--CLICK TO ACTIVATE OVERLAY AND SETTINGS/MENU-->
 		<div
 			v-show="
 				!currentActive ||
@@ -318,19 +318,17 @@
 				</div>
 			</div>
 		</div>
-		<!--CHART COMPONENT-->
+		<!--CHART COMPONENT AND MENUBAR-->
 		<div
 			v-show="showResults"
-			class="flex-grow flex flex-col justify-center z-50 gap-10 bg-neutral-900"
+			class="flex-grow flex flex-col justify-center z-50 gap-10 bg-neutral-900 font-mono"
 		>
 			<!--CHART COMPONENT-->
 			<div
+				v-if="pastSessions.length && currentSelectionData"
 				class="w-full flex flex-col items-center justify-center"
 			>
-				<div
-					v-if="pastSessions.length"
-					class="flex flex-col w-full font-mono"
-				>
+				<div class="flex flex-col w-full font-mono">
 					<div
 						class="grid grid-cols-5 gap-x-2 gap-y-2"
 					>
@@ -345,7 +343,9 @@
 								>
 									wpm
 								</div>
-								<div class="text-6xl leading-none font-mono text-[#6BD968]">
+								<div
+									class="text-6xl leading-none font-mono text-[#6BD968]"
+								>
 									<CounterAnimation
 										:value="
 											currentSelectionData?.wpm
@@ -353,7 +353,9 @@
 										:duration="
 											1000
 										"
-										:digits="2"
+										:digits="
+											2
+										"
 									/>
 								</div>
 							</div>
@@ -375,7 +377,9 @@
 										:duration="
 											1000
 										"
-										:digits="2"
+										:digits="
+											2
+										"
 									/>%
 								</div>
 							</div>
@@ -431,8 +435,10 @@
 										:duration="
 											1000
 										"
-										:digits="2"
-									/>%
+										:digits="
+											2
+										"
+									/>
 								</div>
 							</div>
 						</div>
@@ -492,7 +498,9 @@
 									:duration="
 										1000
 									"
-									:digits="2"
+									:digits="
+										2
+									"
 								/>%
 							</div>
 						</div>
@@ -509,7 +517,9 @@
 									:value="
 										currentSelectionData?.duration
 									"
-									:digits="2"
+									:digits="
+										2
+									"
 									:duration="
 										1000
 									"
@@ -517,6 +527,64 @@
 							</div>
 						</div>
 					</div>
+				</div>
+			</div>
+			<div v-if="pastSessions.length && currentSelectionData">
+				<div class="text-base text-neutral-500">input history</div>
+				<div>
+					<div
+					class="w-full"
+					@click.prevent.stop="
+						currentActive &&
+						currentActive.id ===
+							'MasterInput'
+							? ''
+							: focusInput()
+					"
+				>
+					<template
+						v-for="(word, index) in currentSelectionData.logs"
+					>
+						<span :class="``"
+							><span
+								v-for="(
+									char,
+									charIndex
+								) in word.characters"
+								:class="` ${
+									char.status ===
+									'correct'
+										? 'opacity-100'
+										: char.status ===
+										  'extra'
+										? 'bg-[#F44250] text-white opacity-100'
+										: char.status ===
+										  'error'
+										? 'text-[#F44250] opacity-100'
+										: char.status ===
+												'error' &&
+										  char.character ===
+												' '
+										? 'bg-red-600'
+										: 'opacity-40'
+								} ${
+									index ===
+										currentWordNum &&
+									charIndex ===
+										currentPendingWordIndex
+										? 'cursor-key'
+										: ''
+								}`"
+								>{{
+									char.character ===
+									" "
+										? " "
+										: char.character
+								}}</span
+							></span
+						>
+					</template>
+				</div>
 				</div>
 			</div>
 			<!--MENU COMPONENT-->

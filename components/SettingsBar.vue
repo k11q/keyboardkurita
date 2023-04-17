@@ -37,16 +37,17 @@
 					position: absolute;
 					width: 100%;
 					text-align: center;
+					padding-left: 16px;
 				"
 			>
 				<option
 					v-for="option in durationOptions"
 					:value="option"
 				>
-					<Icon name="lucide:clock" />
 					{{ option }}s
 				</option>
 			</select>
+			<span v-if="mode === 'time'" class="-translate-x-6 -mt-[1px] text-neutral-300"><Icon name="lucide:clock" size="1.125rem" /></span>
 			<select
 				v-if="mode === 'word'"
 				v-model="words"
@@ -55,16 +56,17 @@
 					position: absolute;
 					width: 100%;
 					text-align: center;
+					padding-left: 16px;
 				"
 			>
 				<option
 					v-for="option in totalWordsOptions"
 					:value="option"
 				>
-					<Icon name="lucide:clock" />
 					{{ option }}
 				</option>
 			</select>
+			<span v-if="mode === 'word'" class="-translate-x-6 mt-0.5 text-neutral-300"><Icon name="lucide:case-upper" size="1.75rem" /></span>
 			<SettingsBarSelectChevron />
 		</div>
 		<div
