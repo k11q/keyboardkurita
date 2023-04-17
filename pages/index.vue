@@ -20,9 +20,9 @@
 					currentActive.id !== 'MasterInput')
 			"
 			
-			class="text-neutral-300 hover:text-white px-6 py-8 z-20 rounded-lg text-xl font-mono absolute inset-0 bg-neutral-900/20 backdrop-blur-sm flex flex-col items-center justify-center"
+			class="text-neutral-300 hover:text-white pb-20 z-20 rounded-lg text-xl font-mono absolute inset-0 bg-neutral-900/40 backdrop-blur-sm flex flex-col items-center justify-center"
 		>
-			<button class="py-6 px-8" @click="
+			<button class="py-10 mb-2 px-8" @click="
 				() => {
 					if (!allData.length) {
 						fetchWords(currentKey);
@@ -254,11 +254,12 @@
 			</div>
 		</div>
 		<!--TEXT COMPONENT-->
+		<div v-show="!showResults" class="flex-grow flex items-center justify-center">
 		<div
-			:class="`pointer-events-none absolute flex items-center justify-center top-1/2 -translate-y-1/2 font-mono transition-all ease-linear duration-1000 rounded-[32px] w-full left-0 right-0 text-4xl leading-[54px]`"
+			:class="`pointer-events-none flex items-center justify-center font-mono transition-all ease-linear duration-1000 rounded-[32px] w-full left-0 right-0 text-4xl leading-[54px]`"
 		>
 			<div
-				class="w-full max-w-6xl px-14 pt-6 mb-20 h-[14rem] flex-none"
+				class="w-full max-w-6xl px-6 mb-20 h-[14rem] flex-none"
 				@click.prevent.stop="
 					currentActive &&
 					currentActive.id === 'MasterInput'
@@ -307,6 +308,7 @@
 				</template>
 			</div>
 		</div>
+	</div>
 		<!--CHART COMPONENT-->
 		<div
 			v-show="showResults"
