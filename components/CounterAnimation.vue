@@ -40,8 +40,9 @@ const animateValue = () => {
 		if (progress === 0) {
 			animatedValue.value = initialValue;
 		} else {
+			const value = Math.max(initialValue + step, 0);
 			animatedValue.value = parseFloat(
-				(initialValue + step).toFixed(props.digits)
+				value.toFixed(props.digits)
 			);
 		}
 
