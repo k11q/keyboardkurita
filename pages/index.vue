@@ -178,6 +178,7 @@
 				</div>
 			</div>
 			<SettingsBar />
+			<Modal />
 			<template v-if="pastSessions.length">
 				<div
 					class="flex flex-col justify-center px-6"
