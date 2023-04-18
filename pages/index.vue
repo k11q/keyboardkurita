@@ -1278,7 +1278,14 @@ function fillFinalIntervalValues() {
 	insertCharacterCountPerSecond();
 	const currentTime = Date.now();
 	const elapsedTime = currentTime - startTime;
-	const durationRaw = (elapsedTime % 1000)+4000
+	let durationRaw;
+	if (elapsedTime < 5000) {
+		const wholeSeconds = Math.floor(elapsedTime / 1000);
+		const differenceWithoutRemainder = wholeSeconds * 1000;
+		durationRaw = (elapsedTime % 1000) + differenceWithoutRemainder;
+	} else {
+		durationRaw = (elapsedTime % 1000) + 4000;
+	}
 	const durationSeconds = parseFloat((elapsedTime / 1000).toFixed(2));
 	const wpm = getWpm(totalCorrectsCount + totalErrorsCount, elapsedTime);
 	const rawWpm = getRaw(
