@@ -1,6 +1,9 @@
 <template>
 	<div class="max-w-6xl w-full flex flex-col flex-grow relative">
+	<!--MODAL SETTINGS COMPONENT-->
+	<template v-if="!sessionRunning">
 		<Modal />
+	</template>
 		<!--CARET COMPONENT-->
 		<div
 			v-if="
@@ -14,7 +17,7 @@
 		></div>
 		<!--CLICK TO ACTIVATE OVERLAY AND SETTINGS/MENU-->
 		<div
-			v-show="
+			v-if="
 				!currentActive ||
 				(currentActive &&
 					currentActive.id !== 'MasterInput')
@@ -257,7 +260,7 @@
 		</div>
 		<!--TEXT COMPONENT-->
 		<div
-			v-show="!showResults"
+			v-if="!showResults"
 			class="flex-grow flex items-center justify-center"
 		>
 			<div
@@ -320,7 +323,7 @@
 		</div>
 		<!--CHART COMPONENT AND MENUBAR-->
 		<div
-			v-show="showResults"
+			v-if="showResults"
 			class="flex-grow flex flex-col justify-center z-50 gap-10 bg-neutral-900 font-mono"
 		>
 			<!--CHART COMPONENT-->
@@ -592,11 +595,11 @@
 				class="flex justify-center text-neutral-500 text-sm"
 			>
 				<div
-					class="justify-evenly flex gap-6 hover:[&>*]:text-white hover:[&>*]:bg-neutral-800 [&>*]:bg-neutral-900 focus:[&>*]:ring-2 focus:[&>*]:ring-[#6BD968] focus:[&>*]:text-[#6BD968] focus:[&>*]:outline-none [&>*]:transition-all [&>*]:duration-200"
+					class="justify-evenly flex gap-6 hover:[&>*]:text-[#6BD968] hover:[&>*]:bg-neutral-800 [&>*]:bg-neutral-900 focus:[&>*]:ring-2 focus:[&>*]:ring-[#6BD968] focus:[&>*]:text-[#6BD968] focus:[&>*]:outline-none [&>*]:transition-all [&>*]:duration-100"
 				>
 					<button
 						id="nextTest"
-						class="rounded-md h-20 w-20"
+						class="rounded-md h-16 w-16 flex items-center justify-center"
 						@click="
 							() => {
 								showResults = false;
@@ -605,10 +608,10 @@
 							}
 						"
 					>
-						Next
+						<Icon name="lucide:play" size="1.25rem"/>
 					</button>
 					<button
-						class="rounded-md h-20 w-20"
+						class="rounded-md h-16 w-16"
 						@click="
 							() => {
 								showResults = false;
@@ -617,10 +620,10 @@
 							}
 						"
 					>
-						Repeat
+					<Icon name="lucide:repeat" size="1.25rem"/>
 					</button>
 					<button
-						class="rounded-md h-20 w-20"
+						class="rounded-md h-16 w-16"
 						@click="
 							() => {
 								showResults = false;
@@ -629,10 +632,10 @@
 							}
 						"
 					>
-						Practice Mistakes
+					<Icon name="lucide:alert-triangle" size="1.25rem"/>
 					</button>
 					<button
-						class="rounded-md h-20 w-20"
+						class="rounded-md h-16 w-16"
 						@click="
 							() => {
 								showResults = false;
@@ -641,10 +644,10 @@
 							}
 						"
 					>
-						Toggle Word
+					<Icon name="lucide:step-back" size="1.25rem"/>
 					</button>
 					<button
-						class="rounded-md h-20 w-20"
+						class="rounded-md h-16 w-16"
 						@click="
 							() => {
 								showResults = false;
@@ -653,10 +656,10 @@
 							}
 						"
 					>
-						Replay
+					<Icon name="lucide:align-left" size="1.25rem"/>
 					</button>
 					<button
-						class="rounded-md h-20 w-20"
+						class="rounded-md h-16 w-16"
 						@click="
 							() => {
 								showResults = false;
@@ -665,7 +668,7 @@
 							}
 						"
 					>
-						Screenshot
+					<Icon name="lucide:camera" size="1.25rem"/>
 					</button>
 				</div>
 			</div>
