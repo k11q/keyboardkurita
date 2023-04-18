@@ -3,16 +3,14 @@
 		class="max-w-6xl w-full flex flex-col flex-grow relative sm:px-6 xl:px-0"
 	>
 		<!--MODAL SETTINGS COMPONENT-->
-		<template v-if="!sessionRunning">
-			<Modal />
-		</template>
+		<Modal />
 		<!--CARET COMPONENT-->
 		<div
 			v-if="
 				currentActive &&
 				currentActive.id === 'MasterInput'
 			"
-			:class="`fixed z-40 h-11 w-1.5 bg-[#3992FF] transition-all duration-100 ease-linear`"
+			class="fixed z-40 h-11 w-1.5 bg-[#3992FF] transition-all duration-100 ease-linear"
 			:style="`left: ${CAROTLEFT - 3}px; top: ${
 				CAROTTOP - 2
 			}px`"
@@ -295,13 +293,13 @@
 										  'extra'
 										? 'bg-[#F44250] text-white opacity-100'
 										: char.status ===
-										  'error'
-										? 'text-[#F44250] opacity-100'
-										: char.status ===
 												'error' &&
 										  char.character ===
 												' '
-										? 'bg-red-600'
+										? 'box-border border-b-2 border-red-600'
+										: char.status ===
+										  'error'
+										? 'text-[#F44250] opacity-100'
 										: 'opacity-40'
 								} ${
 									index ===
@@ -576,13 +574,13 @@
 												  'extra'
 												? 'bg-[#F44250] text-white opacity-100'
 												: char.status ===
-												  'error'
-												? 'text-[#F44250] opacity-100'
-												: char.status ===
 														'error' &&
 												  char.character ===
 														' '
-												? 'bg-red-600'
+												? 'box-border border-b border-red-600'
+												: char.status ===
+												  'error'
+												? 'text-[#F44250] opacity-100'
 												: 'opacity-40'
 										} ${
 											index ===
@@ -692,9 +690,7 @@
 						targetElementId="resultsChart"
 						:date="
 							format(
-								new Date(
-									currentSelectionData.end_time
-								),
+								new Date(currentSelectionData!.end_time),
 								'dd MMM yyyy HH:mm'
 							)
 						"
@@ -711,18 +707,7 @@
 			style="opacity: 0%; position: absolute"
 		/>
 		<!--FOOT COMPONENT-->
-		<div
-			class="h-14 z-40 text-neutral-500 text-xs flex gap-6 items-center"
-		>
-			<div>Contact</div>
-			<div>Support</div>
-			<div>Github</div>
-			<div>Discord</div>
-			<div>Twitters</div>
-			<div>Terms</div>
-			<div>Security</div>
-			<div>Privacy</div>
-		</div>
+		<Footer />
 	</div>
 </template>
 
@@ -1085,7 +1070,10 @@ function pushCharacterPerformance(key: string) {
 	}
 }
 
-function getCorrects(characterObject: CharacterPerformanceInsert | undefined, key: string) {
+function getCorrects(
+	characterObject: CharacterPerformanceInsert | undefined,
+	key: string
+) {
 	const currentCorrectChar = currentMetadata.value.currentCorrectChar;
 	let corrects = characterObject ? characterObject.corrects : 0;
 	return key === currentCorrectChar ? corrects + 1 : corrects;
@@ -1419,7 +1407,7 @@ function fillFinalData(time: number) {
 		(sessionsInsertData.accuracy / 10).toFixed(2)
 	);
 	sessionsInsertData.logs = allData.value;
-	sessionsInsertData.chart_data = {}
+	sessionsInsertData.chart_data = {};
 	Object.assign(sessionsInsertData.chart_data, chartData);
 }
 
