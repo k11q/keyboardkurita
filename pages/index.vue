@@ -1492,7 +1492,13 @@ function updateWPM() {
 	}
 	const elapsedTime = Date.now() - startTime;
 	const wpm = getWpm(totalCorrectsCount + totalErrorsCount, elapsedTime);
-	let rawWpm = getRaw(totalCharactersCount, elapsedTime);
+	let rawWpm: number;
+	if (intervalCount < 5) {
+		rawWpm = getRaw(totalCharactersCount, elapsedTime);
+	} else {
+		rawWpm = getRaw(getTotalCharactersInLastFiveSeconds(), 5000);
+	}
+
 	setIntervalValues(wpm, intervalCount, rawWpm);
 	insertChartDataLog(wpm, intervalError, intervalCount, rawWpm);
 	incrementIntervalCount();
@@ -1511,6 +1517,15 @@ function updateWPM() {
 				].wpm;
 		}
 	}
+}
+
+function getTotalCharactersInLastFiveSeconds() {
+	const lastFiveNumbers = characterCountPerFiveSeconds.slice(-5);
+	const sum = lastFiveNumbers.reduce(
+		(accumulator, currentValue) => accumulator + currentValue,
+		0
+	);
+	return sum;
 }
 
 function insertCharacterCountPerSecond() {
