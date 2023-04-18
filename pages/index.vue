@@ -31,7 +31,7 @@
 				@click="
 					() => {
 						if (!allData.length) {
-							fetchWords(currentKey);
+							fetchWords();
 							focusInput();
 						} else {
 							focusInput();
@@ -822,7 +822,7 @@ let sessionsInsertData: SessionsInsert = {
 	words: [], //selected/calculated
 	logs: [],
 	xp_gains: 0,
-	dataset: "english_50k",
+	dataset: "",
 	chart_data: {},
 	numbers: false,
 	punctuation: false,
@@ -885,6 +885,7 @@ const pastSessions: globalThis.Ref<SessionsInsert[]> = ref([]);
 // miscs
 let timeoutId: NodeJS.Timeout;
 
+// metadata (for tracking user inputs)
 const currentMetadata: globalThis.ComputedRef<InputMetadata> = computed(() => {
 	const currentWordLocation = currentWordNum.value;
 	const currentCharLocation = currentCharNum.value;
@@ -946,30 +947,31 @@ const currentCharacterTiming: WritableComputedRef<number> = computed({
 	},
 });
 
-async function fetchWords(char = "") {
+//
+async function fetchWords() {
 	loading.value = true;
-	if (char) {
-		selectedKey.value = char.charAt(0);
-	}
 	resetEverything();
 	if (words.value && words.value.next_data) {
-		words.value = words.value.next_data;
+		fetchWordsCache()
 		setupData();
-		words.value.next_data = await fetchWordsAndReturn();
 	} else {
 		words.value = await fetchWordsAndReturn();
 		setupData();
 	}
+	loading.value = false;
 }
 
-async function fetchFreshWords(char = "") {
+async function fetchWordsCache(){
+	words.value = words.value.next_data;
+	words.value.next_data = await fetchWordsAndReturn();
+}
+
+async function fetchFreshWords() {
 	loading.value = true;
-	if (char) {
-		selectedKey.value = char.charAt(0);
-	}
 	resetEverything();
 	words.value = await fetchWordsAndReturn();
 	setupData();
+	loading.value = false;
 }
 
 async function fetchWordsAndReturn() {
@@ -989,7 +991,6 @@ function resetEverything() {
 
 function setupData() {
 	fillData();
-	loading.value = false;
 }
 
 function fillData() {
@@ -1110,7 +1111,7 @@ function handleCorrectInput() {
 	setStatus();
 	if (isEndSession()) {
 		handleEndSession(time);
-		fetchWords(selectedKey.value);
+		fetchWords();
 		return;
 	} else if (isEndWord()) {
 		handleEndWord();
@@ -1259,7 +1260,6 @@ function fillInitialData() {
 		game_metadata,
 		dataset,
 	};
-
 	Object.assign(sessionsInsertData, initialFilledData);
 }
 
@@ -1376,6 +1376,7 @@ function resetAllSessionData() {
 function resetCounters() {
 	startTime = undefined;
 	endTime = undefined;
+	currentIncorrect = false;
 	collectedWords = [];
 	totalWordsCount = 0;
 	totalCorrectsCount = 0;
