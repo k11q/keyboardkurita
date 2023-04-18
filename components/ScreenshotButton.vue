@@ -1,26 +1,32 @@
 <template>
 	<div class="rounded-md">
-	<button class="rounded-md h-16 w-16" @click="handleScreenshot">
-		<Icon name="lucide:camera" size="1.25rem" />
-	</button>
-	<Toaster
-		:toastOptions="{
-			style: { background: '#202020', border: '1px solid #2C2C2C' , borderRadius: '8px', color: '#6BD968'},
-			className: 'custom-toaster',
-			descriptionClassName: 'my-toast-description',
-		}"
-	/>
-</div>
+		<button
+			class="rounded-md h-16 w-16"
+			@click="handleScreenshot"
+		>
+			<Icon
+				name="lucide:camera"
+				size="1.25rem"
+			/>
+		</button>
+		<Toaster
+			:toast-options="{
+				style: { background: '#202020', border: '1px solid #2C2C2C' , borderRadius: '8px', color: '#6BD968'},
+				className: 'custom-toaster',
+				descriptionClassName: 'my-toast-description',
+			}"
+		/>
+	</div>
 </template>
 
 <script setup>
-import { Toaster, toast } from "vue-sonner";
-import html2canvas from "html2canvas";
+import { Toaster, toast } from 'vue-sonner';
+import html2canvas from 'html2canvas';
 const props = defineProps({
 	targetElementId: String,
 	username: {
 		type: String,
-		default: "username",
+		default: 'username',
 	},
 	date: String,
 });
@@ -29,16 +35,16 @@ async function handleScreenshot() {
 	toast.promise(
 		takeScreenshot(),
 		{
-			loading: "Saving screenshot...",
-			success: (data) => `Screenshot saved to clipboard`,
-			error: (data) => "Error",
+			loading: 'Saving screenshot...',
+			success: (data) => 'Screenshot saved to clipboard',
+			error: (data) => 'Error',
 		},
 		{
 			style: {
-				background: "red",
+				background: 'red',
 			},
-			className: "my-toast",
-			descriptionClassName: "my-toast-description",
+			className: 'my-toast',
+			descriptionClassName: 'my-toast-description',
 		}
 	);
 }
@@ -59,16 +65,16 @@ function takeScreenshot() {
 		const newWidth = originalWidth + 2 * padding;
 		const newHeight = originalHeight + 5 * paddingY;
 
-		const watermark = document.createElement("div");
+		const watermark = document.createElement('div');
 		watermark.classList.add(
-			"watermark",
-			"absolute",
-			"right-0",
-			"translate-x-2",
-			"bottom-0",
-			"translate-y-14",
-			"text-xl",
-			"text-neutral-500"
+			'watermark',
+			'absolute',
+			'right-0',
+			'translate-x-2',
+			'bottom-0',
+			'translate-y-14',
+			'text-xl',
+			'text-neutral-500'
 		);
 		watermark.innerText = `${props.username} | ${props.date} | keyboardkurita.com`;
 		targetElement.appendChild(watermark);
@@ -79,16 +85,16 @@ function takeScreenshot() {
 				height: newHeight,
 				x: -padding,
 				y: -paddingY,
-				backgroundColor: "#171717",
+				backgroundColor: '#171717',
 			});
 
-			const imageDataURL = canvas.toDataURL("image/png");
+			const imageDataURL = canvas.toDataURL('image/png');
 			await copyToClipboard(imageDataURL);
 
 			// Resolve the promise with the name of the screenshot
 			resolve({ name: `${props.username}'s screenshot` });
 		} catch (err) {
-			console.error("Failed to take screenshot:", err);
+			console.error('Failed to take screenshot:', err);
 			reject(err);
 		} finally {
 			targetElement.removeChild(watermark);
@@ -99,12 +105,12 @@ async function copyToClipboard(imageDataURL) {
 	try {
 		const dataBlob = await (await fetch(imageDataURL)).blob();
 		const clipboardItem = new ClipboardItem({
-			"image/png": dataBlob,
+			'image/png': dataBlob,
 		});
 		await navigator.clipboard.write([clipboardItem]);
-		console.log("Image copied to clipboard");
+		console.log('Image copied to clipboard');
 	} catch (err) {
-		console.error("Failed to copy image to clipboard:", err);
+		console.error('Failed to copy image to clipboard:', err);
 	}
 }
 </script>

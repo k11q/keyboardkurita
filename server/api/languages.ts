@@ -17,7 +17,7 @@ const getRandomWords = (
 	const filteredWords = char
 		? allWords.filter((word) =>
 			word.split('').some((c) => char.includes(c))
-		  )
+		)
 		: allWords;
 
 	if (filteredWords.length === 0) {
@@ -131,7 +131,7 @@ const generateWordsData = async (
 };
 
 export default defineEventHandler(async (e) => {
-	const { num, lang, char, difficulty } = getQuery(e);
+	const { num, lang, char } = getQuery(e);
 
 	const numWords = parseInt(num as string) || 10;
 	const language = (lang as string) || 'english';
@@ -152,7 +152,6 @@ export default defineEventHandler(async (e) => {
 		return { ...returnVal, next_data: { ...nextReturnVal } };
 	} catch (error) {
 		console.error('Error generating words data:', error);
-		// Return an appropriate error response or throw the error to be handled by your API framework
 		throw error;
 	}
 });

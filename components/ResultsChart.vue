@@ -3,8 +3,8 @@
 		<v-chart
 			class="chart"
 			:option="option"
-			@mousemove="onMouseMove"
 			autoresize
+			@mousemove="onMouseMove"
 		/>
 		<div
 			class="absolute top-1/2 right-0 transform -translate-y-1/2 -mt-4 translate-x-2 text-[11px] text-[#666] rotate-90"
@@ -15,12 +15,12 @@
 </template>
 
 <script setup>
-import * as echarts from "echarts";
-import { use } from "echarts/core";
-import { SVGRenderer } from "echarts/renderers";
-import { LineChart } from "echarts/charts";
-import { GridComponent, TooltipComponent } from "echarts/components";
-import VChart, { THEME_KEY } from "vue-echarts";
+import * as echarts from 'echarts';
+import { use } from 'echarts/core';
+import { SVGRenderer } from 'echarts/renderers';
+import { LineChart } from 'echarts/charts';
+import { GridComponent, TooltipComponent } from 'echarts/components';
+import VChart, { THEME_KEY } from 'vue-echarts';
 
 use([LineChart, GridComponent, TooltipComponent, SVGRenderer]);
 
@@ -53,19 +53,19 @@ const formatTooltip = (params) => {
 
 const option = computed(() => ({
 	tooltip: {
-		trigger: "axis",
+		trigger: 'axis',
 		axisPointer: {
 			show: false,
 			animation: false,
-			type: "line", // Use line axisPointer
-			axis: "x", // Set the axis to 'y' for a horizontal line
+			type: 'line', // Use line axisPointer
+			axis: 'x', // Set the axis to 'y' for a horizontal line
 			lineStyle: {
 				show: false,
-				color: "transparent",
+				color: 'transparent',
 			},
 		},
 		formatter: formatTooltip,
-		backgroundColor: "transparent", // Set the background color to transparent
+		backgroundColor: 'transparent', // Set the background color to transparent
 		extraCssText: `
     box-shadow: none;
     border: none;
@@ -75,26 +75,26 @@ const option = computed(() => ({
 		padding: 0,
 	},
 	grid: {
-		top: "10%",
-		bottom: "13%",
-		left: "6.5%",
-		right: "4%",
+		top: '10%',
+		bottom: '13%',
+		left: '6.5%',
+		right: '4%',
 		containLabels: true,
 	},
 	xAxis: {
-		type: "value",
+		type: 'value',
 		axisLabel: {
-			color: "#888",
+			color: '#888',
 		},
 		axisLine: {
 			lineStyle: {
-				color: "#333",
+				color: '#333',
 			},
 		},
 		splitLine: {
 			show: true,
 			lineStyle: {
-				color: "#262626",
+				color: '#262626',
 			},
 		},
 		boundryGaps: false,
@@ -103,36 +103,36 @@ const option = computed(() => ({
 	},
 	yAxis: [
 		{
-			type: "value",
-			position: "left",
+			type: 'value',
+			position: 'left',
 			axisLabel: {
-				color: "#666",
+				color: '#666',
 			},
 			axisLine: {
 				lineStyle: {
-					color: "#333",
+					color: '#333',
 				},
 			},
 			splitLine: {
 				lineStyle: {
-					color: "#262626",
+					color: '#262626',
 				},
 			},
 			splitNumber: 3,
-			name: "Words per minute",
-			nameLocation: "center",
+			name: 'Words per minute',
+			nameLocation: 'center',
 			nameGap: 40,
 			nameTextStyle: {
 				fontSize: 11,
-				color: "#666",
-				fontFamily: "ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace",
+				color: '#666',
+				fontFamily: 'ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace',
 			},
 		},
 		{
-			type: "value",
-			position: "right",
+			type: 'value',
+			position: 'right',
 			axisLabel: {
-				color: "#666",
+				color: '#666',
 				formatter: function (value) {
 					if (Number.isInteger(value)) {
 						return value;
@@ -141,7 +141,7 @@ const option = computed(() => ({
 			},
 			axisLine: {
 				lineStyle: {
-					color: "#333",
+					color: '#333',
 				},
 			},
 			splitLine: {
@@ -153,93 +153,93 @@ const option = computed(() => ({
 	],
 	series: [
 		{
-			name: "Errors",
-			type: "scatter",
+			name: 'Errors',
+			type: 'scatter',
 			yAxisIndex: 1,
 			z: 10,
 			data: props.data.error
 				.map((value, index) =>
 					value > 0
 						? [
-								parseFloat(
-									props
-										.data
-										.time[
+							parseFloat(
+								props
+									.data
+									.time[
 										index
 									]
-								), // Use the corresponding time value instead of index + 1
-								value,
-								props.data.time[
-									index
-								],
+							), // Use the corresponding time value instead of index + 1
+							value,
+							props.data.time[
+								index
+							],
 						  ]
 						: null
 				)
 				.filter((item) => item !== null), // Remove null values from the array
 			itemStyle: {
-				color: "#F44250",
+				color: '#F44250',
 			},
 			emphasis: {
 				symbolSize: 18,
 			},
-			symbol: "image://./x.png",
+			symbol: 'image://./x.png',
 			symbolSize: 10,
 		},
 		{
-			name: "Raw",
-			type: "line",
+			name: 'Raw',
+			type: 'line',
 			data: props.data.raw.map((value, index) => [
 				parseFloat(props.data.time[index]), // Use the corresponding time value instead of index + 1
 				value,
 			]),
-			color: "#888",
+			color: '#888',
 			smooth: true,
 			areaStyle: {
-				color: "#202020",
+				color: '#202020',
 			},
 			lineStyle: {
 				width: 2,
 			},
-			symbol: "circle",
+			symbol: 'circle',
 			symbolSize: 6,
 			itemStyle: {
-				color: "#525252",
+				color: '#525252',
 			},
 			emphasis: {
 				areaStyle: {
-					color: "#202020",
+					color: '#202020',
 				},
 				itemStyle: {
 					borderWidth: 2,
-					borderColor: "#525252",
+					borderColor: '#525252',
 				},
-				symbol: "circle",
+				symbol: 'circle',
 				symbolSize: 30,
 			},
 		},
 		{
-			name: "WPM",
-			type: "line",
+			name: 'WPM',
+			type: 'line',
 			data: props.data.wpm.map((value, index) => [
 				parseFloat(props.data.time[index]), // Use the corresponding time value instead of index + 1
 				value,
 			]),
-			color: "#6BD968",
+			color: '#6BD968',
 			smooth: true,
 			lineStyle: {
 				width: 2,
 			},
-			symbol: "circle",
+			symbol: 'circle',
 			symbolSize: 6,
 			itemStyle: {
-				color: "#6BD968",
+				color: '#6BD968',
 			},
 			emphasis: {
 				itemStyle: {
 					borderWidth: 2,
-					borderColor: "#6BD968",
+					borderColor: '#6BD968',
 				},
-				symbol: "circle",
+				symbol: 'circle',
 				symbolSize: 30,
 			},
 		},

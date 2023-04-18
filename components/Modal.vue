@@ -1,9 +1,13 @@
 <template>
-	<HeadlessTransitionRoot appear :show="isOpen" as="template">
+	<HeadlessTransitionRoot
+		appear
+		:show="isOpen"
+		as="template"
+	>
 		<HeadlessDialog
 			as="div"
-			@close="closeModal"
 			class="relative z-40"
+			@close="closeModal"
 		>
 			<HeadlessTransitionChild
 				as="template"
@@ -71,16 +75,16 @@
 							>
 								<button
 									v-for="tab in tabs"
-									@click="
-										currentTab =
-											tab.tab
-									"
 									:class="`${
 										currentTab ===
 										tab.tab
 											? 'border-y border-t-[#6BD968] border-b-neutral-800/50 bg-neutral-700/20 border-x first:border-l-0 last:border-r-0 border-neutral-700 text-[#6BD968]'
 											: 'border-y border-t-neutral-700/40 border-b-neutral-700 text-neutral-400 hover:text-white hover:bg-neutral-800/20 transition-opacity'
 									} py-2.5 px-2 flex-grow`"
+									@click="
+										currentTab =
+											tab.tab
+									"
 								>
 									{{
 										tab.tab
@@ -100,10 +104,11 @@
 									)
 										.settings"
 								>
-									<div v-if="checkRenderDurationOrWords(
-												setting,
-												currentTab
-											)"
+									<div
+										v-if="checkRenderDurationOrWords(
+											setting,
+											currentTab
+										)"
 										:class="`flex items-center justify-between gap-6 pl-6 pr-2.5 h-16 flex-none ${
 											!checkRenderDurationOrWords(
 												setting,
@@ -122,10 +127,10 @@
 												}}
 											</div>
 											<div
-												class="text-xs leading-4 text-neutral-500 line-clamp"
 												v-if="
 													setting.description
 												"
+												class="text-xs leading-4 text-neutral-500 line-clamp"
 											>
 												{{
 													setting.description
@@ -136,11 +141,11 @@
 											:class="`relative flex justify-evenly min-w-[300px] p-0.5 gap-0.5 rounded-xl text-sm font-medium bg-neutral-900/90`"
 										>
 											<button
+												v-for="option in setting.option"
 												v-if="
 													setting.type ===
-													'tab'
+														'tab'
 												"
-												v-for="option in setting.option"
 												:class="`rounded-[10px] px-3 py-1 flex-grow text-center ${
 													option ===
 													setting.selected
@@ -156,7 +161,7 @@
 													option
 												}}{{
 													setting.title ===
-													"Duration"
+														"Duration"
 														? "s"
 														: ""
 												}}
@@ -164,7 +169,7 @@
 											<select
 												v-if="
 													setting.type ===
-													'select'
+														'select'
 												"
 												v-model="
 													setting.selected
@@ -180,20 +185,20 @@
 													{{
 														setting.title ===
 															"Key" &&
-														option ===
+															option ===
 															""
 															? "All key"
 															: setting.title ===
-															  "Key"
-															? option.toUpperCase()
-															: option
+																"Key"
+																? option.toUpperCase()
+																: option
 													}}
 												</option>
 											</select>
 											<span
 												v-if="
 													setting.type ===
-													'select'
+														'select'
 												"
 												class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-neutral-500"
 											>
@@ -216,9 +221,9 @@
 </template>
 
 <script setup>
-import { useHomeStore } from "@/stores/home";
-import { storeToRefs } from "pinia";
-const isOpen = useState("isOpen");
+import { useHomeStore } from '@/stores/home';
+import { storeToRefs } from 'pinia';
+const isOpen = useState('isOpen');
 const store = useHomeStore();
 
 function closeModal() {
@@ -229,26 +234,26 @@ function openModal() {
 }
 
 const { settings: tabs } = storeToRefs(store);
-const currentTab = ref("Game");
+const currentTab = ref('Game');
 
 function checkRenderDurationOrWords(setting, currentTab) {
 	return !(
-		(setting?.title === "Duration" &&
+		(setting?.title === 'Duration' &&
 			tabs.value
 				.find((i) => i.tab === currentTab)
-				.settings.find((i) => i?.title === "Mode")
-				.selected === "word") ||
-		(setting?.title === "Total words" &&
+				.settings.find((i) => i?.title === 'Mode')
+				.selected === 'word') ||
+		(setting?.title === 'Total words' &&
 			tabs.value
 				.find((i) => i.tab === currentTab)
-				.settings.find((i) => i?.title === "Mode")
-				.selected === "time") ||
-		((setting?.title === "Total words" ||
-				setting?.title === "Duration") &&
+				.settings.find((i) => i?.title === 'Mode')
+				.selected === 'time') ||
+		((setting?.title === 'Total words' ||
+				setting?.title === 'Duration') &&
 			tabs.value
 				.find((i) => i.tab === currentTab)
-				.settings.find((i) => i?.title === "Mode")
-				.selected === "infinity")
+				.settings.find((i) => i?.title === 'Mode')
+				.selected === 'infinity')
 	);
 }
 </script>

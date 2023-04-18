@@ -25,8 +25,8 @@
 					class="z-10 absolute mt-1 max-h-60 w-full overflow-auto rounded-xl bg-neutral-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
 				>
 					<HeadlessListboxOption
-						v-slot="{ active, selected }"
 						v-for="person in props.difficulty"
+						v-slot="{ active, selected }"
 						:key="person"
 						:value="person"
 						as="template"
@@ -45,10 +45,9 @@
 										: 'font-normal',
 									'block truncate',
 								]"
-								>{{
-									person
-								}}</span
-							>
+							>{{
+								person
+							}}</span>
 						</li>
 					</HeadlessListboxOption>
 				</HeadlessListboxOptions>
@@ -59,11 +58,11 @@
 
 <script setup>
 const props = defineProps({
-        difficulty: Array
-})
-const selectedItem = ref('')
+	difficulty: Array
+});
+const selectedItem = ref('');
 onMounted(()=>{
-        selectedItem.value = props.difficulty[0]
-})
+	selectedItem.value = props.difficulty[0];
+});
 
 </script>

@@ -8,19 +8,19 @@
 		<div
 			v-if="
 				currentActive &&
-				currentActive.id === 'MasterInput'
+					currentActive.id === 'MasterInput'
 			"
 			class="fixed z-40 h-11 w-1.5 bg-[#3992FF] transition-all duration-100 ease-linear"
 			:style="`left: ${CAROTLEFT - 3}px; top: ${
 				CAROTTOP - 2
 			}px`"
-		></div>
+		/>
 		<!--CLICK TO ACTIVATE OVERLAY AND SETTINGS/MENU-->
 		<div
 			v-if="
 				!currentActive ||
-				(currentActive &&
-					currentActive.id !== 'MasterInput')
+					(currentActive &&
+						currentActive.id !== 'MasterInput')
 			"
 			class="pb-20 z-20 rounded-lg text-xl font-mono absolute inset-0 bg-neutral-900/40 backdrop-blur-sm flex flex-col items-center justify-center"
 		>
@@ -37,10 +37,9 @@
 					}
 				"
 			>
-				<span class="mr-4"
-					><Icon
-						name="lucide:mouse-pointer-click"
-						size="1.5rem"
+				<span class="mr-4"><Icon
+					name="lucide:mouse-pointer-click"
+					size="1.5rem"
 				/></span>
 
 				<span>click to activate</span>
@@ -270,7 +269,7 @@
 					class="w-full max-w-6xl px-6 mb-20 h-[14rem] flex-none"
 					@click.prevent.stop="
 						currentActive &&
-						currentActive.id ===
+							currentActive.id ===
 							'MasterInput'
 							? ''
 							: focusInput()
@@ -279,60 +278,56 @@
 					<template
 						v-for="(word, index) in allData"
 					>
-						<span :class="``"
-							><span
-								v-for="(
-									char,
-									charIndex
-								) in word.characters"
-								:class="` ${
-									char.status ===
-									'correct'
-										? 'opacity-100'
-										: char.status ===
-										  'extra'
+						<span :class="``"><span
+							v-for="(
+								char,
+								charIndex
+							) in word.characters"
+							:class="` ${
+								char.status ===
+								'correct'
+									? 'opacity-100'
+									: char.status ===
+										'extra'
 										? 'bg-[#F44250] text-white opacity-100'
 										: char.status ===
-												'error' &&
-										  char.character ===
-												' '
-										? 'box-border border-b-2 border-red-600'
-										: char.status ===
-										  'error'
-										? 'text-[#F44250] opacity-100'
-										: 'opacity-40'
-								} ${
-									index ===
-										currentWordNum &&
-									charIndex ===
-										currentPendingWordIndex
-										? 'cursor-key'
-										: ''
-								}`"
-								>{{
-									char.character ===
-									" "
-										? " "
-										: char.character
-								}}</span
-							></span
-						>
+											'error' &&
+											char.character ===
+											' '
+											? 'box-border border-b-2 border-red-600'
+											: char.status ===
+												'error'
+												? 'text-[#F44250] opacity-100'
+												: 'opacity-40'
+							} ${
+								index ===
+								currentWordNum &&
+								charIndex ===
+								currentPendingWordIndex
+									? 'cursor-key'
+									: ''
+							}`"
+						>{{
+							char.character ===
+								" "
+								? " "
+								: char.character
+						}}</span></span>
 					</template>
 				</div>
 			</div>
 		</div>
 		<!--RESULTS PAGE - CHART COMPONENT AND MENUBAR-->
-		<div
-			v-if="showResults"
+		<div v-if="showResults"
 			class="flex-grow flex flex-col justify-center z-50 gap-10 bg-neutral-900 font-mono"
 		>
 			<!--CHART COMPONENT-->
 			<div
-				id="resultsChart"
 				v-if="
 					pastSessions.length &&
-					currentSelectionData
+						currentSelectionData
 				"
+				id="resultsChart"
 				class="w-full flex flex-col gap-4 items-center justify-center relative"
 			>
 				<div class="flex flex-col w-full font-mono">
@@ -392,15 +387,16 @@
 							</div>
 						</div>
 						<div
-							class="col-span-4 -ml-5"
 							v-if="showResults"
+							class="col-span-4 -ml-5"
 						>
-							<ClientOnly
-								><ResultsChart
+							<ClientOnly>
+								<ResultsChart
 									:data="
 										currentSelectionData.chart_data
 									"
-							/></ClientOnly>
+								/>
+							</ClientOnly>
 						</div>
 						<div
 							class="flex flex-col gap-1"
@@ -547,7 +543,7 @@
 							class="w-full"
 							@click.prevent.stop="
 								currentActive &&
-								currentActive.id ===
+									currentActive.id ===
 									'MasterInput'
 									? ''
 									: focusInput()
@@ -561,43 +557,41 @@
 							>
 								<span
 									:class="``"
-									><span
-										v-for="(
-											char,
-											charIndex
-										) in word.characters"
-										:class="` ${
-											char.status ===
-											'correct'
-												? 'opacity-100'
-												: char.status ===
-												  'extra'
+								><span
+									v-for="(
+										char,
+										charIndex
+									) in word.characters"
+									:class="` ${
+										char.status ===
+										'correct'
+											? 'opacity-100'
+											: char.status ===
+												'extra'
 												? 'bg-[#F44250] text-white opacity-100'
 												: char.status ===
-														'error' &&
-												  char.character ===
-														' '
-												? 'box-border border-b border-red-600'
-												: char.status ===
-												  'error'
-												? 'text-[#F44250] opacity-100'
-												: 'opacity-40'
-										} ${
-											index ===
-												currentWordNum &&
-											charIndex ===
-												currentPendingWordIndex
-												? 'cursor-key'
-												: ''
-										}`"
-										>{{
-											char.character ===
-											" "
-												? " "
-												: char.character
-										}}</span
-									></span
-								>
+													'error' &&
+													char.character ===
+													' '
+													? 'box-border border-b border-red-600'
+													: char.status ===
+														'error'
+														? 'text-[#F44250] opacity-100'
+														: 'opacity-40'
+									} ${
+										index ===
+										currentWordNum &&
+										charIndex ===
+										currentPendingWordIndex
+											? 'cursor-key'
+											: ''
+									}`"
+								>{{
+									char.character ===
+										" "
+										? " "
+										: char.character
+								}}</span></span>
 							</template>
 						</div>
 					</div>
@@ -687,7 +681,7 @@
 						/>
 					</button>
 					<ScreenshotButton
-						targetElementId="resultsChart"
+						target-element-id="resultsChart"
 						:date="
 							format(
 								new Date(currentSelectionData!.end_time),
@@ -701,34 +695,34 @@
 		</div>
 		<!--(HIDDEN)INPUT COMPONENT-->
 		<input
-			type="text"
 			id="MasterInput"
-			@keydown="handleKeydown"
+			type="text"
 			style="opacity: 0%; position: absolute"
-		/>
+			@keydown="handleKeydown"
+		>
 		<!--FOOT COMPONENT-->
 		<Footer />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { WritableComputedRef } from "vue";
+import { WritableComputedRef } from 'vue';
 import {
 	useHomeStore,
 	KEYOPTIONS,
 	DIFFICULTY,
 	MODES,
 	DATASETS,
-} from "@/stores/home";
+} from '@/stores/home';
 import type {
 	SessionsInsert,
 	CharacterPerformanceInsert,
 	WordPerformanceInsert,
 	KeystrokeLogsInsert,
 	IntervalLogsInsert,
-} from "../utils/db/sessions";
-import { format } from "date-fns";
-import { storeToRefs } from "pinia";
+} from '../utils/db/sessions';
+import { format } from 'date-fns';
+import { storeToRefs } from 'pinia';
 import type {
 	DifficultyOptions,
 	ModesOptions,
@@ -743,8 +737,8 @@ import type {
 	CharacterPerformance,
 	InputMetadata,
 	KeystrokeLog,
-} from "@/types";
-import { calculateRawWPM, calculateWPM, focusInput } from "@/utils/input";
+} from '@/types';
+import { calculateRawWPM, calculateWPM, focusInput } from '@/utils/input';
 
 //db & auth
 const user = useSupabaseUser();
@@ -755,7 +749,7 @@ const store = useHomeStore();
 // readonly
 const PROFILE = ref();
 const USERNAME: globalThis.Ref<string> = computed(() => {
-	return PROFILE.value ? PROFILE.value.username : "username";
+	return PROFILE.value ? PROFILE.value.username : 'username';
 });
 
 // game settings
@@ -778,21 +772,21 @@ const {
 } = storeToRefs(store);
 
 // collected data, we use this to pass to the final object before inserting to db
-let sessionRunning = ref(false);
+const sessionRunning = ref(false);
 const showResults = ref(false);
 let collectedWords: string[] = [];
 //final object to insert to db
-let sessionsInsertData: SessionsInsert = {
+const sessionsInsertData: SessionsInsert = {
 	//required
-	user_username: "",
+	user_username: '',
 	user_id: 0,
 	//insert at start
-	start_time: "",
-	difficulty: "",
-	mode: "",
+	start_time: '',
+	difficulty: '',
+	mode: '',
 	game_metadata: {},
 	//insert at end
-	end_time: "",
+	end_time: '',
 	duration: 0, //selected/calculated
 	wpm: 0,
 	accuracy: 0,
@@ -807,7 +801,7 @@ let sessionsInsertData: SessionsInsert = {
 	words: [], //selected/calculated
 	logs: [],
 	xp_gains: 0,
-	dataset: "",
+	dataset: '',
 	chart_data: {},
 	numbers: false,
 	punctuation: false,
@@ -832,7 +826,7 @@ let totalCharactersCount = 0;
 let totalWordsCount = 0;
 let totalErrorsCount = 0;
 let totalCorrectsCount = 0;
-let totalExtrasCount = 0;
+const totalExtrasCount = 0;
 
 //
 const currentActive = ref();
@@ -849,7 +843,7 @@ let currentIncorrect = false;
 let finalKeydown = Date.now();
 
 // ui states
-const isOpen = useState("isOpen", () => false);
+const isOpen = useState('isOpen', () => false);
 const loading = ref(false);
 const currentSelection: globalThis.Ref<WordMetadata[]> = ref([]);
 const currentSelectionData = computed(() => {
@@ -977,9 +971,9 @@ function resetEverything() {
 function fillData() {
 	if (!words.value || !words.value.all_data) {
 		console.log(
-			"Error: fillData():\
+			'Error: fillData():\
 			No all_data found from returned words.value\
-			or words.value doesnt exist."
+			or words.value doesnt exist.'
 		);
 		return;
 	}
@@ -995,12 +989,12 @@ function handleKeydown(e: KeyboardEvent) {
 	}
 	const key = e.key;
 	// tab used to start new game
-	if (key === "Tab") {
+	if (key === 'Tab') {
 		fetchWords();
 	} else if (isBackspace(e)) {
 		handleBackspace();
 	} else if (isRestrictedKeys(e)) {
-		console.log("Keydown unhandled! Restricted key: ", key);
+		console.log('Keydown unhandled! Restricted key: ', key);
 	} else {
 		handleInput(key);
 	}
@@ -1023,7 +1017,7 @@ function handleInput(key: string) {
 }
 
 function incrementTotalCharactersCount() {
-	if (currentMetadata.value.currentWordType !== "separator") {
+	if (currentMetadata.value.currentWordType !== 'separator') {
 		totalCharactersCount++;
 	}
 }
@@ -1075,7 +1069,7 @@ function getCorrects(
 	key: string
 ) {
 	const currentCorrectChar = currentMetadata.value.currentCorrectChar;
-	let corrects = characterObject ? characterObject.corrects : 0;
+	const corrects = characterObject ? characterObject.corrects : 0;
 	return key === currentCorrectChar ? corrects + 1 : corrects;
 }
 
@@ -1083,7 +1077,7 @@ function getCount(characterObject?: CharacterPerformanceInsert) {
 	return characterObject ? characterObject.count + 1 : 1;
 }
 function getError(characterObject?: CharacterPerformanceInsert) {
-	let error = characterObject ? characterObject.errors | 0 : 0;
+	const error = characterObject ? characterObject.errors | 0 : 0;
 	return currentIncorrect ? error : error + 1;
 }
 
@@ -1126,10 +1120,10 @@ function setTiming(time: number) {
 
 function setStatus() {
 	if (currentIncorrect) {
-		currentCharacterStatus.value = "error";
+		currentCharacterStatus.value = 'error';
 		currentIncorrect = false;
 	} else {
-		currentCharacterStatus.value = "correct";
+		currentCharacterStatus.value = 'correct';
 	}
 }
 
@@ -1138,7 +1132,7 @@ function incrementTotalCorrectsCount() {
 	if (
 		!currentIncorrect &&
 		currentWordMetadata &&
-		currentWordMetadata.type !== "separator"
+		currentWordMetadata.type !== 'separator'
 	) {
 		totalCorrectsCount++;
 	}
@@ -1184,7 +1178,7 @@ function deleteExtras(): void {
 	if (isNoneExtra()) {
 		return;
 	}
-	let totalExtras = countExtras();
+	const totalExtras = countExtras();
 	allData.value[metadata.currentWordLocation]?.characters.splice(
 		metadata.currentCharLocation,
 		totalExtras
@@ -1204,7 +1198,7 @@ function handleBackspace() {
 		allData.value.length &&
 		allData.value[currentWordNum.value].characters[
 			currentPendingWordIndex.value - 1
-		].status === "extra"
+		].status === 'extra'
 	) {
 		allData.value[currentWordNum.value].characters.splice(
 			currentPendingWordIndex.value - 1,
@@ -1283,13 +1277,13 @@ function fillFinalIntervalValues() {
 function setShowResults() {
 	showResults.value = true;
 	setTimeout(() => {
-		document.getElementById("nextTest")?.focus();
+		document.getElementById('nextTest')?.focus();
 	}, 0);
 }
 
 function handleEndWord() {
 	const metadata = currentMetadata.value;
-	if (metadata.currentWordMetadata.type === "word") {
+	if (metadata.currentWordMetadata.type === 'word') {
 		insertWord(metadata.currentWord);
 	}
 	incrementWord();
@@ -1322,19 +1316,19 @@ function addExtraCharToDisplay(key: string) {
 	allData.value[currentWordNum.value].characters.splice(
 		currentPendingWordIndex.value,
 		0,
-		{ character: key, timing: 0, status: "extra" }
+		{ character: key, timing: 0, status: 'extra' }
 	);
 }
 
 function resetAllSessionData() {
 	const emptySession = {
-		user_username: "",
+		user_username: '',
 		user_id: 0,
-		start_time: "",
-		difficulty: "",
-		mode: "",
+		start_time: '',
+		difficulty: '',
+		mode: '',
 		game_metadata: {},
-		end_time: "",
+		end_time: '',
 		duration: 0,
 		wpm: 0,
 		accuracy: 0,
@@ -1349,7 +1343,7 @@ function resetAllSessionData() {
 		words: [],
 		logs: [],
 		xp_gains: 0,
-		dataset: "",
+		dataset: '',
 		chart_data: {},
 		numbers: false,
 		punctuation: false,
@@ -1451,7 +1445,7 @@ function getConsistency(chartData: ChartData) {
 
 async function insertSessionToDatabase() {
 	const { data, error } = await client
-		.from("sessions")
+		.from('sessions')
 		.insert(sessionsInsertData)
 		.select();
 	if (error) {
@@ -1594,7 +1588,7 @@ function resetIntervalCount(): void {
 
 //watch if input out of focus
 watch(currentActive, () => {
-	if (currentActive.value.id !== "MasterInput") {
+	if (currentActive.value.id !== 'MasterInput') {
 		handleAfkOrOutOfFocus();
 	}
 });
@@ -1606,7 +1600,7 @@ onMounted(() => {
 	requestAnimationFrame(setCaretPosition);
 
 	function setCaretPosition() {
-		const cursorKey = document.querySelector(".cursor-key");
+		const cursorKey = document.querySelector('.cursor-key');
 		if (cursorKey?.getBoundingClientRect()) {
 			const rect = cursorKey?.getBoundingClientRect();
 
@@ -1627,14 +1621,14 @@ watchEffect(async () => {
 
 async function getProfile(userId: string) {
 	const { data, error } = await client
-		.from("profile")
+		.from('profile')
 		.select()
-		.eq("user_id", userId)
+		.eq('user_id', userId)
 		.single();
 	if (error) {
 		console.log(error);
 		console.log(
-			"no profile for users found. user needs to setup profile"
+			'no profile for users found. user needs to setup profile'
 		);
 	}
 	return data;
@@ -1642,33 +1636,33 @@ async function getProfile(userId: string) {
 
 // pure functions and checkers
 function getTotalWords(): number | undefined {
-	if (selectedMode.value === "word") {
+	if (selectedMode.value === 'word') {
 		return words.value?.num_words;
-	} else if (selectedMode.value === "time") {
-		console.log("time not implemented yet");
+	} else if (selectedMode.value === 'time') {
+		console.log('time not implemented yet');
 		return totalWordsCount;
 	}
-	console.log("total words not found");
+	console.log('total words not found');
 }
 
 function getTotalCharacters(): number | undefined {
-	if (selectedMode.value === "word") {
+	if (selectedMode.value === 'word') {
 		return words.value?.num_characters;
-	} else if (selectedMode.value === "time") {
-		console.log("time not implemented yet");
+	} else if (selectedMode.value === 'time') {
+		console.log('time not implemented yet');
 		return totalCharactersCount;
 	}
-	console.log("total characters not found");
+	console.log('total characters not found');
 }
 
 function getDuration() {
-	if (selectedMode.value === "word") {
+	if (selectedMode.value === 'word') {
 		return words.value?.num_words;
-	} else if (selectedMode.value === "time") {
-		console.log("time not implemented yet");
+	} else if (selectedMode.value === 'time') {
+		console.log('time not implemented yet');
 		return totalWordsCount;
 	}
-	console.log("total words not found");
+	console.log('total words not found');
 }
 
 function isRestrictedKeys(e: KeyboardEvent) {

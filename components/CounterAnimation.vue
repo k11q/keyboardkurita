@@ -1,11 +1,15 @@
 <template>
-	<span class="counter-animation" :class="extraClass" :style="extraStyle">
+	<span
+		class="counter-animation"
+		:class="extraClass"
+		:style="extraStyle"
+	>
 		{{ animatedValue }}
 	</span>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted, computed } from "vue";
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
 
 const props = defineProps({
 	value: Number,
