@@ -1278,11 +1278,12 @@ function fillFinalIntervalValues() {
 	insertCharacterCountPerSecond();
 	const currentTime = Date.now();
 	const elapsedTime = currentTime - startTime;
+	const durationRaw = (elapsedTime % 1000)+4000
 	const durationSeconds = parseFloat((elapsedTime / 1000).toFixed(2));
 	const wpm = getWpm(totalCorrectsCount + totalErrorsCount, elapsedTime);
 	const rawWpm = getRaw(
 		getTotalCharactersInLastFiveSeconds(),
-		elapsedTime
+		durationRaw
 	);
 	insertChartDataLog(wpm, intervalError, durationSeconds, rawWpm);
 }
