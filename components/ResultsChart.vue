@@ -161,14 +161,20 @@ const option = computed(() => ({
 				.map((value, index) =>
 					value > 0
 						? [
-								index + 1,
+								parseFloat(
+									props
+										.data
+										.time[
+										index
+									]
+								), // Use the corresponding time value instead of index + 1
 								value,
 								props.data.time[
 									index
 								],
 						  ]
 						: null
-				) // Filter out values <= 0
+				)
 				.filter((item) => item !== null), // Remove null values from the array
 			itemStyle: {
 				color: "#F44250",
