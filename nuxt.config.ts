@@ -7,4 +7,7 @@ export default defineNuxtConfig({
 		"nuxt-icon",
 		"@pinia/nuxt",
 	],
+	build: {
+		transpile: ["vue-sonner"],
+	},
 });
