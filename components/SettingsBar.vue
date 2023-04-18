@@ -100,6 +100,7 @@
 					width: 100%;
 					text-align: center;
 				"
+				v-model="selectedDataset"
 			>
 				<option
 					v-for="option in datasetOptions"
@@ -172,12 +173,13 @@ const {
 	difficulty: selectedDifficulty,
 	mode,
 	key: selectedKey,
+	dataset: selectedDataset,
 	durationOptions,
 	keyOptions,
 	difficultyOptions,
 	datasetOptions,
 	words,
-        totalWordsOptions
+        totalWordsOptions,
 } = storeToRefs(store);
 const isOpen = useState("isOpen");
 </script>

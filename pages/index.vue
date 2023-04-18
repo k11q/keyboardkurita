@@ -1,9 +1,9 @@
 <template>
 	<div class="max-w-6xl w-full flex flex-col flex-grow relative">
-	<!--MODAL SETTINGS COMPONENT-->
-	<template v-if="!sessionRunning">
-		<Modal />
-	</template>
+		<!--MODAL SETTINGS COMPONENT-->
+		<template v-if="!sessionRunning">
+			<Modal />
+		</template>
 		<!--CARET COMPONENT-->
 		<div
 			v-if="
@@ -329,7 +329,10 @@
 			<!--CHART COMPONENT-->
 			<div
 				id="resultsChart"
-				v-if="pastSessions.length && currentSelectionData"
+				v-if="
+					pastSessions.length &&
+					currentSelectionData
+				"
 				class="w-full flex flex-col gap-4 items-center justify-center relative"
 			>
 				<div class="flex flex-col w-full font-mono">
@@ -533,63 +536,69 @@
 					</div>
 				</div>
 				<div class="w-full">
-				<div class="text-base text-neutral-500">input history</div>
-				<div>
-					<div
-					class="w-full"
-					@click.prevent.stop="
-						currentActive &&
-						currentActive.id ===
-							'MasterInput'
-							? ''
-							: focusInput()
-					"
-				>
-					<template
-						v-for="(word, index) in currentSelectionData.logs"
-					>
-						<span :class="``"
-							><span
-								v-for="(
-									char,
-									charIndex
-								) in word.characters"
-								:class="` ${
-									char.status ===
-									'correct'
-										? 'opacity-100'
-										: char.status ===
-										  'extra'
-										? 'bg-[#F44250] text-white opacity-100'
-										: char.status ===
-										  'error'
-										? 'text-[#F44250] opacity-100'
-										: char.status ===
-												'error' &&
-										  char.character ===
-												' '
-										? 'bg-red-600'
-										: 'opacity-40'
-								} ${
-									index ===
-										currentWordNum &&
-									charIndex ===
-										currentPendingWordIndex
-										? 'cursor-key'
-										: ''
-								}`"
-								>{{
-									char.character ===
-									" "
-										? " "
-										: char.character
-								}}</span
-							></span
+					<div class="text-base text-neutral-500">
+						input history
+					</div>
+					<div>
+						<div
+							class="w-full"
+							@click.prevent.stop="
+								currentActive &&
+								currentActive.id ===
+									'MasterInput'
+									? ''
+									: focusInput()
+							"
 						>
-					</template>
+							<template
+								v-for="(
+									word,
+									index
+								) in currentSelectionData.logs"
+							>
+								<span
+									:class="``"
+									><span
+										v-for="(
+											char,
+											charIndex
+										) in word.characters"
+										:class="` ${
+											char.status ===
+											'correct'
+												? 'opacity-100'
+												: char.status ===
+												  'extra'
+												? 'bg-[#F44250] text-white opacity-100'
+												: char.status ===
+												  'error'
+												? 'text-[#F44250] opacity-100'
+												: char.status ===
+														'error' &&
+												  char.character ===
+														' '
+												? 'bg-red-600'
+												: 'opacity-40'
+										} ${
+											index ===
+												currentWordNum &&
+											charIndex ===
+												currentPendingWordIndex
+												? 'cursor-key'
+												: ''
+										}`"
+										>{{
+											char.character ===
+											" "
+												? " "
+												: char.character
+										}}</span
+									></span
+								>
+							</template>
+						</div>
+					</div>
 				</div>
-				</div>
-			</div>
 			</div>
 			<!--MENU COMPONENT-->
 			<div
@@ -609,7 +618,10 @@
 							}
 						"
 					>
-						<Icon name="lucide:play" size="1.25rem"/>
+						<Icon
+							name="lucide:play"
+							size="1.25rem"
+						/>
 					</button>
 					<button
 						class="rounded-md h-16 w-16"
@@ -621,7 +633,10 @@
 							}
 						"
 					>
-					<Icon name="lucide:repeat" size="1.25rem"/>
+						<Icon
+							name="lucide:repeat"
+							size="1.25rem"
+						/>
 					</button>
 					<button
 						class="rounded-md h-16 w-16"
@@ -633,7 +648,10 @@
 							}
 						"
 					>
-					<Icon name="lucide:alert-triangle" size="1.25rem"/>
+						<Icon
+							name="lucide:alert-triangle"
+							size="1.25rem"
+						/>
 					</button>
 					<button
 						class="rounded-md h-16 w-16"
@@ -645,7 +663,10 @@
 							}
 						"
 					>
-					<Icon name="lucide:step-back" size="1.25rem"/>
+						<Icon
+							name="lucide:step-back"
+							size="1.25rem"
+						/>
 					</button>
 					<button
 						class="rounded-md h-16 w-16"
@@ -657,9 +678,23 @@
 							}
 						"
 					>
-					<Icon name="lucide:align-left" size="1.25rem"/>
+						<Icon
+							name="lucide:align-left"
+							size="1.25rem"
+						/>
 					</button>
-					<ScreenshotButton targetElementId="resultsChart" :date="format(new Date(currentSelectionData.end_time), 'dd MMM yyyy HH:mm')" :username="USERNAME"/>
+					<ScreenshotButton
+						targetElementId="resultsChart"
+						:date="
+							format(
+								new Date(
+									currentSelectionData.end_time
+								),
+								'dd MMM yyyy HH:mm'
+							)
+						"
+						:username="USERNAME"
+					/>
 				</div>
 			</div>
 		</div>
@@ -740,7 +775,7 @@ const {
 	words: selectedWords,
 	mode: selectedMode,
 	key: selectedKey,
-	dataset: selectedSelection,
+	dataset: selectedDataset,
 	maxExtraWords,
 	allowSkipExtras,
 	allowSkipWords,
@@ -934,9 +969,9 @@ async function fetchFreshWords(char = "") {
 
 async function fetchWordsAndReturn() {
 	const { data } = await useFetch(
-		`api/words?char=${selectedKey.value.charAt(0)}&difficulty=${
+		`api/languages?char=${selectedKey.value.charAt(0)}&difficulty=${
 			selectedDifficulty.value
-		}&num=${selectedWords.value}`
+		}&num=${selectedWords.value}&lang=${selectedDataset.value}`
 	);
 	return data.value;
 }
@@ -1299,7 +1334,7 @@ function resetAllSessionData() {
 		words: [],
 		logs: [],
 		xp_gains: 0,
-		dataset: "english_50k",
+		dataset: "english",
 		chart_data: {},
 		numbers: false,
 		punctuation: false,
@@ -1424,7 +1459,7 @@ function changeKey(e: Event) {
 }
 
 // watcher to get frash data when any mode/settings changed
-watch([selectedDifficulty, selectedDuration, selectedKey, selectedMode], () => {
+watch([selectedDifficulty, selectedDuration, selectedKey, selectedMode, selectedDataset], () => {
 	fetchFreshWords();
 });
 
@@ -1457,13 +1492,7 @@ function updateWPM() {
 	}
 	const elapsedTime = Date.now() - startTime;
 	const wpm = getWpm(totalCorrectsCount + totalErrorsCount, elapsedTime);
-	let rawWpm: number;
-	if (intervalCount < 5) {
-		rawWpm = getRaw(totalCharactersCount, elapsedTime);
-	} else {
-		rawWpm = getRaw(getTotalCharactersInLastFiveSeconds(), 5000);
-	}
-
+	let rawWpm = getRaw(totalCharactersCount, elapsedTime);
 	setIntervalValues(wpm, intervalCount, rawWpm);
 	insertChartDataLog(wpm, intervalError, intervalCount, rawWpm);
 	incrementIntervalCount();
@@ -1482,15 +1511,6 @@ function updateWPM() {
 				].wpm;
 		}
 	}
-}
-
-function getTotalCharactersInLastFiveSeconds() {
-	const lastFiveNumbers = characterCountPerFiveSeconds.slice(-5);
-	const sum = lastFiveNumbers.reduce(
-		(accumulator, currentValue) => accumulator + currentValue,
-		0
-	);
-	return sum;
 }
 
 function insertCharacterCountPerSecond() {

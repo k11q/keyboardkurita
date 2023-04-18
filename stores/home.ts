@@ -8,6 +8,7 @@ import type {
 	ConfigSelectionOptions,
 	CharLogStatus,
 } from "@/types";
+import listLanguageOptions from '@/public/languages/_list_languages.json'
 
 //static options
 export const KEYOPTIONS = [
@@ -100,12 +101,8 @@ export const useHomeStore = defineStore("counter", () => {
 					title: "Dataset",
 					description:
 						"The source of the words that are selected.",
-					selected: "english_5k",
-					option: [
-						"english_5k",
-						"english_50k",
-						"code",
-					],
+					selected: "english",
+					option: listLanguageOptions,
 					type: "select",
 				},
 				{
