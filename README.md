@@ -1,29 +1,10 @@
-# Keyboard Kurita
+# [WIP] Keyboard Kurita
 
 Fun keyboard practising app!
 
-
-## TODO/ROADMAP
-
-### Core
-- [ ] Define schema
-- [ ] Build db (supabase)
-- [ ] Build auth (supabase)
-
-### Features
-- [ ] More configs for error
-- [ ] Enable multi char delete/backspace
-- [ ] More selection/category(e.g.: open source repos)
-
-### More
-- [ ] Profile Dashboard
-- [ ] Profile Dashboard
-
-### Extra
-- [ ] Gamification
-
 ## Installation
 - Clone the repo
+- Fill supabase url and key in .env (example is at .env.example). Just put anything, dont mind the tables.
 - Run `pnpm install && pnpm run dev`
 
 ## Contributing
