@@ -7,13 +7,36 @@ import type {
 	WordMetadata,
 } from "@/types";
 
-const getRandomWords = (allWords: string[], numWords: number): string[] => {
-	const wordsSet = new Set();
+const getRandomWords = (
+	allWords: string[],
+	numWords: number,
+	char: string
+): string[] => {
+	const wordsSet: Set<string> = new Set();
+
+	const filteredWords = char
+		? allWords.filter((word) =>
+				word.split("").some((c) => char.includes(c))
+		  )
+		: allWords;
+
+	if (filteredWords.length === 0) {
+		throw new Error("No words found with the specified characters");
+	}
 
 	while (wordsSet.size < numWords) {
 		const randomWord =
-			allWords[Math.floor(Math.random() * allWords.length)];
-		wordsSet.add(randomWord);
+			filteredWords[
+				Math.floor(Math.random() * filteredWords.length)
+			];
+		if (filteredWords.length >= numWords) {
+			wordsSet.add(randomWord);
+		} else {
+			const wordArray = Array.from(wordsSet);
+			wordArray.push(randomWord);
+			wordsSet.clear();
+			wordArray.forEach((word) => wordsSet.add(word));
+		}
 	}
 
 	return Array.from(wordsSet);
@@ -43,7 +66,8 @@ const insertSpacerObject = (
 
 const generateWordsData = async (
 	numWords: number,
-	language: string
+	language: string,
+	char: string
 ): Promise<{
 	all_data: WordMetadata[];
 	all_words: string[];
@@ -70,7 +94,7 @@ const generateWordsData = async (
 		throw new Error("Language file not found or invalid");
 	}
 
-	const selectedWords = getRandomWords(allWords, numWords);
+	const selectedWords = getRandomWords(allWords, numWords, char);
 
 	const wordObjects: WordMetadata[] = selectedWords.map((word, index) => {
 		const characters: CharacterMetadata[] = word
@@ -111,9 +135,24 @@ export default defineEventHandler(async (e) => {
 
 	const numWords = parseInt(num as string) || 10;
 	const language = (lang as string) || "english";
+	const characters = (char as string) || "";
 
-	const returnVal = await generateWordsData(numWords, language);
-	const nextReturnVal = await generateWordsData(numWords, language);
+	try {
+		const returnVal = await generateWordsData(
+			numWords,
+			language,
+			characters
+		);
+		const nextReturnVal = await generateWordsData(
+			numWords,
+			language,
+			characters
+		);
 
-	return { ...returnVal, next_data: { ...nextReturnVal } };
+		return { ...returnVal, next_data: { ...nextReturnVal } };
+	} catch (error) {
+		console.error("Error generating words data:", error);
+		// Return an appropriate error response or throw the error to be handled by your API framework
+		throw error;
+	}
 });
