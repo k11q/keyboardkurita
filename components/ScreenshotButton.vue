@@ -1,4 +1,5 @@
 <template>
+	<div class="rounded-md">
 	<button class="rounded-md h-16 w-16" @click="handleScreenshot">
 		<Icon name="lucide:camera" size="1.25rem" />
 	</button>
@@ -9,6 +10,7 @@
 			descriptionClassName: 'my-toast-description',
 		}"
 	/>
+</div>
 </template>
 
 <script setup>
