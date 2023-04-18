@@ -26,6 +26,7 @@
     "d3-array": "^3.2.3",
     "date-fns": "^2.29.3",
     "echarts": "^5.4.2",
+    "html2canvas": "^1.4.1",
     "nuxt-headlessui": "^1.1.1",
     "nuxt-icon": "^0.3.3",
     "pinia": "^2.0.34",

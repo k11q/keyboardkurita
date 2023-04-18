@@ -328,8 +328,9 @@
 		>
 			<!--CHART COMPONENT-->
 			<div
+				id="resultsChart"
 				v-if="pastSessions.length && currentSelectionData"
-				class="w-full flex flex-col items-center justify-center"
+				class="w-full flex flex-col gap-4 items-center justify-center"
 			>
 				<div class="flex flex-col w-full font-mono">
 					<div
@@ -531,8 +532,7 @@
 						</div>
 					</div>
 				</div>
-			</div>
-			<div v-if="pastSessions.length && currentSelectionData">
+				<div class="w-full">
 				<div class="text-base text-neutral-500">input history</div>
 				<div>
 					<div
@@ -589,6 +589,7 @@
 					</template>
 				</div>
 				</div>
+			</div>
 			</div>
 			<!--MENU COMPONENT-->
 			<div
@@ -658,18 +659,7 @@
 					>
 					<Icon name="lucide:align-left" size="1.25rem"/>
 					</button>
-					<button
-						class="rounded-md h-16 w-16"
-						@click="
-							() => {
-								showResults = false;
-								fetchWords();
-								focusInput();
-							}
-						"
-					>
-					<Icon name="lucide:camera" size="1.25rem"/>
-					</button>
+					<ScreenshotButton targetElementId="resultsChart"/>
 				</div>
 			</div>
 		</div>
@@ -1547,6 +1537,8 @@ watch(currentActive, () => {
 		handleAfkOrOutOfFocus();
 	}
 });
+
+//initiate
 
 // set caret position
 onMounted(() => {
