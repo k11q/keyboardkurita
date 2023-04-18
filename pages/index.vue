@@ -1,5 +1,7 @@
 <template>
-	<div class="max-w-6xl w-full flex flex-col flex-grow relative sm:px-6 xl:px-0">
+	<div
+		class="max-w-6xl w-full flex flex-col flex-grow relative sm:px-6 xl:px-0"
+	>
 		<!--MODAL SETTINGS COMPONENT-->
 		<template v-if="!sessionRunning">
 			<Modal />
@@ -416,7 +418,10 @@
 								<div>
 									{{
 										currentSelectionData?.mode
-									}} {{ currentSelectionData.total_words }}
+									}}
+									{{
+										currentSelectionData.total_words
+									}}
 								</div>
 								<div>
 									{{
@@ -1241,7 +1246,7 @@ function fillInitialData() {
 	const total_characters = 1;
 	const mode = selectedMode.value;
 	const difficulty = selectedDifficulty.value;
-	const dataset = selectedDataset.value
+	const dataset = selectedDataset.value;
 	const game_metadata = {};
 
 	const initialFilledData = {
@@ -1252,30 +1257,33 @@ function fillInitialData() {
 		mode,
 		difficulty,
 		game_metadata,
-		dataset
+		dataset,
 	};
 
 	Object.assign(sessionsInsertData, initialFilledData);
 }
 
 function handleEndSession(time: number) {
-	fillFinalIntervalValues()
+	fillFinalIntervalValues();
 	fillFinalData(time);
 	sessionRunning.value = false;
 	// [TEMPORARY] fill the array instead of pushing to db
 	pastSessions.value.push(JSON.parse(JSON.stringify(sessionsInsertData)));
 	//insertSessionToDatabase()
 	setShowResults();
-	console.log(pastSessions.value)
+	console.log(pastSessions.value);
 }
 
-function fillFinalIntervalValues(){
+function fillFinalIntervalValues() {
 	insertCharacterCountPerSecond();
-	const currentTime = Date.now()
+	const currentTime = Date.now();
 	const elapsedTime = currentTime - startTime;
 	const durationSeconds = parseFloat((elapsedTime / 1000).toFixed(2));
 	const wpm = getWpm(totalCorrectsCount + totalErrorsCount, elapsedTime);
-	const rawWpm = getRaw(getTotalCharactersInLastFiveSeconds(), elapsedTime);
+	const rawWpm = getRaw(
+		getTotalCharactersInLastFiveSeconds(),
+		elapsedTime
+	);
 	insertChartDataLog(wpm, intervalError, durationSeconds, rawWpm);
 }
 
@@ -1431,13 +1439,13 @@ function getRaw(totalCharacters: number, elapsedTime: number) {
 	);
 }
 
-function getConsistency(chartData: ChartData) {
+function getConsistency(chartData) {
 	const { wpm, raw } = chartData;
 	const length = Math.min(wpm.length, raw.length);
 
 	let sumRatios = 0;
 	for (let i = 0; i < length; i++) {
-		const ratio = wpm[i] / raw[i];
+		const ratio = Math.min(wpm[i] / raw[i], 1); // Limit the ratio to 1
 		sumRatios += ratio;
 	}
 
@@ -1473,9 +1481,18 @@ function changeKey(e: Event) {
 }
 
 // watcher to get frash data when any mode/settings changed
-watch([selectedDifficulty, selectedDuration, selectedKey, selectedMode, selectedDataset], () => {
-	fetchFreshWords();
-});
+watch(
+	[
+		selectedDifficulty,
+		selectedDuration,
+		selectedKey,
+		selectedMode,
+		selectedDataset,
+	],
+	() => {
+		fetchFreshWords();
+	}
+);
 
 // function resetlivetimer live wpm
 function resetLiveInterval() {
