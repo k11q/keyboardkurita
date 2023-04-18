@@ -1,5 +1,5 @@
 <template>
-	<div class="max-w-6xl w-full flex flex-col flex-grow relative">
+	<div class="max-w-6xl w-full flex flex-col flex-grow relative sm:px-6 xl:px-0">
 		<!--MODAL SETTINGS COMPONENT-->
 		<template v-if="!sessionRunning">
 			<Modal />
