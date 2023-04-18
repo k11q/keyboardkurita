@@ -659,7 +659,7 @@
 					>
 					<Icon name="lucide:align-left" size="1.25rem"/>
 					</button>
-					<ScreenshotButton targetElementId="resultsChart"/>
+					<ScreenshotButton targetElementId="resultsChart" :date="format(new Date(currentSelectionData.end_time), 'dd MMM yyyy HH:mm')" :username="USERNAME"/>
 				</div>
 			</div>
 		</div>
