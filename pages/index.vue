@@ -330,7 +330,7 @@
 			<div
 				id="resultsChart"
 				v-if="pastSessions.length && currentSelectionData"
-				class="w-full flex flex-col gap-4 items-center justify-center"
+				class="w-full flex flex-col gap-4 items-center justify-center relative"
 			>
 				<div class="flex flex-col w-full font-mono">
 					<div

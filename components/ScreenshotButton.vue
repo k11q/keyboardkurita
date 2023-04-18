@@ -28,8 +28,10 @@ async function takeScreenshot() {
 	const newWidth = originalWidth + 2 * padding;
 	const newHeight = originalHeight + 5 * paddingY;
 
-	const watermarkText = `${props.username} | ${props.date} | keyboardkurita.com`;
-	const watermarkFontSize = 20; // Font size for the watermark text (in pixels)
+	const watermark = document.createElement('div');
+  	watermark.classList.add('watermark','absolute','right-0','translate-x-2','bottom-0','translate-y-14','text-xl','text-neutral-500');
+  	watermark.innerText = `${props.username} | ${props.date} | keyboardkurita.com`;
+  	targetElement.appendChild(watermark);
 
 	try {
 		const canvas = await html2canvas(targetElement, {
@@ -40,22 +42,12 @@ async function takeScreenshot() {
 			backgroundColor: "#171717",
 		});
 
-		const ctx = canvas.getContext("2d");
-		ctx.font = `${watermarkFontSize}px ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace`;
-		ctx.fillStyle = "#737373";
-
-		// Calculate the x and y positions for the watermark text in the bottom right corner
-		const textWidth = ctx.measureText(watermarkText).width;
-		const textX = newWidth - textWidth - padding;
-		const textHeight = watermarkFontSize;
-		const textY = newHeight + paddingY * 8;
-
-		ctx.fillText(watermarkText, textX, textY);
-
 		const imageDataURL = canvas.toDataURL("image/png");
 		copyToClipboard(imageDataURL);
 	} catch (err) {
 		console.error("Failed to take screenshot:", err);
+	} finally{
+		targetElement.removeChild(watermark);
 	}
 }
 async function copyToClipboard(imageDataURL) {
