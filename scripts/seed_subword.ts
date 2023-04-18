@@ -1,88 +1,88 @@
-import { createClient } from "@supabase/supabase-js";
-import fs from "fs";
-import "dotenv/config";
+import { createClient } from '@supabase/supabase-js'
+import fs from 'fs'
+import 'dotenv/config'
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = process.env.SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_KEY
+const supabase = createClient(supabaseUrl, supabaseKey)
 
-const CHUNK_SIZE = 1000;
+const CHUNK_SIZE = 1000
 
-async function upsertSubwords(subwords) {
-	const chunkCount = Math.ceil(subwords.length / CHUNK_SIZE);
+async function upsertSubwords (subwords) {
+  const chunkCount = Math.ceil(subwords.length / CHUNK_SIZE)
 
-	for (let i = 0; i < chunkCount; i++) {
-		const start = i * CHUNK_SIZE;
-		const end = Math.min(start + CHUNK_SIZE, subwords.length);
-		const chunk = subwords.slice(start, end);
+  for (let i = 0; i < chunkCount; i++) {
+    const start = i * CHUNK_SIZE
+    const end = Math.min(start + CHUNK_SIZE, subwords.length)
+    const chunk = subwords.slice(start, end)
 
-		try {
-			const { data, error } = await supabase
-				.from("subwords")
-				.upsert(chunk, { onConflict: "subword" });
+    try {
+      const { data, error } = await supabase
+        .from('subwords')
+        .upsert(chunk, { onConflict: 'subword' })
 
-			if (error) {
-				console.error(
+      if (error != null) {
+        console.error(
 					`Error upserting chunk ${
 						i + 1
 					} of ${chunkCount}:`,
 					error
-				);
-			} else {
-				console.log(
+        )
+      } else {
+        console.log(
 					`Chunk ${
 						i + 1
 					} of ${chunkCount} upserted successfully.`
-				);
-			}
-		} catch (err) {
-			console.error(
+        )
+      }
+    } catch (err) {
+      console.error(
 				`Error upserting chunk ${
 					i + 1
 				} of ${chunkCount}:`,
 				err
-			);
-		}
-	}
+      )
+    }
+  }
 }
 
-function processMorphemes(morphemes) {
-	const subwords = [];
+function processMorphemes (morphemes) {
+  const subwords = []
 
-	for (const key in morphemes) {
-		let type;
-		let length = key.length;
+  for (const key in morphemes) {
+    let type
+    let length = key.length
 
-                if (key.endsWith("-") && key.startsWith("-")) {
-			type = "embedded";
-			length -= 2;
-		}else if (key.endsWith("-")) {
-			type = "prefix";
-			length--;
-		} else if (key.startsWith("-")) {
-			type = "suffix";
-			length--;
-		} else {
-			type = "root";
-		}
+    if (key.endsWith('-') && key.startsWith('-')) {
+      type = 'embedded'
+      length -= 2
+    } else if (key.endsWith('-')) {
+      type = 'prefix'
+      length--
+    } else if (key.startsWith('-')) {
+      type = 'suffix'
+      length--
+    } else {
+      type = 'root'
+    }
 
-		subwords.push({
-			subword: key,
-			length: length,
-			type: type,
-		});
-	}
+    subwords.push({
+      subword: key,
+      length,
+      type
+    })
+  }
 
-	return subwords;
+  return subwords
 }
 
-fs.readFile("subword.json", "utf-8", (err, data) => {
-	if (err) {
-		console.error("Error reading subwords.json:", err);
-		return;
-	}
+fs.readFile('subword.json', 'utf-8', (err, data) => {
+  if (err != null) {
+    console.error('Error reading subwords.json:', err)
+    return
+  }
 
-	const morphemes = JSON.parse(data);
-	const subwordsToInsert = processMorphemes(morphemes);
-	upsertSubwords(subwordsToInsert);
-});
+  const morphemes = JSON.parse(data)
+  const subwordsToInsert = processMorphemes(morphemes)
+  upsertSubwords(subwordsToInsert)
+})

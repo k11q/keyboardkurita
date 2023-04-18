@@ -1,11 +1,11 @@
-import { promises as fs } from "fs";
-import path from "path";
+import { promises as fs } from 'fs';
+import path from 'path';
 import type {
 	CharLogStatus,
 	WordType,
 	CharacterMetadata,
 	WordMetadata,
-} from "@/types";
+} from '@/types';
 
 const getRandomWords = (
 	allWords: string[],
@@ -16,12 +16,12 @@ const getRandomWords = (
 
 	const filteredWords = char
 		? allWords.filter((word) =>
-				word.split("").some((c) => char.includes(c))
+			word.split('').some((c) => char.includes(c))
 		  )
 		: allWords;
 
 	if (filteredWords.length === 0) {
-		throw new Error("No words found with the specified characters");
+		throw new Error('No words found with the specified characters');
 	}
 
 	while (wordsSet.size < numWords) {
@@ -48,18 +48,18 @@ const insertSpacerObject = (
 ): void => {
 	for (let i = 0; i < words.length - 1; i++) {
 		wordObjects.splice(i * 2 + 1, 0, {
-			word: " ",
+			word: ' ',
 			characters: [
 				{
-					character: " ",
+					character: ' ',
 					timing: 0,
-					status: "pending",
+					status: 'pending',
 					char_index: 0,
 					word_index: i,
 				},
 			],
 			index: i,
-			type: "separator",
+			type: 'separator',
 		});
 	}
 };
@@ -77,8 +77,8 @@ const generateWordsData = async (
 }> => {
 	const filePath = path.join(
 		process.cwd(),
-		"public",
-		"languages",
+		'public',
+		'languages',
 		`${language}.json`
 	);
 
@@ -86,24 +86,24 @@ const generateWordsData = async (
 	let allWords;
 
 	try {
-		const fileContent = await fs.readFile(filePath, "utf-8");
+		const fileContent = await fs.readFile(filePath, 'utf-8');
 		languageData = JSON.parse(fileContent);
 		allWords = languageData.words;
 	} catch (error) {
-		console.error("Error loading language file:", error);
-		throw new Error("Language file not found or invalid");
+		console.error('Error loading language file:', error);
+		throw new Error('Language file not found or invalid');
 	}
 
 	const selectedWords = getRandomWords(allWords, numWords, char);
 
 	const wordObjects: WordMetadata[] = selectedWords.map((word, index) => {
 		const characters: CharacterMetadata[] = word
-			.split("")
+			.split('')
 			.map((character, charIndex) => {
 				return {
 					character,
 					timing: 0,
-					status: "pending",
+					status: 'pending',
 					char_index: charIndex,
 					word_index: index,
 				};
@@ -113,13 +113,13 @@ const generateWordsData = async (
 			word,
 			characters,
 			index,
-			type: "word",
+			type: 'word',
 		};
 	});
 
 	insertSpacerObject(selectedWords, wordObjects);
 
-	const numCharacters = selectedWords.join("").length;
+	const numCharacters = selectedWords.join('').length;
 
 	return {
 		all_data: wordObjects,
@@ -134,8 +134,8 @@ export default defineEventHandler(async (e) => {
 	const { num, lang, char, difficulty } = getQuery(e);
 
 	const numWords = parseInt(num as string) || 10;
-	const language = (lang as string) || "english";
-	const characters = (char as string) || "";
+	const language = (lang as string) || 'english';
+	const characters = (char as string) || '';
 
 	try {
 		const returnVal = await generateWordsData(
@@ -151,7 +151,7 @@ export default defineEventHandler(async (e) => {
 
 		return { ...returnVal, next_data: { ...nextReturnVal } };
 	} catch (error) {
-		console.error("Error generating words data:", error);
+		console.error('Error generating words data:', error);
 		// Return an appropriate error response or throw the error to be handled by your API framework
 		throw error;
 	}

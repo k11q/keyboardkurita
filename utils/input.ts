@@ -1,5 +1,5 @@
 export function focusInput() {
-	setTimeout(document.getElementById("MasterInput")?.focus(),0);
+	setTimeout(document.getElementById('MasterInput')?.focus(),0);
 }
 
 export function calculateWPM(totalChars: number, elapsedTime: number) {

@@ -1,9 +1,9 @@
-import process from "process";
-import fs from "node:fs";
-import readline from "readline";
-import { bisectLeft } from "d3-array";
-import os from "os";
-import type { CharLogStatus, WordType, CharacterMetadata, WordMetadata } from "@/types";
+import process from 'process';
+import fs from 'node:fs';
+import readline from 'readline';
+import { bisectLeft } from 'd3-array';
+import os from 'os';
+import type { CharLogStatus, WordType, CharacterMetadata, WordMetadata } from '@/types';
 
 let allData: WordMetadata[] = [];
 
@@ -12,18 +12,18 @@ export default defineEventHandler(async (e) => {
 
 	const limit: number = parseInt(query.limit as string) || 5000;
 	const numWords: number = parseInt(query.num as string) || 10;
-	const selected_char = (query.char as string) || "";
-	const difficulty: "easy" | "medium" | "hard" | "extra_hard" =
+	const selected_char = (query.char as string) || '';
+	const difficulty: 'easy' | 'medium' | 'hard' | 'extra_hard' =
 		(query.difficulty as
-			| "easy"
-			| "medium"
-			| "hard"
-			| "extra_hard") || "easy";
+			| 'easy'
+			| 'medium'
+			| 'hard'
+			| 'extra_hard') || 'easy';
 
 	async function loadIndexData() {
 		const indexData = {};
 		const fileStream = fs.createReadStream(
-			"public/data/dataset3_index.jsonl"
+			'public/data/dataset3_index.jsonl'
 		);
 
 		const rl = readline.createInterface({
@@ -69,7 +69,7 @@ export default defineEventHandler(async (e) => {
 						buffer
 							.slice(0, bytesRead)
 							.toString()
-							.split("\n")[0]
+							.split('\n')[0]
 					);
 					callback(null, entry);
 				}
@@ -91,25 +91,25 @@ export default defineEventHandler(async (e) => {
 	for (let i = 0; i < indices.length; i++) {
 		// Modify the weight calculation based on the difficulty level
 		switch (difficulty) {
-			case "easy":
-				totalWeight += 1 / (i + 1);
-				break;
-			case "medium":
-				totalWeight += 1 / Math.sqrt(i + 1);
-				break;
-			case "hard":
-				totalWeight += 1;
-				break;
-			case "extra_hard":
-				totalWeight += Math.sqrt(i + 1);
-				break;
-			default:
-				totalWeight += 1 / (i + 1);
+		case 'easy':
+			totalWeight += 1 / (i + 1);
+			break;
+		case 'medium':
+			totalWeight += 1 / Math.sqrt(i + 1);
+			break;
+		case 'hard':
+			totalWeight += 1;
+			break;
+		case 'extra_hard':
+			totalWeight += Math.sqrt(i + 1);
+			break;
+		default:
+			totalWeight += 1 / (i + 1);
 		}
 		cumWeights.push(totalWeight);
 	}
 
-	const fd = fs.openSync("public/data/dataset3.jsonl", "r");
+	const fd = fs.openSync('public/data/dataset3.jsonl', 'r');
 
 	async function generateWords() {
 		const selectedWords = [];
@@ -176,10 +176,10 @@ export default defineEventHandler(async (e) => {
 			}
 		}
 
-		const combinedString = selectedWords.join("");
+		const combinedString = selectedWords.join('');
 		const numCharacters = combinedString.length;
 
-		allData = []
+		allData = [];
 		const returnedAllData = fillData(selectedWords);
 
 		return {
@@ -201,21 +201,21 @@ export default defineEventHandler(async (e) => {
 
 function fillData(words: string[]) {
 	if (!words.length) {
-		console.log("Error: no words found to fill.");
+		console.log('Error: no words found to fill.');
 		return;
 	}
 	let wordCount = 0;
 	for (const word of words) {
-		const characters = word.split("");
+		const characters = word.split('');
 		const charData: CharacterMetadata[] = [];
 		// create char object
-		let charCount = insertCharObject(
+		const charCount = insertCharObject(
 			wordCount,
 			characters,
 			charData
 		);
 		// push word object
-		let type: WordType = "word";
+		const type: WordType = 'word';
 		insertWordObject(word, charData, wordCount, type);
 		// push separator object
 		insertSpacerObject(words, wordCount);
@@ -235,7 +235,7 @@ function insertCharObject(
 		charData.push({
 			character: char,
 			timing: 0,
-			status: "pending",
+			status: 'pending',
 			char_index: charCount,
 			word_index: wordCount,
 		});
@@ -263,17 +263,17 @@ function insertSpacerObject(words: string[], wordCount: number) {
 		return;
 	}
 	allData.push({
-		word: " ",
+		word: ' ',
 		characters: [
 			{
-				character: " ",
+				character: ' ',
 				timing: 0,
-				status: "pending",
+				status: 'pending',
 				char_index: 0,
 				word_index: wordCount,
 			},
 		],
 		index: wordCount,
-		type: "separator",
+		type: 'separator',
 	});
 }

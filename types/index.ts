@@ -1,15 +1,15 @@
-type DifficultyOptions = "easy" | "medium" | "hard" | "extra_hard";
-type ModesOptions = "word" | "time" | "infinity";
+type DifficultyOptions = 'easy' | 'medium' | 'hard' | 'extra_hard';
+type ModesOptions = 'word' | 'time' | 'infinity';
 type ConfigDurationOptions = 10 | 20 | 30 | 60 | undefined;
 type ConfigTotalWordsOptions = 10 | 25 | 50 | undefined;
-type ConfigSelectionOptions = "english_50k" | "supabase-docs" | "supabase code";
-type CharLogStatus = "error" | "correct" | "pending" | "extra";
+type ConfigSelectionOptions = 'english_50k' | 'supabase-docs' | 'supabase code';
+type CharLogStatus = 'error' | 'correct' | 'pending' | 'extra';
 type KeystrokeLog = {
 	character: string;
 	time: number;
 	status: CharLogStatus;
 };
-type WordType = "separator" | "word";
+type WordType = 'separator' | 'word';
 
 //index.vue specific
 type ChartData = {
