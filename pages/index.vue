@@ -52,7 +52,7 @@
 				<SettingsBar />
 			</div>
 		</div>
-		<!--TABLE(ON HOLD)-->
+		<!--(ON HOLD)TABLE-->
 		<!--
 		<div
 			v-show="
@@ -260,7 +260,7 @@
 				</div>
 			</div>
 		</div>
-		<!--TEXT COMPONENT-->
+		<!--INPUT PAGE - TEXT COMPONENT-->
 		<div
 			v-if="!showResults"
 			class="flex-grow flex items-center justify-center"
@@ -323,7 +323,7 @@
 				</div>
 			</div>
 		</div>
-		<!--CHART COMPONENT AND MENUBAR-->
+		<!--RESULTS PAGE - CHART COMPONENT AND MENUBAR-->
 		<div
 			v-if="showResults"
 			class="flex-grow flex flex-col justify-center z-50 gap-10 bg-neutral-900 font-mono"
@@ -703,7 +703,7 @@
 				</div>
 			</div>
 		</div>
-		<!--INPUT COMPONENT-->
+		<!--(HIDDEN)INPUT COMPONENT-->
 		<input
 			type="text"
 			id="MasterInput"
@@ -858,15 +858,15 @@ const currentPendingWordIndex = ref(0);
 const words = ref();
 
 //
-let startTime: number;
-let endTime: number;
+let startTime: number | undefined;
+let endTime: number | undefined;
 let currentIncorrect = false;
 let finalKeydown = Date.now();
 
 // ui states
 const isOpen = useState("isOpen", () => false);
 const loading = ref(false);
-const currentSelection: globalThis.Ref<WordMetadata[]> = ref();
+const currentSelection: globalThis.Ref<WordMetadata[]> = ref([]);
 const currentSelectionData = computed(() => {
 	if (pastSessions.value.length) {
 		return pastSessions.value[pastSessions.value.length - 1];
@@ -952,16 +952,16 @@ async function fetchWords() {
 	loading.value = true;
 	resetEverything();
 	if (words.value && words.value.next_data) {
-		fetchWordsCache()
-		setupData();
+		fetchWordsCache();
+		fillData();
 	} else {
 		words.value = await fetchWordsAndReturn();
-		setupData();
+		fillData();
 	}
 	loading.value = false;
 }
 
-async function fetchWordsCache(){
+async function fetchWordsCache() {
 	words.value = words.value.next_data;
 	words.value.next_data = await fetchWordsAndReturn();
 }
@@ -970,7 +970,7 @@ async function fetchFreshWords() {
 	loading.value = true;
 	resetEverything();
 	words.value = await fetchWordsAndReturn();
-	setupData();
+	fillData();
 	loading.value = false;
 }
 
@@ -989,14 +989,12 @@ function resetEverything() {
 	resetCounters();
 }
 
-function setupData() {
-	fillData();
-}
-
 function fillData() {
 	if (!words.value || !words.value.all_data) {
 		console.log(
-			"Error: fillData(): No all_data found from returned words.value or words.value doesnt exist."
+			"Error: fillData():\
+			No all_data found from returned words.value\
+			or words.value doesnt exist."
 		);
 		return;
 	}
@@ -1087,7 +1085,7 @@ function pushCharacterPerformance(key: string) {
 	}
 }
 
-function getCorrects(characterObject: CharacterPerformanceInsert, key: string) {
+function getCorrects(characterObject: CharacterPerformanceInsert | undefined, key: string) {
 	const currentCorrectChar = currentMetadata.value.currentCorrectChar;
 	let corrects = characterObject ? characterObject.corrects : 0;
 	return key === currentCorrectChar ? corrects + 1 : corrects;
@@ -1249,7 +1247,6 @@ function fillInitialData() {
 	const difficulty = selectedDifficulty.value;
 	const dataset = selectedDataset.value;
 	const game_metadata = {};
-
 	const initialFilledData = {
 		user_username,
 		user_id,
@@ -1277,7 +1274,7 @@ function handleEndSession(time: number) {
 function fillFinalIntervalValues() {
 	insertCharacterCountPerSecond();
 	const currentTime = Date.now();
-	const elapsedTime = currentTime - startTime;
+	const elapsedTime = currentTime - startTime!;
 	let durationRaw;
 	if (elapsedTime < 5000) {
 		const wholeSeconds = Math.floor(elapsedTime / 1000);
@@ -1298,7 +1295,7 @@ function fillFinalIntervalValues() {
 function setShowResults() {
 	showResults.value = true;
 	setTimeout(() => {
-		document.getElementById("nextTest").focus();
+		document.getElementById("nextTest")?.focus();
 	}, 0);
 }
 
@@ -1364,7 +1361,7 @@ function resetAllSessionData() {
 		words: [],
 		logs: [],
 		xp_gains: 0,
-		dataset: "english",
+		dataset: "",
 		chart_data: {},
 		numbers: false,
 		punctuation: false,
@@ -1397,7 +1394,7 @@ function resetIndexes() {
 function fillFinalData(time: number) {
 	const extras = sessionsInsertData.total_extras;
 	sessionsInsertData.total_characters = getTotalCharacters();
-	const elapsedTime = time - startTime;
+	const elapsedTime = time - startTime!;
 	sessionsInsertData.total_errors = totalErrorsCount;
 	sessionsInsertData.total_corrects = totalCorrectsCount;
 	sessionsInsertData.wpm = getWpm(
@@ -1412,7 +1409,7 @@ function fillFinalData(time: number) {
 	sessionsInsertData.consistency = getConsistency(chartData);
 	sessionsInsertData.end_time = new Date(time)
 		.toISOString()
-		.toLocaleString("ms-MY", {});
+		.toLocaleString();
 	sessionsInsertData.duration = parseFloat(
 		(elapsedTime / 1000).toFixed(2)
 	);
@@ -1422,6 +1419,7 @@ function fillFinalData(time: number) {
 		(sessionsInsertData.accuracy / 10).toFixed(2)
 	);
 	sessionsInsertData.logs = allData.value;
+	sessionsInsertData.chart_data = {}
 	Object.assign(sessionsInsertData.chart_data, chartData);
 }
 
@@ -1448,7 +1446,7 @@ function getRaw(totalCharacters: number, elapsedTime: number) {
 	);
 }
 
-function getConsistency(chartData) {
+function getConsistency(chartData: ChartData) {
 	const { wpm, raw } = chartData;
 	const length = Math.min(wpm.length, raw.length);
 
@@ -1497,6 +1495,7 @@ watch(
 		selectedKey,
 		selectedMode,
 		selectedDataset,
+		selectedWords,
 	],
 	() => {
 		fetchFreshWords();

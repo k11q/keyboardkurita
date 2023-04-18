@@ -3,7 +3,7 @@
 		<HeadlessDialog
 			as="div"
 			@close="closeModal"
-			class="relative z-10"
+			class="relative z-40"
 		>
 			<HeadlessTransitionChild
 				as="template"
