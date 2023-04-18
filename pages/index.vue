@@ -416,11 +416,11 @@
 								<div>
 									{{
 										currentSelectionData?.mode
-									}}
+									}} {{ currentSelectionData.total_words }}
 								</div>
 								<div>
 									{{
-										currentSelectionData?.difficulty
+										currentSelectionData?.dataset
 									}}
 								</div>
 							</div>
@@ -1241,6 +1241,7 @@ function fillInitialData() {
 	const total_characters = 1;
 	const mode = selectedMode.value;
 	const difficulty = selectedDifficulty.value;
+	const dataset = selectedDataset.value
 	const game_metadata = {};
 
 	const initialFilledData = {
@@ -1251,6 +1252,7 @@ function fillInitialData() {
 		mode,
 		difficulty,
 		game_metadata,
+		dataset
 	};
 
 	Object.assign(sessionsInsertData, initialFilledData);
