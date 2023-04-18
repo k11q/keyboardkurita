@@ -1259,12 +1259,24 @@ function fillInitialData() {
 }
 
 function handleEndSession(time: number) {
+	fillFinalIntervalValues()
 	fillFinalData(time);
 	sessionRunning.value = false;
 	// [TEMPORARY] fill the array instead of pushing to db
 	pastSessions.value.push(JSON.parse(JSON.stringify(sessionsInsertData)));
 	//insertSessionToDatabase()
 	setShowResults();
+	console.log(pastSessions.value)
+}
+
+function fillFinalIntervalValues(){
+	insertCharacterCountPerSecond();
+	const currentTime = Date.now()
+	const elapsedTime = currentTime - startTime;
+	const durationSeconds = parseFloat((elapsedTime / 1000).toFixed(2));
+	const wpm = getWpm(totalCorrectsCount + totalErrorsCount, elapsedTime);
+	const rawWpm = getRaw(getTotalCharactersInLastFiveSeconds(), elapsedTime);
+	insertChartDataLog(wpm, intervalError, durationSeconds, rawWpm);
 }
 
 function setShowResults() {
@@ -1500,7 +1512,6 @@ function updateWPM() {
 	} else {
 		rawWpm = getRaw(getTotalCharactersInLastFiveSeconds(), 5000);
 	}
-
 	setIntervalValues(wpm, intervalCount, rawWpm);
 	insertChartDataLog(wpm, intervalError, intervalCount, rawWpm);
 	incrementIntervalCount();

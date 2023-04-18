@@ -99,7 +99,7 @@ const option = computed(() => ({
 		},
 		boundryGaps: false,
 		min: 1,
-		max: props.data.time.length,
+		max: parseFloat(props.data.time[props.data.time.length - 1]),
 	},
 	yAxis: [
 		{
@@ -183,7 +183,7 @@ const option = computed(() => ({
 			name: "Raw",
 			type: "line",
 			data: props.data.raw.map((value, index) => [
-				index + 1,
+				parseFloat(props.data.time[index]), // Use the corresponding time value instead of index + 1
 				value,
 			]),
 			color: "#888",
@@ -215,7 +215,7 @@ const option = computed(() => ({
 			name: "WPM",
 			type: "line",
 			data: props.data.wpm.map((value, index) => [
-				index + 1,
+				parseFloat(props.data.time[index]), // Use the corresponding time value instead of index + 1
 				value,
 			]),
 			color: "#6BD968",
