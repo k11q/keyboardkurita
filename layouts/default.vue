@@ -6,6 +6,12 @@ useHead({
 			src: 'https://beamanalytics.b-cdn.net/beam.min.js',
 			async: true,
 		},
+		{
+			'data-website-id': '7d589b8b-c758-483e-831b-beebaf9976e4',
+			src: 'https://umami-production-134d.up.railway.app/umami.js',
+			async: true,
+			defer: true,
+		},
 	],
 });
 </script>
