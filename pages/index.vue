@@ -556,10 +556,10 @@ function resetCorrectCharIndex() {
 }
 
 function handleIncorrectInput(key: string): void {
-	currentIncorrect = true;
 	incrementTotalErrorsCount();
 	incrementIntervalError();
 	insertExtraChar(key);
+	currentIncorrect = true;
 	correctCharIndex.value++;
 }
 
