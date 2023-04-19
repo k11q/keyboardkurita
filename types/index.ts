@@ -38,6 +38,7 @@ type InputMetadata = {
 	currentWord: string;
 	currentCorrectChar: string;
 	currentWordType: WordType;
+	currentChar: string;
 };
 
 //api / server
