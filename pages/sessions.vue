@@ -84,12 +84,12 @@
 									}}%</div>
 						</td>
 						<td class="col-span-3 flex items-center py-0 pr-4 justify-end text-neutral-400">
-							<span>{{
+							<span class="line-clamp-1">{{
 										format(
 											new Date(
 												session.end_time
 											),
-											"Pp"
+											'dd/MM/yyyy hh:mm a'
 										)
 									}}</span>
 						</td>
@@ -180,12 +180,12 @@
 									}}%</div>
 						</td>
 						<td class="col-span-3 flex items-center py-0 pr-4 justify-end text-neutral-400">
-							<span>{{
+							<span class="line-clamp-1">{{
 										format(
 											new Date(
 												session.end_time
 											),
-											"Pp"
+											'dd/MM/yyyy hh:mm a'
 										)
 									}}</span>
 						</td>
