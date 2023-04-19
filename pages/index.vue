@@ -11,8 +11,8 @@
 				currentActive.id === 'MasterInput'
 			"
 			class="fixed z-40 h-11 w-1.5 bg-[#3992FF] transition-all duration-100 ease-linear"
-			:style="`left: ${CAROTLEFT - 3}px; top: ${
-				CAROTTOP - 2
+			:style="`left: ${CARETLEFT - 3}px; top: ${
+				CARETTOP - 2
 			}px`"
 		/>
 		<!--CLICK TO ACTIVATE OVERLAY AND SETTINGS/MENU-->
@@ -305,7 +305,7 @@
 									index ===
 										currentWordNum &&
 									charIndex ===
-										currentPendingWordIndex
+										correctCharIndex
 										? 'cursor-key'
 										: ''
 								}`"
@@ -543,7 +543,7 @@
 											index ===
 												currentWordNum &&
 											charIndex ===
-												currentPendingWordIndex
+												correctCharIndex
 												? 'cursor-key'
 												: ''
 										}`"
@@ -661,7 +661,7 @@
 			id="MasterInput"
 			type="text"
 			style="opacity: 0%; position: absolute"
-			@keydown="handleKeydown"
+			@keydown.prevent.stop="handleKeydown"
 		/>
 		<!--FOOT COMPONENT-->
 		<Footer />
@@ -679,9 +679,8 @@ import {
 } from "@/stores/home";
 import type {
 	SessionsInsert,
-	CharacterPerformanceInsert,
-	WordPerformanceInsert,
-	KeystrokeLogsInsert,
+	CharacterLogsInsert,
+	WordLogsInsert,
 	IntervalLogsInsert,
 } from "../utils/db/sessions";
 import { format } from "date-fns";
@@ -697,9 +696,9 @@ import type {
 	WordMetadata,
 	WordType,
 	ChartData,
-	CharacterPerformance,
 	InputMetadata,
 	KeystrokeLog,
+	WordLogStatus,
 } from "@/types";
 import { calculateRawWPM, calculateWPM, focusInput } from "@/utils/input";
 
@@ -741,7 +740,6 @@ let collectedWords: string[] = [];
 //final object to insert to db
 const sessionsInsertData: SessionsInsert = {
 	//required
-	user_username: "",
 	user_id: 0,
 	//insert at start
 	start_time: "",
@@ -765,17 +763,14 @@ const sessionsInsertData: SessionsInsert = {
 	logs: [],
 	xp_gains: 0,
 	dataset: "",
-	chart_data: {},
 	numbers: false,
 	punctuation: false,
 	restart_count: 0,
 };
-
-const characterPerformance: CharacterPerformanceInsert[] = [];
-const wordPerformance: WordPerformanceInsert[] = [];
-const intervalPerformance: IntervalLogsInsert[] = [];
-const keystrokeLogs: KeystrokeLogsInsert[] = [];
-const chartData: ChartData = { wpm: [], error: [], raw: [], time: [] };
+let characterLogs: CharacterLogsInsert[] = [];
+let wordLogs: WordLogsInsert[] = [];
+let intervalLogs: IntervalLogsInsert[] = [];
+let chartData: ChartData = { wpm: [], error: [], raw: [], time: [] };
 
 // variable for logging wpm and row in interval
 let intervalCount = 1;
@@ -790,13 +785,18 @@ let totalWordsCount = 0;
 let totalErrorsCount = 0;
 let totalCorrectsCount = 0;
 const totalExtrasCount = 0;
+let sessionId: number;
 
 //
 const currentActive = ref();
+
+// main data to store the words state
 const allData: globalThis.Ref<WordMetadata[]> = ref([]);
+// storing state for managing ui
 const currentWordNum = ref(0);
 const currentCharNum = ref(0);
-const currentPendingWordIndex = ref(0);
+const correctCharIndex = ref(0);
+// stores the fetched data
 const words = ref();
 
 //
@@ -818,8 +818,8 @@ const currentSelectionData = computed(() => {
 });
 
 //manage carot
-const CAROTLEFT = ref(0);
-const CAROTTOP = ref(0);
+const CARETLEFT = ref(0);
+const CARETTOP = ref(0);
 
 //temporary placeholder for db
 const pastSessions: globalThis.Ref<SessionsInsert[]> = ref([]);
@@ -831,7 +831,7 @@ let timeoutId: NodeJS.Timeout;
 const currentMetadata: globalThis.ComputedRef<InputMetadata> = computed(() => {
 	const currentWordLocation = currentWordNum.value;
 	const currentCharLocation = currentCharNum.value;
-	const currentCorrectCharLocation = currentPendingWordIndex.value;
+	const currentCorrectCharLocation = correctCharIndex.value;
 	const currentWordMetadata = allData.value[
 		currentWordLocation
 	] as WordMetadata;
@@ -844,7 +844,7 @@ const currentMetadata: globalThis.ComputedRef<InputMetadata> = computed(() => {
 	const currentWord = allData.value[currentWordLocation].word;
 	const currentCorrectChar =
 		allData.value[currentWordNum.value]?.characters[
-			currentPendingWordIndex.value
+			correctCharIndex.value
 		]?.character;
 	const currentWordType = allData.value[currentWordLocation].type;
 
@@ -876,16 +876,42 @@ const currentCharacterStatus: WritableComputedRef<CharLogStatus> = computed({
 });
 
 // writable computed ref is used for write only, get is gotten from currentmetadata.
-const currentCharacterTiming: WritableComputedRef<number> = computed({
-	get: (): number => {
+const currentCharacterEndTime: WritableComputedRef<string> = computed({
+	get: (): string => {
 		return allData.value[currentWordNum.value]?.characters[
 			currentCharNum.value
-		].timing;
+		].end_time;
+	},
+	set: (newValue: string): void => {
+		allData.value[currentWordNum.value].characters[
+			currentCharNum.value
+		].end_time = newValue;
+	},
+});
+const currentCharacterStartTime: WritableComputedRef<string> = computed({
+	get: (): string => {
+		return allData.value[currentWordNum.value]?.characters[
+			currentCharNum.value
+		].start_time;
+	},
+	set: (newValue: string): void => {
+		allData.value[currentWordNum.value].characters[
+			currentCharNum.value
+		].start_time = newValue;
+	},
+});
+
+// writable computed ref is used for write only, get is gotten from currentmetadata.
+const currentCharacterDuration: WritableComputedRef<number> = computed({
+	get: (): number => {
+		return allData.value[currentWordNum.value].characters[
+			currentCharNum.value
+		].duration;
 	},
 	set: (newValue: number): void => {
 		allData.value[currentWordNum.value].characters[
 			currentCharNum.value
-		].timing = newValue;
+		].duration = newValue;
 	},
 });
 
@@ -894,37 +920,40 @@ async function fetchWords() {
 	loading.value = true;
 	resetEverything();
 	if (words.value && words.value.next_data) {
-		fetchWordsCache();
-		fillData();
+		getWordsCache();
 	} else {
-		words.value = await fetchWordsAndReturn();
-		fillData();
+		words.value = await getWords();
 	}
+	fillData();
 	loading.value = false;
 }
 
-async function fetchWordsCache() {
+async function getWordsCache() {
 	words.value = words.value.next_data;
-	words.value.next_data = await fetchWordsAndReturn();
+	words.value.next_data = await getWords();
 }
 
 async function fetchFreshWords() {
 	loading.value = true;
 	resetEverything();
-	words.value = await fetchWordsAndReturn();
+	words.value = await getWords();
 	fillData();
 	loading.value = false;
 }
 
-async function fetchWordsAndReturn() {
-	const { data } = await useFetch(
-		`api/languages?char=${selectedKey.value.charAt(0)}&difficulty=${
-			selectedDifficulty.value
-		}&num=${selectedWords.value}&lang=${selectedDataset.value}`
-	);
+async function getWords() {
+	const { data } = await useFetch(`api/languages`, {
+		query: {
+			char: selectedKey.value.charAt(0),
+			difficulty: selectedDifficulty.value,
+			num: selectedWords.value,
+			lang: selectedDataset.value,
+		},
+	});
 	return data.value;
 }
 
+//reset all states
 function resetEverything() {
 	resetIndexes();
 	resetAllSessionData();
@@ -944,9 +973,6 @@ function fillData() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-	e.preventDefault();
-	e.stopImmediatePropagation();
-
 	if (loading.value || !allData.value.length) {
 		return;
 	}
@@ -969,14 +995,13 @@ function handleInput(key: string) {
 	if (isStartSession()) {
 		handleStartSession();
 	}
-	finalKeydown = Date.now();
 	incrementTotalCharactersCount();
-	pushCharacterPerformance(key);
 	if (key === currentCorrectChar) {
 		handleCorrectInput();
 	} else {
 		handleIncorrectInput(key);
 	}
+	finalKeydown = Date.now();
 }
 
 function incrementTotalCharactersCount() {
@@ -985,108 +1010,94 @@ function incrementTotalCharactersCount() {
 	}
 }
 
-function pushCharacterPerformance(key: string) {
-	const currentCharacterObject = characterPerformance.find(
-		(i) => i.character === key
-	);
-	const currentCorrectChar = currentMetadata.value.currentCorrectChar;
-	const character = key;
-	const corrects = getCorrects(currentCharacterObject, key);
-	const count = getCount(currentCharacterObject);
-	const errors = getError(currentCharacterObject);
-	const wpm = getWpm();
-	let session_id: number; // fill at the end
-
-	upsertCharacterPerformance();
-
-	function getWpm() {
-		return 0;
-	}
-	function upsertCharacterPerformance() {
-		const index = characterPerformance.findIndex(
-			(i) => i.character === key
-		);
-
-		const updatedCharacterObject = {
-			character,
-			count,
-			errors,
-			corrects,
-			wpm,
-			session_id,
-		};
-
-		if (index !== -1) {
-			Object.assign(
-				characterPerformance[index],
-				updatedCharacterObject
-			);
-		} else {
-			characterPerformance.push(updatedCharacterObject);
-		}
-	}
-}
-
-function getCorrects(
-	characterObject: CharacterPerformanceInsert | undefined,
-	key: string
-) {
-	const currentCorrectChar = currentMetadata.value.currentCorrectChar;
-	const corrects = characterObject ? characterObject.corrects : 0;
-	return key === currentCorrectChar ? corrects + 1 : corrects;
-}
-
-function getCount(characterObject?: CharacterPerformanceInsert) {
-	return characterObject ? characterObject.count + 1 : 1;
-}
-function getError(characterObject?: CharacterPerformanceInsert) {
-	const error = characterObject ? characterObject.errors | 0 : 0;
-	return currentIncorrect ? error : error + 1;
-}
-
 function handleCorrectInput() {
 	const time = Date.now();
 
-	incrementIntervalCharacterCount();
 	deleteExtras();
-	setTiming(time);
+	const duration = getCharDuration(time);
+	const status = getStatus();
+	incrementIntervalCharacterCount();
 	incrementTotalCorrectsCount();
-	setStatus();
+	updateCurrentCharacterObject();
+	if (currentMetadata.value.currentWordType != "separator") {
+		pushCharacterLogs();
+	}
 	if (isEndSession()) {
 		handleEndSession(time);
-		fetchWords();
 		return;
 	} else if (isEndWord()) {
 		handleEndWord();
 	} else {
 		incrementChar();
 	}
-	updatePendingWordIndex();
+	resetCorrectCharIndex();
+	resetCurrentIncorrect();
+
+	function updateCurrentCharacterObject() {
+		currentCharacterEndTime.value = new Date(time)
+			.toISOString()
+			.toLocaleString();
+		currentCharacterStartTime.value = new Date(finalKeydown)
+			.toISOString()
+			.toLocaleString();
+		currentCharacterStatus.value = status;
+	}
+	function pushCharacterLogs() {
+		//to push
+		const metadata = currentMetadata.value;
+		const index = metadata.currentCharLocation;
+		const character = metadata.currentCorrectChar;
+		const wordIndex = metadata.currentWordLocation;
+		const startTime = new Date(finalKeydown)
+			.toISOString()
+			.toLocaleString();
+		const endTime = new Date(time).toISOString().toLocaleString();
+		const wpm = getCharWpm();
+		let session_id: number; // fill at the end
+
+		//checks
+		if (!character){
+			return
+		}
+
+		// insert function
+		insertCharacterLogs();
+
+		function getCharWpm() {
+			return parseFloat((60 / duration / 5).toFixed(2));
+		}
+		function insertCharacterLogs() {
+			const updatedCharObject = {
+				index,
+				character,
+				word_index: wordIndex,
+				start_time: startTime,
+				end_time: endTime,
+				duration: duration,
+				status,
+				wpm,
+				session_id,
+			};
+			characterLogs.push(updatedCharObject);
+		}
+	}
+	function getCharDuration(time: number) {
+		return isStartSession() ? 0 : (time - finalKeydown) / 1000;
+	}
+}
+function resetCurrentIncorrect() {
+	currentIncorrect = false;
 }
 
 function incrementIntervalCharacterCount(): void {
 	intervalCharacterCount++;
 }
 
-function isNoneExtra() {
-	const metadata = currentMetadata.value;
-	const currentCharLocation = metadata.currentCharLocation;
-	const currentCorrectCharLocation = metadata.currentCorrectCharLocation;
-	return currentCharLocation === currentCorrectCharLocation;
-}
-
-function setTiming(time: number) {
-	currentCharacterTiming.value = isStartSession()
-		? 0
-		: (time - finalKeydown) / 1000;
-}
-
-function setStatus() {
+function getStatus(): CharLogStatus {
 	if (currentIncorrect) {
-		currentCharacterStatus.value = "error";
-		currentIncorrect = false;
+		return "error";
 	} else {
-		currentCharacterStatus.value = "correct";
+		return "correct";
 	}
 }
 
@@ -1113,16 +1124,16 @@ function incrementChar() {
 	currentCharNum.value++;
 }
 
-function updatePendingWordIndex() {
-	currentPendingWordIndex.value = currentCharNum.value;
+function resetCorrectCharIndex() {
+	correctCharIndex.value = currentCharNum.value;
 }
 
 function handleIncorrectInput(key: string): void {
+	currentIncorrect = true;
 	incrementTotalErrorsCount();
 	incrementIntervalError();
-	currentIncorrect = true;
 	insertExtraChar(key);
-	currentPendingWordIndex.value++;
+	correctCharIndex.value++;
 }
 
 function incrementTotalErrorsCount(): void {
@@ -1138,17 +1149,17 @@ function incrementIntervalError(): void {
 // function to delete extra values
 function deleteExtras(): void {
 	const metadata = currentMetadata.value;
-	if (isNoneExtra()) {
-		return;
+	const totalExtras = getExtrasCount();
+
+	if (totalExtras > 0) {
+		allData.value[metadata.currentWordLocation]?.characters.splice(
+			metadata.currentCharLocation,
+			totalExtras
+		);
 	}
-	const totalExtras = countExtras();
-	allData.value[metadata.currentWordLocation]?.characters.splice(
-		metadata.currentCharLocation,
-		totalExtras
-	);
 }
 
-function countExtras(): number {
+function getExtrasCount(): number {
 	const metadata = currentMetadata.value;
 	return (
 		metadata.currentCorrectCharLocation -
@@ -1157,17 +1168,20 @@ function countExtras(): number {
 }
 
 function handleBackspace() {
+	if (isStartSession()) {
+		return;
+	}
 	if (
 		allData.value.length &&
 		allData.value[currentWordNum.value].characters[
-			currentPendingWordIndex.value - 1
+			correctCharIndex.value - 1
 		].status === "extra"
 	) {
 		allData.value[currentWordNum.value].characters.splice(
-			currentPendingWordIndex.value - 1,
+			correctCharIndex.value - 1,
 			1
 		);
-		currentPendingWordIndex.value--;
+		correctCharIndex.value--;
 	}
 }
 
@@ -1184,7 +1198,6 @@ function handleStartSession() {
 }
 
 function fillInitialData() {
-	const user_username = USERNAME.value;
 	const user_id = PROFILE.value?.id;
 	const start_time = new Date().toISOString().toLocaleString();
 	const total_characters = 1;
@@ -1193,7 +1206,6 @@ function fillInitialData() {
 	const dataset = selectedDataset.value;
 	const game_metadata = {};
 	const initialFilledData = {
-		user_username,
 		user_id,
 		start_time,
 		total_characters,
@@ -1205,15 +1217,32 @@ function fillInitialData() {
 	Object.assign(sessionsInsertData, initialFilledData);
 }
 
-function handleEndSession(time: number) {
+async function handleEndSession(time: number) {
 	fillFinalIntervalValues();
 	fillFinalData(time);
 	sessionRunning.value = false;
 	// [TEMPORARY] fill the array instead of pushing to db
+	pastSessions.value = [] // clear it first
 	pastSessions.value.push(JSON.parse(JSON.stringify(sessionsInsertData)));
-	//insertSessionToDatabase()
+	const insertedSession = await insertSessionToDatabase();
+	sessionId = insertedSession[0].id;
+	fillSessionIdToLogs();
+	insertLogsToDatabase();
 	setShowResults();
 	console.log(pastSessions.value);
+	fetchWords();
+}
+
+function fillSessionIdToLogs() {
+	addSessionIdToLogs(characterLogs);
+	addSessionIdToLogs(wordLogs);
+	addSessionIdToLogs(intervalLogs);
+}
+
+function addSessionIdToLogs(logs) {
+	logs.forEach((log) => {
+		log.session_id = sessionId;
+	});
 }
 
 function fillFinalIntervalValues() {
@@ -1235,6 +1264,13 @@ function fillFinalIntervalValues() {
 		durationRaw
 	);
 	insertChartDataLog(wpm, intervalError, durationSeconds, rawWpm);
+	pushIntervalLogs(
+		wpm,
+		intervalError,
+		durationSeconds,
+		rawWpm,
+		currentTime
+	);
 }
 
 function setShowResults() {
@@ -1248,10 +1284,86 @@ function handleEndWord() {
 	const metadata = currentMetadata.value;
 	if (metadata.currentWordMetadata.type === "word") {
 		insertWord(metadata.currentWord);
+		pushWordLogs();
 	}
 	incrementWord();
 	incrementWordCount();
 	resetCharNum();
+}
+
+function pushWordLogs() {
+	//internal
+	const wordLength = currentMetadata.value.currentWordLength;
+	//to push
+	const index = getWordIndex();
+	const word = currentMetadata.value.currentWord;
+	const type = getWordType();
+	const startTime = getWordStartTime();
+	const endTime = getWordEndTime();
+	const duration = getWordDuration();
+	const status = getWordStatus();
+	const wpm = getWordWpm();
+	let session_id: number; // fill at the end
+
+	insertWordLogs();
+
+	function getWordIndex() {
+		return currentMetadata.value.currentWordMetadata.index;
+	}
+	function getWordType() {
+		return currentMetadata.value.currentWordMetadata.type;
+	}
+	function getWordStartTime() {
+		return currentMetadata.value.currentWordMetadata.characters[0]
+			.start_time;
+	}
+	function getWordEndTime() {
+		return currentMetadata.value.currentWordMetadata.characters[
+			wordLength - 1
+		].end_time;
+	}
+	function getWordDuration(): number {
+		return (
+			(new Date(
+				currentMetadata.value.currentWordMetadata.characters[
+					wordLength - 1
+				].end_time
+			) -
+				new Date(
+					currentMetadata.value.currentWordMetadata.characters[0].start_time
+				)) /
+			1000
+		);
+	}
+	function getWordStatus(): WordLogStatus {
+		for (let i = 0; i < wordLength; i++) {
+			if (
+				currentMetadata.value.currentWordMetadata
+					.characters[i].status !== "correct"
+			)
+				return "error";
+		}
+		return "correct";
+	}
+	function getWordWpm(): number {
+		return parseFloat(
+			(wordLength / 5 / (duration / 60)).toFixed(2)
+		);
+	}
+	function insertWordLogs(): void {
+		const updatedWordObject = {
+			index,
+			word,
+			start_time: startTime,
+			end_time: endTime,
+			duration,
+			status,
+			type,
+			wpm,
+			session_id,
+		};
+		wordLogs.push(updatedWordObject);
+	}
 }
 
 function incrementWordCount(): void {
@@ -1277,15 +1389,14 @@ function insertExtraChar(key: string) {
 
 function addExtraCharToDisplay(key: string) {
 	allData.value[currentWordNum.value].characters.splice(
-		currentPendingWordIndex.value,
+		correctCharIndex.value,
 		0,
-		{ character: key, timing: 0, status: "extra" }
+		{ character: key, log_time: 0, status: "extra" }
 	);
 }
 
 function resetAllSessionData() {
 	const emptySession = {
-		user_username: "",
 		user_id: 0,
 		start_time: "",
 		difficulty: "",
@@ -1320,19 +1431,22 @@ function resetCounters() {
 	endTime = undefined;
 	currentIncorrect = false;
 	collectedWords = [];
+	characterLogs = []
+	wordLogs =[]
+	intervalLogs = []
 	totalWordsCount = 0;
 	totalCorrectsCount = 0;
 	totalErrorsCount = 0;
 	totalCharactersCount = 0;
 	intervalCharacterCount = 0;
 	characterCountPerFiveSeconds = [];
-	Object.assign(chartData, { wpm: [], error: [], raw: [], time: [] });
+	chartData = { wpm: [], error: [], raw: [], time: [] }
 }
 
 function resetIndexes() {
 	currentWordNum.value = 0;
 	currentCharNum.value = 0;
-	currentPendingWordIndex.value = 0;
+	correctCharIndex.value = 0;
 }
 
 //db insert
@@ -1377,10 +1491,6 @@ function getWpm(totalAchievedCharacters: number, elapsedTime: number) {
 	);
 }
 
-function getCpm(wpm: number) {
-	return wpm * 5;
-}
-
 function getAccuracy(corrects: number, totalCharacters: number) {
 	return parseFloat(((corrects / totalCharacters) * 100).toFixed(2));
 }
@@ -1409,14 +1519,66 @@ function getConsistency(chartData: ChartData) {
 async function insertSessionToDatabase() {
 	const { data, error } = await client
 		.from("sessions")
-		.insert(sessionsInsertData)
+		.insert({ ...sessionsInsertData })
 		.select();
 	if (error) {
 		console.log(error);
 		return error;
 	}
-	console.log(data);
 	return data;
+}
+
+async function insertLogsToDatabase() {
+	const tempCharacterLogs = characterLogs
+	const tempWordLogs = wordLogs
+	const tempIntervalLogs = intervalLogs
+	try {
+		const insertCharLogsPromise = client
+			.from("character_logs")
+			.insert(tempCharacterLogs);
+
+		const insertWordLogsPromise = client
+			.from("word_logs")
+			.insert(tempWordLogs);
+
+		const insertIntervalLogsPromise = client
+			.from("interval_logs")
+			.insert(tempIntervalLogs);
+
+		const [charLogsResult, wordLogsResult, intervalLogsResult] =
+			await Promise.all([
+				insertCharLogsPromise,
+				insertWordLogsPromise,
+				insertIntervalLogsPromise,
+			]);
+
+		// Check for errors
+		if (charLogsResult.error) {
+			console.error(
+				"Error inserting charLogs:",
+				charLogsResult.error
+			);
+		}
+		if (wordLogsResult.error) {
+			console.error(
+				"Error inserting wordLogs:",
+				wordLogsResult.error
+			);
+		}
+		if (intervalLogsResult.error) {
+			console.error(
+				"Error inserting wordLogs:",
+				intervalLogsResult.error
+			);
+		}
+
+		// Logs inserted successfully
+		console.log("CharLogs inserted:", charLogsResult.data);
+		console.log("WordLogs inserted:", wordLogsResult.data);
+		console.log("IntervalLogs inserted:", intervalLogsResult.data);
+	} catch (error) {
+		console.error("Error inserting logs:", error);
+	}
 }
 
 // ui functions
@@ -1475,6 +1637,7 @@ function updateWPM() {
 		startTime = Date.now();
 	}
 	const elapsedTime = Date.now() - startTime;
+	const logTime = Date.now();
 	const wpm = getWpm(totalCorrectsCount + totalErrorsCount, elapsedTime);
 	let rawWpm: number;
 	if (intervalCount < 5) {
@@ -1484,6 +1647,7 @@ function updateWPM() {
 	}
 	setIntervalValues(wpm, intervalCount, rawWpm);
 	insertChartDataLog(wpm, intervalError, intervalCount, rawWpm);
+	pushIntervalLogs(wpm, intervalError, intervalCount, rawWpm, logTime);
 	incrementIntervalCount();
 	resetIntervalCharacterCount();
 	resetIntervalError();
@@ -1533,6 +1697,37 @@ function insertChartDataLog(
 	chartData.raw.push(rawWpm);
 }
 
+function pushIntervalLogs(
+	wpm: number,
+	errors: number,
+	timeFromStart: number,
+	raw: number,
+	logTime: number
+) {
+	const characterIndex = currentMetadata.value.currentCorrectCharLocation;
+	const wordIndex = currentMetadata.value.currentWordLocation;
+	let misses = 0;
+	let sessionId: number;
+
+	insertIntervalLogs();
+	function insertIntervalLogs() {
+		const updatedIntervalLogObject = {
+			character_index: characterIndex,
+			word_index: wordIndex,
+			time_from_start: timeFromStart,
+			wpm,
+			session_id: sessionId,
+			misses,
+			errors,
+			raw,
+			log_time: new Date(logTime)
+				.toISOString()
+				.toLocaleString(),
+		};
+		intervalLogs.push(updatedIntervalLogObject);
+	}
+}
+
 function incrementIntervalCount(): void {
 	intervalCount++;
 }
@@ -1567,8 +1762,8 @@ onMounted(() => {
 		if (cursorKey?.getBoundingClientRect()) {
 			const rect = cursorKey?.getBoundingClientRect();
 
-			CAROTLEFT.value = rect.left;
-			CAROTTOP.value = rect.top;
+			CARETLEFT.value = rect.left;
+			CARETTOP.value = rect.top;
 			currentActive.value = document.activeElement;
 		}
 		requestAnimationFrame(setCaretPosition);

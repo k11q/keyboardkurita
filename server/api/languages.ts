@@ -1,8 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import type {
-	CharLogStatus,
-	WordType,
 	CharacterMetadata,
 	WordMetadata,
 } from '@/types';
@@ -52,7 +50,6 @@ const insertSpacerObject = (
 			characters: [
 				{
 					character: ' ',
-					timing: 0,
 					status: 'pending',
 					char_index: 0,
 					word_index: i,
@@ -102,7 +99,6 @@ const generateWordsData = async (
 			.map((character, charIndex) => {
 				return {
 					character,
-					timing: 0,
 					status: 'pending',
 					char_index: charIndex,
 					word_index: index,
@@ -131,7 +127,7 @@ const generateWordsData = async (
 };
 
 export default defineEventHandler(async (e) => {
-	const { num, lang, char } = getQuery(e);
+	const { num, lang, char, difficulty } = getQuery(e);
 
 	const numWords = parseInt(num as string) || 10;
 	const language = (lang as string) || 'english';

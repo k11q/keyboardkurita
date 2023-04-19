@@ -9,68 +9,45 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
-      character_performance: {
+      character_logs: {
         Row: {
           character: string
-          corrects: number
-          count: number
           created_at: string | null
-          errors: number
+          duration: number
+          end_time: string
           id: number
+          index: number
           session_id: number
+          start_time: string
+          status: string
+          word_index: number
           wpm: number
         }
         Insert: {
           character: string
-          corrects: number
-          count: number
           created_at?: string | null
-          errors: number
+          duration: number
+          end_time: string
           id?: number
+          index: number
           session_id: number
+          start_time: string
+          status: string
+          word_index: number
           wpm: number
         }
         Update: {
           character?: string
-          corrects?: number
-          count?: number
           created_at?: string | null
-          errors?: number
+          duration?: number
+          end_time?: string
           id?: number
+          index?: number
           session_id?: number
+          start_time?: string
+          status?: string
+          word_index?: number
           wpm?: number
-        }
-      }
-      characters: {
-        Row: {
-          char_index: number | null
-          character: string | null
-          created_at: string | null
-          id: number
-          status: string | null
-          timing: string | null
-          word_id: number | null
-          word_index: number | null
-        }
-        Insert: {
-          char_index?: number | null
-          character?: string | null
-          created_at?: string | null
-          id?: number
-          status?: string | null
-          timing?: string | null
-          word_id?: number | null
-          word_index?: number | null
-        }
-        Update: {
-          char_index?: number | null
-          character?: string | null
-          created_at?: string | null
-          id?: number
-          status?: string | null
-          timing?: string | null
-          word_id?: number | null
-          word_index?: number | null
         }
       }
       datasets: {
@@ -142,10 +119,11 @@ export interface Database {
           created_at: string | null
           errors: number
           id: number
+          log_time: string
+          misses: number | null
           raw: number
-          second: number
           session_id: number
-          time: string
+          time_from_start: number
           word_index: number
           wpm: number
         }
@@ -154,10 +132,11 @@ export interface Database {
           created_at?: string | null
           errors: number
           id?: number
+          log_time: string
+          misses?: number | null
           raw: number
-          second: number
           session_id: number
-          time: string
+          time_from_start: number
           word_index: number
           wpm: number
         }
@@ -166,47 +145,13 @@ export interface Database {
           created_at?: string | null
           errors?: number
           id?: number
+          log_time?: string
+          misses?: number | null
           raw?: number
-          second?: number
           session_id?: number
-          time?: string
+          time_from_start?: number
           word_index?: number
           wpm?: number
-        }
-      }
-      keystroke_logs: {
-        Row: {
-          character_index: number
-          correct_character_index: number
-          created_at: string | null
-          id: number
-          key: string
-          session_id: number
-          status: string
-          time: string
-          word_index: number
-        }
-        Insert: {
-          character_index: number
-          correct_character_index: number
-          created_at?: string | null
-          id?: number
-          key: string
-          session_id: number
-          status?: string
-          time: string
-          word_index: number
-        }
-        Update: {
-          character_index?: number
-          correct_character_index?: number
-          created_at?: string | null
-          id?: number
-          key?: string
-          session_id?: number
-          status?: string
-          time?: string
-          word_index?: number
         }
       }
       multiplayer_sessions: {
@@ -366,7 +311,6 @@ export interface Database {
           total_missed: number
           total_words: number | null
           user_id: number
-          user_username: string | null
           words: string[]
           wpm: number
           xp_gains: number
@@ -396,7 +340,6 @@ export interface Database {
           total_missed?: number
           total_words?: number | null
           user_id: number
-          user_username?: string | null
           words: string[]
           wpm: number
           xp_gains?: number
@@ -426,7 +369,6 @@ export interface Database {
           total_missed?: number
           total_words?: number | null
           user_id?: number
-          user_username?: string | null
           words?: string[]
           wpm?: number
           xp_gains?: number
@@ -455,53 +397,45 @@ export interface Database {
           type?: string
         }
       }
-      word_performance: {
+      word_logs: {
         Row: {
           created_at: string | null
+          duration: number
+          end_time: string
           id: number
+          index: number
           session_id: number
+          start_time: string
           status: string
+          type: string
           word: string
           wpm: number
         }
         Insert: {
           created_at?: string | null
+          duration: number
+          end_time: string
           id?: number
+          index: number
           session_id: number
+          start_time: string
           status: string
+          type: string
           word: string
           wpm: number
         }
         Update: {
           created_at?: string | null
+          duration?: number
+          end_time?: string
           id?: number
+          index?: number
           session_id?: number
+          start_time?: string
           status?: string
+          type?: string
           word?: string
           wpm?: number
-        }
-      }
-      words: {
-        Row: {
-          count: number
-          created_at: string | null
-          id: number
-          length: number
-          word: string
-        }
-        Insert: {
-          count: number
-          created_at?: string | null
-          id?: number
-          length: number
-          word: string
-        }
-        Update: {
-          count?: number
-          created_at?: string | null
-          id?: number
-          length?: number
-          word?: string
         }
       }
     }

@@ -4,6 +4,7 @@ type ConfigDurationOptions = 10 | 20 | 30 | 60 | undefined;
 type ConfigTotalWordsOptions = 10 | 25 | 50 | undefined;
 type ConfigSelectionOptions = 'english_50k' | 'supabase-docs' | 'supabase code';
 type CharLogStatus = 'error' | 'correct' | 'pending' | 'extra';
+type WordLogStatus = 'error' | 'correct' | 'incomplete' | 'skipped'
 type KeystrokeLog = {
 	character: string;
 	time: number;
@@ -27,7 +28,6 @@ type CharacterPerformance = {
 	misses: number;
 	corrects: number;
 };
-
 type InputMetadata = {
 	currentWordLocation: number;
 	currentCharLocation: number;
@@ -43,10 +43,12 @@ type InputMetadata = {
 //api / server
 type CharacterMetadata = {
 	character: string;
-	timing: number;
+	end_time?: string;
+	start_time?: string;
 	status: CharLogStatus;
-	char_index?: number;
-	word_index?: number;
+	char_index: number;
+	word_index: number;
+	duration?: number;
 };
 type WordMetadata = {
 	word: string;
@@ -62,6 +64,7 @@ export {
 	ConfigTotalWordsOptions,
 	ConfigSelectionOptions,
 	CharLogStatus,
+	WordLogStatus,
 	CharacterMetadata,
 	WordMetadata,
 	WordType,
