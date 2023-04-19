@@ -143,8 +143,8 @@
 								}`"
 								>{{
 									char.character ===
-									" "
-										? " "
+									' '
+										? ' '
 										: char.character
 								}}</span
 							></span
@@ -381,8 +381,8 @@
 										}`"
 										>{{
 											char.character ===
-											" "
-												? " "
+											' '
+												? ' '
 												: char.character
 										}}</span
 									></span
@@ -501,22 +501,22 @@
 </template>
 
 <script setup lang="ts">
-import { WritableComputedRef } from "vue";
+import { WritableComputedRef } from 'vue';
 import {
 	useHomeStore,
 	KEYOPTIONS,
 	DIFFICULTY,
 	MODES,
 	DATASETS,
-} from "@/stores/home";
+} from '@/stores/home';
 import type {
 	SessionsInsert,
 	CharacterLogsInsert,
 	WordLogsInsert,
 	IntervalLogsInsert,
-} from "../utils/db/sessions";
-import { format } from "date-fns";
-import { storeToRefs } from "pinia";
+} from '../utils/db/sessions';
+import { format } from 'date-fns';
+import { storeToRefs } from 'pinia';
 import type {
 	DifficultyOptions,
 	ModesOptions,
@@ -531,8 +531,8 @@ import type {
 	InputMetadata,
 	KeystrokeLog,
 	WordLogStatus,
-} from "@/types";
-import { calculateRawWPM, calculateWPM, focusInput } from "@/utils/input";
+} from '@/types';
+import { calculateRawWPM, calculateWPM, focusInput } from '@/utils/input';
 
 //db & auth
 const user = useSupabaseUser();
@@ -541,9 +541,9 @@ const client = useSupabaseClient();
 const store = useHomeStore();
 
 // readonly
-const PROFILE = useState('profile',()=>'');
+const PROFILE = useState('profile', () => '');
 const USERNAME: globalThis.Ref<string> = computed(() => {
-	return PROFILE.value ? PROFILE.value.username : "username";
+	return PROFILE.value ? PROFILE.value.username : 'username';
 });
 
 // game settings
@@ -574,12 +574,12 @@ const sessionsInsertData: SessionsInsert = {
 	//required
 	user_id: 0,
 	//insert at start
-	start_time: "",
-	difficulty: "",
-	mode: "",
+	start_time: '',
+	difficulty: '',
+	mode: '',
 	game_metadata: {},
 	//insert at end
-	end_time: "",
+	end_time: '',
 	duration: 0, //selected/calculated
 	wpm: 0,
 	accuracy: 0,
@@ -594,7 +594,7 @@ const sessionsInsertData: SessionsInsert = {
 	words: [], //selected/calculated
 	logs: [],
 	xp_gains: 0,
-	dataset: "",
+	dataset: '',
 	numbers: false,
 	punctuation: false,
 	restart_count: 0,
@@ -638,7 +638,7 @@ let currentIncorrect = false;
 let finalKeydown = Date.now();
 
 // ui states
-const isOpen = useState("isOpen", () => false);
+const isOpen = useState('isOpen', () => false);
 const loading = ref(false);
 const currentSelection: globalThis.Ref<WordMetadata[]> = ref([]);
 const currentSelectionData = computed(() => {
@@ -669,6 +669,10 @@ const currentMetadata: globalThis.ComputedRef<InputMetadata> = computed(() => {
 	] as WordMetadata;
 	const currentWordLength = allData.value[currentWordLocation]?.characters
 		.length as number;
+		const currentChar =
+		allData.value[currentWordLocation]?.characters[
+			currentCharLocation
+		]?.character;
 	const currentCharMetadata =
 		allData.value[currentWordLocation]?.characters[
 			currentCharLocation
@@ -690,6 +694,7 @@ const currentMetadata: globalThis.ComputedRef<InputMetadata> = computed(() => {
 		currentWord,
 		currentCorrectChar,
 		currentWordType,
+		currentChar
 	};
 });
 
@@ -795,9 +800,9 @@ function resetEverything() {
 function fillData() {
 	if (!words.value || !words.value.all_data) {
 		console.log(
-			"Error: fillData():\
+			'Error: fillData():\
 			No all_data found from returned words.value\
-			or words.value doesnt exist."
+			or words.value doesnt exist.'
 		);
 		return;
 	}
@@ -810,12 +815,12 @@ function handleKeydown(e: KeyboardEvent) {
 	}
 	const key = e.key;
 	// tab used to start new game
-	if (key === "Tab") {
+	if (key === 'Tab') {
 		fetchWords();
 	} else if (isBackspace(e)) {
 		handleBackspace();
 	} else if (isRestrictedKeys(e)) {
-		console.log("Keydown unhandled! Restricted key: ", key);
+		console.log('Keydown unhandled! Restricted key: ', key);
 	} else {
 		handleInput(key);
 	}
@@ -837,7 +842,7 @@ function handleInput(key: string) {
 }
 
 function incrementTotalCharactersCount() {
-	if (currentMetadata.value.currentWordType !== "separator") {
+	if (currentMetadata.value.currentWordType !== 'separator') {
 		totalCharactersCount++;
 	}
 }
@@ -851,7 +856,7 @@ function handleCorrectInput() {
 	incrementIntervalCharacterCount();
 	incrementTotalCorrectsCount();
 	updateCurrentCharacterObject();
-	if (currentMetadata.value.currentWordType != "separator") {
+	if (currentMetadata.value.currentWordType != 'separator') {
 		pushCharacterLogs();
 	}
 	if (isEndSession()) {
@@ -878,8 +883,8 @@ function handleCorrectInput() {
 		//to push
 		const metadata = currentMetadata.value;
 		const index = metadata.currentCharLocation;
-		const character = metadata.currentCorrectChar;
-		const wordIndex = metadata.currentWordLocation;
+		const character = metadata.currentChar;
+		const wordIndex = metadata.currentWordMetadata.index;
 		const startTime = new Date(finalKeydown)
 			.toISOString()
 			.toLocaleString();
@@ -888,8 +893,8 @@ function handleCorrectInput() {
 		let session_id: number; // fill at the end
 
 		//checks
-		if (!character){
-			return
+		if (!character) {
+			return;
 		}
 
 		// insert function
@@ -914,7 +919,7 @@ function handleCorrectInput() {
 		}
 	}
 	function getCharDuration(time: number) {
-		return isStartSession() ? 0 : (time - finalKeydown) / 1000;
+		return (time - finalKeydown) / 1000;
 	}
 }
 function resetCurrentIncorrect() {
@@ -927,9 +932,9 @@ function incrementIntervalCharacterCount(): void {
 
 function getStatus(): CharLogStatus {
 	if (currentIncorrect) {
-		return "error";
+		return 'error';
 	} else {
-		return "correct";
+		return 'correct';
 	}
 }
 
@@ -938,7 +943,7 @@ function incrementTotalCorrectsCount() {
 	if (
 		!currentIncorrect &&
 		currentWordMetadata &&
-		currentWordMetadata.type !== "separator"
+		currentWordMetadata.type !== 'separator'
 	) {
 		totalCorrectsCount++;
 	}
@@ -1007,7 +1012,7 @@ function handleBackspace() {
 		allData.value.length &&
 		allData.value[currentWordNum.value].characters[
 			correctCharIndex.value - 1
-		].status === "extra"
+		].status === 'extra'
 	) {
 		allData.value[currentWordNum.value].characters.splice(
 			correctCharIndex.value - 1,
@@ -1018,6 +1023,7 @@ function handleBackspace() {
 }
 
 function handleStartSession() {
+	finalKeydown = Date.now();
 	sessionRunning.value = true;
 	resetInterval();
 	resetLiveInterval();
@@ -1031,7 +1037,7 @@ function handleStartSession() {
 
 function fillInitialData() {
 	const user_id = PROFILE.value?.id;
-	const start_time = new Date().toISOString().toLocaleString();
+	const start_time = new Date(Date.now()).toISOString().toLocaleString();
 	const total_characters = 1;
 	const mode = selectedMode.value;
 	const difficulty = selectedDifficulty.value;
@@ -1050,17 +1056,22 @@ function fillInitialData() {
 }
 
 async function handleEndSession(time: number) {
+	const metadata = currentMetadata.value;
+	if (metadata.currentWordMetadata.type === 'word') {
+		insertWord(metadata.currentWord);
+		pushWordLogs();
+	}
 	fillFinalIntervalValues();
 	fillFinalData(time);
 	sessionRunning.value = false;
 	// [TEMPORARY] fill the array instead of pushing to db
-	pastSessions.value = [] // clear it first
+	pastSessions.value = []; // clear it first
 	pastSessions.value.push(JSON.parse(JSON.stringify(sessionsInsertData)));
-	if(PROFILE.value && USERNAME.value){
-	const insertedSession = await insertSessionToDatabase();
-	sessionId = insertedSession[0].id;
-	fillSessionIdToLogs();
-	insertLogsToDatabase();
+	if (PROFILE.value && USERNAME.value) {
+		const insertedSession = await insertSessionToDatabase();
+		sessionId = insertedSession[0].id;
+		fillSessionIdToLogs();
+		insertLogsToDatabase();
 	}
 	setShowResults();
 	console.log(pastSessions.value);
@@ -1110,13 +1121,13 @@ function fillFinalIntervalValues() {
 function setShowResults() {
 	showResults.value = true;
 	setTimeout(() => {
-		document.getElementById("nextTest")?.focus();
+		document.getElementById('nextTest')?.focus();
 	}, 0);
 }
 
 function handleEndWord() {
 	const metadata = currentMetadata.value;
-	if (metadata.currentWordMetadata.type === "word") {
+	if (metadata.currentWordMetadata.type === 'word') {
 		insertWord(metadata.currentWord);
 		pushWordLogs();
 	}
@@ -1173,11 +1184,11 @@ function pushWordLogs() {
 		for (let i = 0; i < wordLength; i++) {
 			if (
 				currentMetadata.value.currentWordMetadata
-					.characters[i].status !== "correct"
+					.characters[i].status !== 'correct'
 			)
-				return "error";
+				return 'error';
 		}
-		return "correct";
+		return 'correct';
 	}
 	function getWordWpm(): number {
 		return parseFloat(
@@ -1225,18 +1236,18 @@ function addExtraCharToDisplay(key: string) {
 	allData.value[currentWordNum.value].characters.splice(
 		correctCharIndex.value,
 		0,
-		{ character: key, log_time: 0, status: "extra" }
+		{ character: key, log_time: 0, status: 'extra' }
 	);
 }
 
 function resetAllSessionData() {
 	const emptySession = {
 		user_id: 0,
-		start_time: "",
-		difficulty: "",
-		mode: "",
+		start_time: '',
+		difficulty: '',
+		mode: '',
 		game_metadata: {},
-		end_time: "",
+		end_time: '',
 		duration: 0,
 		wpm: 0,
 		accuracy: 0,
@@ -1251,7 +1262,7 @@ function resetAllSessionData() {
 		words: [],
 		logs: [],
 		xp_gains: 0,
-		dataset: "",
+		dataset: '',
 		chart_data: {},
 		numbers: false,
 		punctuation: false,
@@ -1265,16 +1276,16 @@ function resetCounters() {
 	endTime = undefined;
 	currentIncorrect = false;
 	collectedWords = [];
-	characterLogs = []
-	wordLogs =[]
-	intervalLogs = []
+	characterLogs = [];
+	wordLogs = [];
+	intervalLogs = [];
 	totalWordsCount = 0;
 	totalCorrectsCount = 0;
 	totalErrorsCount = 0;
 	totalCharactersCount = 0;
 	intervalCharacterCount = 0;
 	characterCountPerFiveSeconds = [];
-	chartData = { wpm: [], error: [], raw: [], time: [] }
+	chartData = { wpm: [], error: [], raw: [], time: [] };
 }
 
 function resetIndexes() {
@@ -1285,7 +1296,6 @@ function resetIndexes() {
 
 //db insert
 function fillFinalData(time: number) {
-	const extras = sessionsInsertData.total_extras;
 	sessionsInsertData.total_characters = getTotalCharacters();
 	const elapsedTime = time - startTime!;
 	sessionsInsertData.total_errors = totalErrorsCount;
@@ -1352,31 +1362,31 @@ function getConsistency(chartData: ChartData) {
 
 async function insertSessionToDatabase() {
 	const { data, error } = await client
-		.from("sessions")
+		.from('sessions')
 		.insert({ ...sessionsInsertData })
 		.select();
 	if (error) {
-		console.log(error);
+		console.error(error);
 		return error;
 	}
 	return data;
 }
 
 async function insertLogsToDatabase() {
-	const tempCharacterLogs = characterLogs
-	const tempWordLogs = wordLogs
-	const tempIntervalLogs = intervalLogs
+	const tempCharacterLogs = characterLogs;
+	const tempWordLogs = wordLogs;
+	const tempIntervalLogs = intervalLogs;
 	try {
 		const insertCharLogsPromise = client
-			.from("character_logs")
+			.from('character_logs')
 			.insert(tempCharacterLogs);
 
 		const insertWordLogsPromise = client
-			.from("word_logs")
+			.from('word_logs')
 			.insert(tempWordLogs);
 
 		const insertIntervalLogsPromise = client
-			.from("interval_logs")
+			.from('interval_logs')
 			.insert(tempIntervalLogs);
 
 		const [charLogsResult, wordLogsResult, intervalLogsResult] =
@@ -1389,29 +1399,29 @@ async function insertLogsToDatabase() {
 		// Check for errors
 		if (charLogsResult.error) {
 			console.error(
-				"Error inserting charLogs:",
+				'Error inserting charLogs:',
 				charLogsResult.error
 			);
 		}
 		if (wordLogsResult.error) {
 			console.error(
-				"Error inserting wordLogs:",
+				'Error inserting wordLogs:',
 				wordLogsResult.error
 			);
 		}
 		if (intervalLogsResult.error) {
 			console.error(
-				"Error inserting wordLogs:",
+				'Error inserting wordLogs:',
 				intervalLogsResult.error
 			);
 		}
 
 		// Logs inserted successfully
-		console.log("CharLogs inserted:", charLogsResult.data);
-		console.log("WordLogs inserted:", wordLogsResult.data);
-		console.log("IntervalLogs inserted:", intervalLogsResult.data);
+		console.log('CharLogs inserted:', charLogsResult.data);
+		console.log('WordLogs inserted:', wordLogsResult.data);
+		console.log('IntervalLogs inserted:', intervalLogsResult.data);
 	} catch (error) {
-		console.error("Error inserting logs:", error);
+		console.error('Error inserting logs:', error);
 	}
 }
 
@@ -1580,7 +1590,7 @@ function resetIntervalCount(): void {
 
 //watch if input out of focus
 watch(currentActive, () => {
-	if (currentActive.value.id !== "MasterInput") {
+	if (currentActive.value.id !== 'MasterInput') {
 		handleAfkOrOutOfFocus();
 	}
 });
@@ -1592,7 +1602,7 @@ onMounted(() => {
 	requestAnimationFrame(setCaretPosition);
 
 	function setCaretPosition() {
-		const cursorKey = document.querySelector(".cursor-key");
+		const cursorKey = document.querySelector('.cursor-key');
 		if (cursorKey?.getBoundingClientRect()) {
 			const rect = cursorKey?.getBoundingClientRect();
 
@@ -1613,14 +1623,14 @@ watchEffect(async () => {
 
 async function getProfile(userId: string) {
 	const { data, error } = await client
-		.from("profile")
+		.from('profile')
 		.select()
-		.eq("user_id", userId)
+		.eq('user_id', userId)
 		.single();
 	if (error) {
 		console.log(error);
 		console.log(
-			"no profile for users found. user needs to setup profile"
+			'no profile for users found. user needs to setup profile'
 		);
 	}
 	return data;
@@ -1628,33 +1638,33 @@ async function getProfile(userId: string) {
 
 // pure functions and checkers
 function getTotalWords(): number | undefined {
-	if (selectedMode.value === "word") {
+	if (selectedMode.value === 'word') {
 		return words.value?.num_words;
-	} else if (selectedMode.value === "time") {
-		console.log("time not implemented yet");
+	} else if (selectedMode.value === 'time') {
+		console.log('time not implemented yet');
 		return totalWordsCount;
 	}
-	console.log("total words not found");
+	console.log('total words not found');
 }
 
 function getTotalCharacters(): number | undefined {
-	if (selectedMode.value === "word") {
+	if (selectedMode.value === 'word') {
 		return words.value?.num_characters;
-	} else if (selectedMode.value === "time") {
-		console.log("time not implemented yet");
+	} else if (selectedMode.value === 'time') {
+		console.log('time not implemented yet');
 		return totalCharactersCount;
 	}
-	console.log("total characters not found");
+	console.log('total characters not found');
 }
 
 function getDuration() {
-	if (selectedMode.value === "word") {
+	if (selectedMode.value === 'word') {
 		return words.value?.num_words;
-	} else if (selectedMode.value === "time") {
-		console.log("time not implemented yet");
+	} else if (selectedMode.value === 'time') {
+		console.log('time not implemented yet');
 		return totalWordsCount;
 	}
-	console.log("total words not found");
+	console.log('total words not found');
 }
 
 function isRestrictedKeys(e: KeyboardEvent) {

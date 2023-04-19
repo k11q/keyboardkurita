@@ -5,9 +5,7 @@ export default defineNuxtConfig({
 		'@nuxtjs/supabase',
 		'nuxt-headlessui',
 		'nuxt-icon',
-		'@pinia/nuxt',
-		'@nuxtjs/eslint-module',
-	],
+		'@pinia/nuxt'],
 	build: {
 		transpile: ['vue-sonner'],
 	},

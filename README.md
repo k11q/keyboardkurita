@@ -11,4 +11,4 @@ Fun keyboard practising app!
 - Create an issue and discuss what you want to do, more straightforward contact me on discord
 
 ## Support
-- [khairulh@keyboardkurita.com](khairulh@keyboardkurita.com)
+- [khairul@keyboardkurita.com](khairul@keyboardkurita.com)
