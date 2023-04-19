@@ -50,174 +50,6 @@
 				<SettingsBar />
 			</div>
 		</div>
-		<!--(ON HOLD)TABLE-->
-		<!--
-		<div
-			v-show="
-				!(
-					currentActive &&
-					currentActive.id === 'MasterInput' &&
-					!sessionRunning
-				)
-			"
-			:class="`flex flex-col items-center gap-6 flex-grow left-0 right-0 px-10 transition-all z-10 ease-in-out duration-400 ${
-				currentActive &&
-				currentActive.id === 'MasterInput'
-					? ''
-					: 'top-1/2 -mt-52 h-screen'
-			} ${
-				sessionRunning &&
-				currentActive.id === 'MasterInput'
-					? 'translate-y-[28rem]'
-					: 'translate-y-0'
-			}`"
-		>
-			<template v-if="pastSessions.length">
-				<div
-					class="flex flex-col justify-center px-6"
-					v-show="
-						!currentActive ||
-						(currentActive &&
-							currentActive.id !==
-								'MasterInput')
-					"
-				>
-					<div
-						class="rounded-lg border border-neutral-700 w-full overflow-clip"
-					>
-						<div
-							class="justify-between px-6 py-4 grid grid-cols-10 text-sm text-neutral-400 bg-neutral-900"
-						>
-							<div class="col-span-2">
-								<div>
-									username
-								</div>
-							</div>
-							<div>
-								<div>wpm</div>
-							</div>
-							<div>
-								<div>raw</div>
-							</div>
-							<div>
-								<div>acc</div>
-							</div>
-							<div>
-								<div>
-									consistency
-								</div>
-							</div>
-							<div>
-								<div>chars</div>
-							</div>
-							<div>
-								<div>mode</div>
-							</div>
-							<div class="col-span-2">
-								<div>date</div>
-							</div>
-						</div>
-						<div
-							v-for="session in [
-								...pastSessions
-									.slice()
-									.reverse(),
-							].slice(0, 5)"
-							class="justify-between px-6 py-4 border-t bg-neutral-800/40 border-neutral-800 grid grid-cols-10"
-						>
-							<div class="col-span-2">
-								<div>
-									{{
-										session.user_username
-									}}
-								</div>
-							</div>
-							<div>
-								<div
-									class="text-[#6BD968]"
-								>
-									{{
-										session.wpm.toFixed(
-											1
-										)
-									}}
-								</div>
-							</div>
-							<div>
-								<div
-									class="tabular-nums"
-								>
-									{{
-										session.raw.toFixed(
-											1
-										)
-									}}
-								</div>
-							</div>
-							<div>
-								<div
-									class="tabular-nums"
-								>
-									{{
-										session.accuracy.toFixed(
-											1
-										)
-									}}
-								</div>
-							</div>
-							<div>
-								<div
-									class="tabular-nums"
-								>
-									{{
-										session.consistency.toFixed(
-											1
-										)
-									}}
-								</div>
-							</div>
-							<div>
-								<div
-									class="tabular-nums"
-								>
-									{{
-										session.total_corrects
-									}}/{{
-										session.total_errors
-									}}/{{
-										session.total_extras
-									}}/{{
-										session.total_missed
-									}}
-								</div>
-							</div>
-							<div>
-								<div>
-									{{
-										session.mode
-									}}
-								</div>
-							</div>
-							<div class="col-span-2">
-								<div
-									class="tabular-nums line-clamp-1"
-								>
-									{{
-										format(
-											new Date(
-												session.end_time
-											),
-											"Pp"
-										)
-									}}
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</template>
-		</div>
-		-->
 		<!--LIVE TIMER INTERVAL WPM RAW-->
 		<div
 			v-show="sessionRunning"
@@ -709,7 +541,7 @@ const client = useSupabaseClient();
 const store = useHomeStore();
 
 // readonly
-const PROFILE = ref();
+const PROFILE = useState('profile',()=>'');
 const USERNAME: globalThis.Ref<string> = computed(() => {
 	return PROFILE.value ? PROFILE.value.username : "username";
 });
@@ -1224,10 +1056,12 @@ async function handleEndSession(time: number) {
 	// [TEMPORARY] fill the array instead of pushing to db
 	pastSessions.value = [] // clear it first
 	pastSessions.value.push(JSON.parse(JSON.stringify(sessionsInsertData)));
+	if(PROFILE.value && USERNAME.value){
 	const insertedSession = await insertSessionToDatabase();
 	sessionId = insertedSession[0].id;
 	fillSessionIdToLogs();
 	insertLogsToDatabase();
+	}
 	setShowResults();
 	console.log(pastSessions.value);
 	fetchWords();

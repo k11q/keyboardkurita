@@ -1,149 +1,199 @@
 <template>
 		<div
-			:class="`flex flex-col items-center gap-6 flex-grow left-0 right-0 px-10`"
+			:class="`flex flex-col items-center flex-grow left-0 right-0 px-6 py-14 w-full max-w-6xl`"
 		>
-			<template v-if="pastSessions && pastSessions.length">
-				<div
-					class="flex flex-col justify-center px-6"
-					v-show="
-						!currentActive ||
-						(currentActive &&
-							currentActive.id !==
-								'MasterInput')
-					"
-				>
-					<div
-						class="rounded-lg border border-neutral-700 w-full overflow-clip"
+                <div class="mb-10 w-full">
+                        <h2 class="font-mono text-4xl mb-6">
+				Top
+			</h2>
+                        <template v-if="topWPM && topWPM.length">
+                                <table class="w-full font-mono text-neutral-200 flex flex-col gap-0.5 m-0">
+				<thead class="flex flex-col gap-0.5 text-neutral-500 uppercase">
+					<tr
+						class="h-7 grid grid-cols-13 bg-neutral-800/30 [&>*]:border-r-2 [&>*]:border-neutral-900"
 					>
-						<div
-							class="justify-between px-6 py-4 grid grid-cols-10 text-sm text-neutral-400 bg-neutral-900"
-						>
-							<div class="col-span-2">
-								<div>
-									username
-								</div>
-							</div>
-							<div>
-								<div>wpm</div>
-							</div>
-							<div>
-								<div>raw</div>
-							</div>
-							<div>
-								<div>acc</div>
-							</div>
-							<div>
-								<div>
-									consistency
-								</div>
-							</div>
-							<div>
-								<div>chars</div>
-							</div>
-							<div>
-								<div>mode</div>
-							</div>
-							<div class="col-span-2">
-								<div>date</div>
-							</div>
-						</div>
-						<div
-							v-for="session in pastSessions
-									.slice()
-									.reverse()"
-							class="justify-between px-6 py-4 border-t bg-neutral-800/40 border-neutral-800 grid grid-cols-10"
-						>
-							<div class="col-span-2">
-								<div>
-									{{
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>no</div>
+						</td>
+						<td class="col-span-5 flex items-center gap-4 p-0">
+							<div
+								class="w-[35px] h-7 border-r-2 border-neutral-900"
+							/>
+							<div>user</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>wpm</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>raw</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>acc</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>consis</div>
+						</td>
+						<td class="col-span-3 flex items-center py-0 pr-4 justify-end">
+							<span>date</span>
+						</td>
+					</tr>
+				</thead>
+				<tbody class="flex flex-col gap-0.5">
+					<tr
+                                        v-for="session, index in topWPM"
+                                                                        :key="session.id"
+						class="h-[33px] grid grid-cols-13 bg-neutral-800/60 even:bg-neutral-800/20 [&>*]:border-r-2 [&>*]:border-neutral-900"
+					>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>{{ index+1 }}</div>
+						</td>
+						<td class="col-span-5 flex items-center gap-4 p-0">
+							<div
+								class="h-[33px] w-[35px] bg-neutral-600 border-r-2 border-neutral-900"
+							/>
+							<div>{{
 										session.username
-									}}
-								</div>
-							</div>
-							<div>
-								<div
-									class="text-[#6BD968]"
-								>
-									{{
+									}}</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>{{
 										session.wpm.toFixed(
 											1
 										)
-									}}
-								</div>
-							</div>
-							<div>
-								<div
-									class="tabular-nums"
-								>
-									{{
+									}}</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>{{
 										session.raw.toFixed(
 											1
 										)
-									}}
-								</div>
-							</div>
-							<div>
-								<div
-									class="tabular-nums"
-								>
-									{{
+									}}</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>{{
 										session.accuracy.toFixed(
 											1
 										)
-									}}
-								</div>
-							</div>
-							<div>
-								<div
-									class="tabular-nums"
-								>
-									{{
+									}}%</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>{{
 										session.consistency.toFixed(
 											1
 										)
-									}}
-								</div>
-							</div>
-							<div>
-								<div
-									class="tabular-nums"
-								>
-									{{
-										session.total_corrects
-									}}/{{
-										session.total_errors
-									}}/{{
-										session.total_extras
-									}}/{{
-										session.total_missed
-									}}
-								</div>
-							</div>
-							<div>
-								<div>
-									{{
-										session.mode
-									}}
-								</div>
-							</div>
-							<div class="col-span-2">
-								<div
-									class="tabular-nums line-clamp-1"
-								>
-									{{
+									}}%</div>
+						</td>
+						<td class="col-span-3 flex items-center py-0 pr-4 justify-end text-neutral-400">
+							<span>{{
 										format(
 											new Date(
 												session.end_time
 											),
 											"Pp"
 										)
-									}}
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
+									}}</span>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 			</template>
+                </div>
+                <div class="w-full">
+                        <h2 class="font-mono text-4xl mb-6">
+				Latest
+			</h2>
+			<template v-if="pastSessions && pastSessions.length">
+                                <table class="w-full font-mono text-neutral-200 flex flex-col gap-0.5 m-0">
+				<thead class="flex flex-col gap-0.5 text-neutral-500 uppercase">
+					<tr
+						class="h-7 grid grid-cols-13 bg-neutral-800/30 [&>*]:border-r-2 [&>*]:border-neutral-900"
+					>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>no</div>
+						</td>
+						<td class="col-span-5 flex items-center gap-4 p-0">
+							<div
+								class="w-[35px] h-7 border-r-2 border-neutral-900"
+							/>
+							<div>user</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>wpm</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>raw</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>acc</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>consis</div>
+						</td>
+						<td class="col-span-3 flex items-center py-0 pr-4 justify-end">
+							<span>date</span>
+						</td>
+					</tr>
+				</thead>
+				<tbody class="flex flex-col gap-0.5">
+					<tr
+                                        v-for="session, index in pastSessions"
+                                                                        :key="session.id"
+						class="h-[33px] grid grid-cols-13 bg-neutral-800/60 even:bg-neutral-800/20 [&>*]:border-r-2 [&>*]:border-neutral-900"
+					>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>{{ index+1 }}</div>
+						</td>
+						<td class="col-span-5 flex items-center gap-4 p-0">
+							<div
+								class="h-[33px] w-[35px] bg-neutral-600 border-r-2 border-neutral-900"
+							/>
+							<div>{{
+										session.username
+									}}</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>{{
+										session.wpm.toFixed(
+											1
+										)
+									}}</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>{{
+										session.raw.toFixed(
+											1
+										)
+									}}</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>{{
+										session.accuracy.toFixed(
+											1
+										)
+									}}%</div>
+						</td>
+						<td class="flex items-center pr-0 py-0 pl-2">
+							<div>{{
+										session.consistency.toFixed(
+											1
+										)
+									}}%</div>
+						</td>
+						<td class="col-span-3 flex items-center py-0 pr-4 justify-end text-neutral-400">
+							<span>{{
+										format(
+											new Date(
+												session.end_time
+											),
+											"Pp"
+										)
+									}}</span>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			</template>
+                        </div>
 		</div>
 </template>
 
@@ -154,17 +204,24 @@ const user = useSupabaseUser();
 const client = useSupabaseClient();
 
 // readonly
-const PROFILE = ref();
+const PROFILE = useState('profile');
 const USERNAME: globalThis.Ref<string> = computed(() => {
 	return PROFILE.value ? PROFILE.value.username : "username";
 });
 
-const pastSessions = ref([])
+const { data: pastSessions } = await useLazyAsyncData('sessions_with_profile', async () => {
+  const { data } = await client.from('sessions_with_profile').select().limit(10).order('id',{ascending: false})
+  return data
+})
+
+const {data:topWPM} = await useLazyAsyncData('sessions_with_profile', async () => {
+  const { data } = await client.from('sessions_with_profile').select().limit(10).order('wpm',{ascending: false})
+  return data
+})
+
 watchEffect(async () => {
 	if (user.value) {
 		PROFILE.value = await getProfile(user.value.id);
-                fetchSessions()
-
 	}
 });
 
@@ -181,14 +238,5 @@ async function getProfile(userId: string) {
 		);
 	}
 	return data;
-}
-
-async function fetchSessions(){
-        const {data, error} = await client.from('sessions_with_profile').select()
-        if(error){
-                console.log(error)
-        }
-        console.log(data)
-        pastSessions.value = data
 }
 </script>
