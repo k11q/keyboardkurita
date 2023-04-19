@@ -1139,7 +1139,7 @@ function pushIntervalLogs(
 	logTime: number
 ) {
 	const characterIndex = currentMetadata.value.currentCorrectCharLocation;
-	const wordIndex = currentMetadata.value.currentWordLocation;
+	const wordIndex = currentMetadata.value.currentWordMetadata.index;
 	let misses = 0;
 	let sessionId: number;
 
