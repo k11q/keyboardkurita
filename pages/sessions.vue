@@ -199,6 +199,9 @@
 
 <script setup lang="ts">
 import { format } from "date-fns";
+definePageMeta({
+	middleware: 'auth',
+});
 //db & auth
 const user = useSupabaseUser();
 const client = useSupabaseClient();

@@ -4,6 +4,27 @@
 	>
 		<!--MODAL SETTINGS COMPONENT-->
 		<MoreSettings />
+		<!--LIVE INFO INTERVAL WPM RAW-->
+		<LiveInfo
+			:session-running="sessionRunning"
+			:live-timer="liveTimer"
+			:live-wpm="liveWpm"
+			:live-raw="liveRawWpm"
+		/>
+		<!--INPUT PAGE - TEXT COMPONENT-->
+		<InputDisplay
+			:show-results="showResults"
+			:all-data="allData"
+			:current-active="currentActive"
+			:current-word-num="currentWordNum"
+			:correct-char-index="correctCharIndex"
+			@button-click="
+				currentActive &&
+				currentActive.id === 'MasterInput'
+					? ''
+					: focusInput()
+			"
+		/>
 		<!--CARET COMPONENT-->
 		<Caret
 			:is-visible="
@@ -29,27 +50,6 @@
 						focusInput();
 					}
 				}
-			"
-		/>
-		<!--LIVE INFO INTERVAL WPM RAW-->
-		<LiveInfo
-			:session-running="sessionRunning"
-			:live-timer="liveTimer"
-			:live-wpm="liveWpm"
-			:live-raw="liveRawWpm"
-		/>
-		<!--INPUT PAGE - TEXT COMPONENT-->
-		<InputDisplay
-			:show-results="showResults"
-			:all-data="allData"
-			:current-active="currentActive"
-			:current-word-num="currentWordNum"
-			:correct-char-index="correctCharIndex"
-			@button-click="
-				currentActive &&
-				currentActive.id === 'MasterInput'
-					? ''
-					: focusInput()
 			"
 		/>
 		<!--RESULTS PAGE - CHART COMPONENT AND MENUBAR-->
@@ -124,17 +124,20 @@ import type {
 } from '@/types';
 import { calculateRawWPM, calculateWPM, focusInput } from '@/utils/input';
 
+definePageMeta({
+	middleware: 'auth',
+});
+
 //db & auth
 const user = useSupabaseUser();
 const client = useSupabaseClient();
 
+const router = useRouter();
 const store = useHomeStore();
 
 // readonly
 const PROFILE = useState('profile', () => '');
-const USERNAME: globalThis.Ref<string> = computed(() => {
-	return PROFILE.value ? PROFILE.value.username : 'username';
-});
+const USERNAME = useState('username', () => '');
 
 // game settings
 const {
@@ -1204,6 +1207,13 @@ onMounted(() => {
 	}
 });
 
+//redirect to login
+watchEffect(async () => {
+	if (!user.value) {
+		router.push('/login')
+	}
+});
+
 // get profile data from auth
 watchEffect(async () => {
 	if (user.value) {
@@ -1222,6 +1232,10 @@ async function getProfile(userId: string) {
 		console.log(
 			'no profile for users found. user needs to setup profile'
 		);
+	}
+	if (data) {
+		USERNAME.value = data.username;
+		console.log(USERNAME.value);
 	}
 	return data;
 }

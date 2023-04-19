@@ -7,7 +7,8 @@ useHead({
 			async: true,
 		},
 		{
-			'data-website-id': '7d589b8b-c758-483e-831b-beebaf9976e4',
+			'data-website-id':
+				'7d589b8b-c758-483e-831b-beebaf9976e4',
 			src: 'https://umami-production-134d.up.railway.app/umami.js',
 			async: true,
 			defer: true,
@@ -27,22 +28,22 @@ useHead({
 
 <style>
 body {
-	background-color: rgb(23,23,23);
+	background-color: rgb(23, 23, 23);
 	overflow: overlay;
 }
 select {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	text-indent: 1px;
-	text-overflow: "";
+	text-overflow: '';
 }
 select::-ms-expand {
 	display: none;
 }
 
 ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
+	width: 5px;
+	height: 5px;
 }
 
 /* Set the background color and border radius of the scrollbar track */
@@ -65,6 +66,6 @@ select::-ms-expand {
 }
 
 ::-webkit-scrollbar-corner {
-  background-color: transparent;
+	background-color: transparent;
 }
 </style>

@@ -16,6 +16,10 @@
 </template>
 
 <script setup>
+definePageMeta({
+	middleware: 'auth',
+});
+
 const tabs = ['Tab 1', 'Tab 2', 'Tab 3', 'Tab 4', 'Tab 5'];
 const currentActiveTab = useState('currentActiveSettingsTab', () => tabs[0]);
 
