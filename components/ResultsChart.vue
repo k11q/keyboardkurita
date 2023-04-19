@@ -161,17 +161,17 @@ const option = computed(() => ({
 				.map((value, index) =>
 					value > 0
 						? [
-							parseFloat(
-								props
-									.data
-									.time[
+								parseFloat(
+									props
+										.data
+										.time[
 										index
 									]
-							), // Use the corresponding time value instead of index + 1
-							value,
-							props.data.time[
-								index
-							],
+								), // Use the corresponding time value instead of index + 1
+								value,
+								props.data.time[
+									index
+								],
 						  ]
 						: null
 				)

@@ -3,490 +3,80 @@
 		class="max-w-6xl w-full flex flex-col flex-grow relative sm:px-6 xl:px-0"
 	>
 		<!--MODAL SETTINGS COMPONENT-->
-		<Modal />
+		<MoreSettings />
 		<!--CARET COMPONENT-->
-		<div
-			v-if="
+		<Caret
+			:is-visible="
 				currentActive &&
 				currentActive.id === 'MasterInput'
 			"
-			class="fixed z-40 h-11 w-1.5 bg-[#3992FF] transition-all duration-100 ease-linear"
-			:style="`left: ${CARETLEFT - 3}px; top: ${
-				CARETTOP - 2
-			}px`"
+			:caret-left="CARETLEFT"
+			:caret-top="CARETTOP"
 		/>
-		<!--CLICK TO ACTIVATE OVERLAY AND SETTINGS/MENU-->
-		<div
-			v-if="
+		<!--OUTFOCUSOVERLAY CLICK TO ACTIVATE OVERLAY AND SETTINGS/MENU-->
+		<OutFocusOverlay
+			:should-show="
 				!currentActive ||
 				(currentActive &&
 					currentActive.id !== 'MasterInput')
 			"
-			class="pb-20 z-20 rounded-lg text-xl font-mono absolute inset-0 bg-neutral-900/40 backdrop-blur-sm flex flex-col items-center justify-center"
-		>
-			<button
-				class="py-10 mb-2 px-8 text-neutral-300 hover:text-white"
-				@click="
-					() => {
-						if (!allData.length) {
-							fetchWords();
-							focusInput();
-						} else {
-							focusInput();
-						}
+			@button-click="
+				() => {
+					if (!allData.length) {
+						fetchWords();
+						focusInput();
+					} else {
+						focusInput();
 					}
-				"
-			>
-				<span class="mr-4"
-					><Icon
-						name="lucide:mouse-pointer-click"
-						size="1.5rem"
-				/></span>
-
-				<span>click to activate</span>
-			</button>
-			<!--MENU/SETTINGS BAR-->
-			<div class="flex justify-center">
-				<SettingsBar />
-			</div>
-		</div>
-		<!--LIVE TIMER INTERVAL WPM RAW-->
-		<div
-			v-show="sessionRunning"
-			class="flex justify-center mb-5 absolute top-0 left-0 right-0 pt-10"
-		>
-			<div
-				class="grid grid-cols-3 gap-4 [&>*]:flex [&>*]:flex-col [&>*]:items-center min-w-[340px]"
-			>
-				<div>
-					<div class="text-neutral-500 text-sm">
-						time
-					</div>
-					<div
-						class="text-3xl font-medium font-mono text-[#FECC1B]"
-					>
-						{{ liveTimer }}
-					</div>
-				</div>
-				<div>
-					<div class="text-neutral-500 text-sm">
-						wpm
-					</div>
-					<div
-						class="text-3xl font-medium font-mono text-[#6BD968]"
-					>
-						{{ liveWpm.toFixed(1) }}
-					</div>
-				</div>
-				<div>
-					<div class="text-neutral-500 text-sm">
-						raw
-					</div>
-					<div
-						class="text-3xl font-medium font-mono text-[#3DEFE9]"
-					>
-						{{ liveRawWpm.toFixed(1) }}
-					</div>
-				</div>
-			</div>
-		</div>
+				}
+			"
+		/>
+		<!--LIVE INFO INTERVAL WPM RAW-->
+		<LiveInfo
+			:session-running="sessionRunning"
+			:live-timer="liveTimer"
+			:live-wpm="liveWpm"
+			:live-raw="liveRawWpm"
+		/>
 		<!--INPUT PAGE - TEXT COMPONENT-->
-		<div
-			v-if="!showResults"
-			class="flex-grow flex items-center justify-center"
-		>
-			<div
-				:class="`pointer-events-none flex items-center justify-center font-mono transition-all ease-linear duration-1000 rounded-[32px] w-full left-0 right-0 text-4xl leading-[54px]`"
-			>
-				<div
-					class="w-full max-w-6xl px-6 mb-20 h-[14rem] flex-none"
-					@click.prevent.stop="
-						currentActive &&
-						currentActive.id ===
-							'MasterInput'
-							? ''
-							: focusInput()
-					"
-				>
-					<template
-						v-for="(word, index) in allData"
-					>
-						<span :class="``"
-							><span
-								v-for="(
-									char,
-									charIndex
-								) in word.characters"
-								:class="` ${
-									char.status ===
-									'correct'
-										? 'opacity-100'
-										: char.status ===
-										  'extra'
-										? 'bg-[#F44250] text-white opacity-100'
-										: char.status ===
-												'error' &&
-										  char.character ===
-												' '
-										? 'box-border border-b-2 border-red-600'
-										: char.status ===
-										  'error'
-										? 'text-[#F44250] opacity-100'
-										: 'opacity-40'
-								} ${
-									index ===
-										currentWordNum &&
-									charIndex ===
-										correctCharIndex
-										? 'cursor-key'
-										: ''
-								}`"
-								>{{
-									char.character ===
-									' '
-										? ' '
-										: char.character
-								}}</span
-							></span
-						>
-					</template>
-				</div>
-			</div>
-		</div>
+		<InputDisplay
+			:show-results="showResults"
+			:all-data="allData"
+			:current-active="currentActive"
+			:current-word-num="currentWordNum"
+			:correct-char-index="correctCharIndex"
+			@button-click="
+				currentActive &&
+				currentActive.id === 'MasterInput'
+					? ''
+					: focusInput()
+			"
+		/>
 		<!--RESULTS PAGE - CHART COMPONENT AND MENUBAR-->
 		<div
 			v-if="showResults"
 			class="flex-grow flex flex-col justify-center z-50 gap-10 bg-neutral-900 font-mono"
 		>
-			<!--CHART COMPONENT-->
-			<div
-				v-if="
-					pastSessions.length &&
-					currentSelectionData
+			<!--RESULTSGRID COMPONENT-->
+			<ResultsGrid
+				:past-sessions="pastSessions"
+				:current-selection-data="currentSelectionData"
+				:current-word-num="currentWordNum"
+				:correct-char-index="correctCharIndex"
+				:focus-input="focusInput"
+			/>
+			<!--RESULTSMENU COMPONENT-->
+			<ResultsMenu
+				:date="format(new Date(currentSelectionData!.end_time), 'dd MMM yyyy HH:mm')"
+				:username="USERNAME"
+				@button-click="
+					() => {
+						showResults = false;
+						fetchWords();
+						focusInput();
+					}
 				"
-				id="resultsChart"
-				class="w-full flex flex-col gap-4 items-center justify-center relative"
-			>
-				<div class="flex flex-col w-full font-mono">
-					<div
-						class="grid grid-cols-5 gap-x-2 gap-y-2"
-					>
-						<div
-							class="w-36 flex-none flex flex-col gap-2"
-						>
-							<div
-								class="flex flex-col"
-							>
-								<div
-									class="text-3xl text-neutral-500"
-								>
-									wpm
-								</div>
-								<div
-									class="text-6xl leading-none font-mono text-[#6BD968]"
-								>
-									<CounterAnimation
-										:value="
-											currentSelectionData?.wpm
-										"
-										:duration="
-											1000
-										"
-										:digits="
-											2
-										"
-									/>
-								</div>
-							</div>
-							<div
-								class="flex flex-col"
-							>
-								<div
-									class="text-3xl text-neutral-500"
-								>
-									acc
-								</div>
-								<div
-									class="text-6xl leading-none font-mono text-[#6BD968]"
-								>
-									<CounterAnimation
-										:value="
-											currentSelectionData?.accuracy
-										"
-										:duration="
-											1000
-										"
-										:digits="
-											2
-										"
-									/>%
-								</div>
-							</div>
-						</div>
-						<div
-							v-if="showResults"
-							class="col-span-4 -ml-5"
-						>
-							<ClientOnly>
-								<ResultsChart
-									:data="
-										currentSelectionData.chart_data
-									"
-								/>
-							</ClientOnly>
-						</div>
-						<div
-							class="flex flex-col gap-1"
-						>
-							<div
-								class="text-base text-neutral-500"
-							>
-								type
-							</div>
-							<div
-								class="text-base leading-tight font-mono text-[#6BD968]"
-							>
-								<div>
-									{{
-										currentSelectionData?.mode
-									}}
-									{{
-										currentSelectionData.total_words
-									}}
-								</div>
-								<div>
-									{{
-										currentSelectionData?.dataset
-									}}
-								</div>
-							</div>
-						</div>
-						<div class="flex flex-col">
-							<div
-								class="text-base text-neutral-500"
-							>
-								raw
-							</div>
-							<div
-								class="text-3xl leading-tight font-mono text-[#6BD968]"
-							>
-								<div>
-									{{
-										currentSelectionData?.raw
-									}}
-								</div>
-							</div>
-						</div>
-						<div class="flex flex-col">
-							<div
-								class="text-base text-neutral-500"
-							>
-								characters
-							</div>
-							<div
-								class="text-3xl leading-tight font-mono text-[#6BD968]"
-							>
-								{{
-									currentSelectionData?.total_corrects
-								}}/{{
-									currentSelectionData?.total_errors
-								}}/{{
-									currentSelectionData?.total_extras
-								}}/{{
-									currentSelectionData?.total_missed
-								}}
-							</div>
-						</div>
-						<div class="flex flex-col">
-							<div
-								class="text-base text-neutral-500"
-							>
-								consistency
-							</div>
-							<div
-								class="text-3xl leading-tight font-mono text-[#6BD968]"
-							>
-								{{
-									currentSelectionData?.consistency
-								}}%
-							</div>
-						</div>
-						<div class="flex flex-col">
-							<div
-								class="text-base text-neutral-500"
-							>
-								time
-							</div>
-							<div
-								class="text-3xl leading-tight font-mono text-[#6BD968]"
-							>
-								{{
-									currentSelectionData?.duration
-								}}s
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="w-full">
-					<div class="text-base text-neutral-500">
-						input history
-					</div>
-					<div>
-						<div
-							class="w-full"
-							@click.prevent.stop="
-								currentActive &&
-								currentActive.id ===
-									'MasterInput'
-									? ''
-									: focusInput()
-							"
-						>
-							<template
-								v-for="(
-									word,
-									index
-								) in currentSelectionData.logs"
-							>
-								<span
-									:class="``"
-									><span
-										v-for="(
-											char,
-											charIndex
-										) in word.characters"
-										:class="` ${
-											char.status ===
-											'correct'
-												? 'opacity-100'
-												: char.status ===
-												  'extra'
-												? 'bg-[#F44250] text-white opacity-100'
-												: char.status ===
-														'error' &&
-												  char.character ===
-														' '
-												? 'box-border border-b border-red-600'
-												: char.status ===
-												  'error'
-												? 'text-[#F44250] opacity-100'
-												: 'opacity-40'
-										} ${
-											index ===
-												currentWordNum &&
-											charIndex ===
-												correctCharIndex
-												? 'cursor-key'
-												: ''
-										}`"
-										>{{
-											char.character ===
-											' '
-												? ' '
-												: char.character
-										}}</span
-									></span
-								>
-							</template>
-						</div>
-					</div>
-				</div>
-			</div>
-			<!--MENU COMPONENT-->
-			<div
-				class="flex justify-center text-neutral-500 text-sm"
-			>
-				<div
-					class="justify-evenly flex gap-6 hover:[&>*]:text-[#6BD968] hover:[&>*]:bg-neutral-800 [&>*]:bg-neutral-900 focus:[&>*]:ring-2 focus:[&>*]:ring-[#6BD968] focus:[&>*]:text-[#6BD968] focus:[&>*]:outline-none [&>*]:transition-all [&>*]:duration-100"
-				>
-					<button
-						id="nextTest"
-						class="rounded-md h-16 w-16 flex items-center justify-center"
-						@click="
-							() => {
-								showResults = false;
-								fetchWords();
-								focusInput();
-							}
-						"
-					>
-						<Icon
-							name="lucide:play"
-							size="1.25rem"
-						/>
-					</button>
-					<button
-						class="rounded-md h-16 w-16"
-						@click="
-							() => {
-								showResults = false;
-								fetchWords();
-								focusInput();
-							}
-						"
-					>
-						<Icon
-							name="lucide:repeat"
-							size="1.25rem"
-						/>
-					</button>
-					<button
-						class="rounded-md h-16 w-16"
-						@click="
-							() => {
-								showResults = false;
-								fetchWords();
-								focusInput();
-							}
-						"
-					>
-						<Icon
-							name="lucide:alert-triangle"
-							size="1.25rem"
-						/>
-					</button>
-					<button
-						class="rounded-md h-16 w-16"
-						@click="
-							() => {
-								showResults = false;
-								fetchWords();
-								focusInput();
-							}
-						"
-					>
-						<Icon
-							name="lucide:step-back"
-							size="1.25rem"
-						/>
-					</button>
-					<button
-						class="rounded-md h-16 w-16"
-						@click="
-							() => {
-								showResults = false;
-								fetchWords();
-								focusInput();
-							}
-						"
-					>
-						<Icon
-							name="lucide:align-left"
-							size="1.25rem"
-						/>
-					</button>
-					<ScreenshotButton
-						target-element-id="resultsChart"
-						:date="
-							format(
-								new Date(currentSelectionData!.end_time),
-								'dd MMM yyyy HH:mm'
-							)
-						"
-						:username="USERNAME"
-					/>
-				</div>
-			</div>
+			/>
 		</div>
 		<!--(HIDDEN)INPUT COMPONENT-->
 		<input
@@ -669,7 +259,7 @@ const currentMetadata: globalThis.ComputedRef<InputMetadata> = computed(() => {
 	] as WordMetadata;
 	const currentWordLength = allData.value[currentWordLocation]?.characters
 		.length as number;
-		const currentChar =
+	const currentChar =
 		allData.value[currentWordLocation]?.characters[
 			currentCharLocation
 		]?.character;
@@ -694,7 +284,7 @@ const currentMetadata: globalThis.ComputedRef<InputMetadata> = computed(() => {
 		currentWord,
 		currentCorrectChar,
 		currentWordType,
-		currentChar
+		currentChar,
 	};
 });
 
