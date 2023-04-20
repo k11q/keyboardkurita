@@ -372,8 +372,8 @@ export const useHomeStore = defineStore('counter', () => {
 					title: 'Duration',
 					description:
 						'The duration of the tests.',
-					selected: 10,
-					option: [10, 20, 30, 60],
+					selected: 15,
+					option: [15, 30, 60],
 					type: 'tab',
 				},
 				{

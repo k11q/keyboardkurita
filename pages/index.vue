@@ -714,12 +714,17 @@ function fillFinalIntervalValues() {
 		getTotalCharactersInLastFiveSeconds(),
 		durationRaw
 	);
-	if(selectedMode.value === 'word'){
+	if (selectedMode.value === 'word') {
 		insertChartDataLog(wpm, intervalError, durationSeconds, rawWpm);
-	}else if(selectedMode.value === 'time'){
-		insertChartDataLog(wpm, intervalError, selectedDuration.value, rawWpm);
+	} else if (selectedMode.value === 'time') {
+		insertChartDataLog(
+			wpm,
+			intervalError,
+			selectedDuration.value,
+			rawWpm
+		);
 	}
-	
+
 	pushIntervalLogs(
 		wpm,
 		intervalError,
@@ -936,7 +941,17 @@ function fillFinalData(time: number) {
 	sessionsInsertData.xp_gains = parseFloat(
 		(sessionsInsertData.accuracy / 10).toFixed(2)
 	);
-	sessionsInsertData.logs = allData.value;
+
+	if (selectedMode.value === 'word') {
+		sessionsInsertData.logs = allData.value;
+	} else if (selectedMode.value === 'time') {
+		const currentWordIndexSumTwo =
+			currentMetadata.value.currentWordMetadata.index + 2;
+		sessionsInsertData.logs = spliceUntilIndex(
+			allData.value,
+			currentWordIndexSumTwo
+		);
+	}
 	sessionsInsertData.chart_data = {};
 	Object.assign(sessionsInsertData.chart_data, chartData);
 }
@@ -948,6 +963,11 @@ function getWpm(totalAchievedCharacters: number, elapsedTime: number) {
 			(elapsedTime / 1000 / 60)
 		).toFixed(2)
 	);
+}
+
+function spliceUntilIndex(arr, index) {
+	const spliceIndex = arr.findIndex((obj) => obj.index === index);
+	return arr.splice(0, spliceIndex + 1);
 }
 
 function getAccuracy(corrects: number, totalCharacters: number) {
