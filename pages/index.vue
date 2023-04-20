@@ -123,6 +123,7 @@ import type {
 	WordLogStatus,
 } from '@/types';
 import { calculateRawWPM, calculateWPM, focusInput } from '@/utils/input';
+import type { Database } from '~/types/database.types';
 
 definePageMeta({
 	middleware: 'auth',
@@ -130,7 +131,7 @@ definePageMeta({
 
 //db & auth
 const user = useSupabaseUser();
-const client = useSupabaseClient();
+const client = useSupabaseClient<Database>();
 
 const router = useRouter();
 const store = useHomeStore();
