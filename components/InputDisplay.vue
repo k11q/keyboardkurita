@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!props.showResults" class="flex-grow flex items-center justify-center">
+  <div v-if="!props.showResults" class="flex-grow flex flex-col items-center justify-center">
     <div
       :class="`pointer-events-none flex items-center justify-center font-mono transition-all ease-linear duration-1000 rounded-[32px] w-full left-0 right-0 text-4xl leading-[54px]`"
     >
@@ -20,6 +20,11 @@
         </template>
       </div>
     </div>
+    <div class="relative h-0 w-full flex justify-center">
+			<div class="absolute left-0 right-0 text-center text-neutral-500">
+				<Icon name="lucide:lightbulb" size="1.25rem" class="mr-2 -mt-0.5 text-yellow-500"/><span>Press <span class="border rounded-md border-neutral-700 font-mono px-2 py-1 bg-neutral-800 text-neutral-400 mx-1">tab</span> to quick restart</span>
+			</div>
+		</div>
   </div>
 </template>
 
