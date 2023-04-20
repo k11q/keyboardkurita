@@ -21,7 +21,7 @@ export interface Database {
           start_time: string
           status: string
           word_index: number
-          wpm: number
+          wpm: number | null
         }
         Insert: {
           character: string
@@ -34,7 +34,7 @@ export interface Database {
           start_time: string
           status: string
           word_index: number
-          wpm: number
+          wpm?: number | null
         }
         Update: {
           character?: string
@@ -47,7 +47,7 @@ export interface Database {
           start_time?: string
           status?: string
           word_index?: number
-          wpm?: number
+          wpm?: number | null
         }
       }
       datasets: {
@@ -374,29 +374,6 @@ export interface Database {
           xp_gains?: number
         }
       }
-      subwords: {
-        Row: {
-          created_at: string | null
-          id: number
-          length: number
-          subword: string
-          type: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: number
-          length: number
-          subword: string
-          type: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: number
-          length?: number
-          subword?: string
-          type?: string
-        }
-      }
       word_logs: {
         Row: {
           created_at: string | null
@@ -440,7 +417,59 @@ export interface Database {
       }
     }
     Views: {
-      [_ in never]: never
+      leaderboard: {
+        Row: {
+          accuracy: number | null
+          consistency: number | null
+          end_time: string | null
+          id: number | null
+          raw: number | null
+          status: string | null
+          user_id: number | null
+          username: string | null
+          wpm: number | null
+        }
+      }
+      sessions_with_profile: {
+        Row: {
+          accuracy: number | null
+          chart_data: Json | null
+          consistency: number | null
+          created_at: string | null
+          dataset: string | null
+          difficulty: string | null
+          duration: number | null
+          end_time: string | null
+          game_metadata: Json | null
+          id: number | null
+          logs: Json[] | null
+          mode: string | null
+          numbers: boolean | null
+          punctuation: boolean | null
+          raw: number | null
+          restart_count: number | null
+          start_time: string | null
+          status: string | null
+          total_characters: number | null
+          total_corrects: number | null
+          total_errors: number | null
+          total_extras: number | null
+          total_missed: number | null
+          total_words: number | null
+          user_id: number | null
+          username: string | null
+          words: string[] | null
+          wpm: number | null
+          xp_gains: number | null
+        }
+      }
+      stats: {
+        Row: {
+          total_duration: number | null
+          total_sessions: number | null
+          total_users: number | null
+        }
+      }
     }
     Functions: {
       [_ in never]: never
