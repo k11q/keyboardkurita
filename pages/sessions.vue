@@ -117,12 +117,7 @@ const USERNAME: globalThis.Ref<string> = computed(() => {
 });
 
 const { data: pastSessions } = await useLazyAsyncData('pastSessions', async () => {
-  const { data } = await client.from('sessions_with_profile').select().limit(10).order('id',{ascending: false})
-  return data
-})
-
-const {data:topWPM} = await useLazyAsyncData('topWPM', async () => {
-  const { data } = await client.from('sessions_with_profile').select().limit(10).order('wpm',{ascending: false})
+  const { data } = await client.from('sessions_with_profile').select().limit(100).order('id',{ascending: false})
   return data
 })
 
