@@ -78,9 +78,7 @@
 							>
 								<div>
 									{{
-										user
-											.user_metadata
-											.full_name
+										profile?.username
 									}}
 								</div>
 								<div
@@ -114,6 +112,7 @@
 const user = useSupabaseUser();
 const client = useSupabaseAuthClient();
 const router = useRouter();
+const profile = useState('profile')
 // Login method using providers
 const login = async (
 	provider: 'github' | 'google' | 'gitlab' | 'bitbucket'

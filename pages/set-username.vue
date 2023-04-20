@@ -1,21 +1,22 @@
 <template>
-	<div class="flex items-center justify-center w-full flex-grow px-6">
+	<div class="flex items-center justify-center w-full flex-grow px-6 font-mono">
 		<div
-			class="w-full max-w-xl min-h-[20rem] border border-neutral-700 rounded-lg flex flex-col justify-center p-5"
+			class="w-full max-w-md border border-neutral-700 rounded-2xl flex flex-col justify-center px-10 pt-10 pb-8"
 		>
-			<div class="text-xl font-mono mb-3">Set username</div>
+			<div class="text-xl">Set username</div>
+			<div class="text-neutral-500 mb-6">This will be your public username</div>
 			<form @submit.prevent="setUsername" class="contents">
 				<input
 					name="username"
-					class="pl-4 py-2 text-lg rounded-md border border-neutral-700 bg-neutral-800/50 mb-4"
+					class="pl-4 py-3 rounded-lg border border-neutral-700 bg-neutral-800/50 mb-3 focus:outline-none focus:ring-sky-600 focus:ring-2"
 				/>
 				<button
-					class="px-4 py-2 text-lg rounded-md border border-neutral-700 bg-neutral-700/50"
+					class="px-4 py-3 rounded-lg border border-neutral-700 bg-neutral-700/50 hover:bg-neutral-600"
 				>
 					Set username
 				</button>
-				<div v-if="usernameError && !loading" class="text-red-500">Error... please try a different username</div>
-				<div v-if="loading">Loading... checking name availability</div>
+				<div v-if="usernameError && !loading" class="text-red-500 mt-2">Username not available. Please try a diffferent username.</div>
+				<div v-if="loading" class="text-neutral-500 mt-2">Loading... checking name availability. Please wait.</div>
 			</form>
 		</div>
 	</div>
@@ -49,6 +50,7 @@ async function setUsername(e: Event) {
 
 onMounted(async () => {
 	if (user.value) {
+		console.log(user.value)
 		const { data, error } = await client
 			.from('profile')
 			.select()
