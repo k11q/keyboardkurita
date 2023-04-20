@@ -126,11 +126,4 @@ const login = async (
 	}
 	router.push('/');
 };
-
-const logout = async () => {
-	const { error } = await client.auth.signOut();
-	if (error) {
-		return alert('Something went wrong !');
-	}
-};
 </script>

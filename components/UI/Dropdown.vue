@@ -25,7 +25,7 @@
 								<Icon
 									name="heroicons:pencil-20-solid"
 									class="mr-2 h-5 w-5 text-violet-500"
-								/></span>
+							/></span>
 							View profile
 						</button>
 					</NuxtLink>
@@ -56,10 +56,12 @@
 
 <script setup lang="ts">
 const client = useSupabaseAuthClient();
+const router = useRouter();
 const logout = async () => {
 	const { error } = await client.auth.signOut();
 	if (error) {
 		return alert('Something went wrong !');
 	}
+	router.push('/login');
 };
 </script>
