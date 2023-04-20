@@ -409,6 +409,7 @@ function handleKeydown(e: KeyboardEvent) {
 	const key = e.key;
 	// tab used to start new game
 	if (key === 'Tab') {
+		sessionRunning.value = false;
 		fetchWords();
 	} else if (isBackspace(e)) {
 		handleBackspace();
