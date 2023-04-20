@@ -72,11 +72,22 @@
 									.currentSelectionData
 									?.mode
 							}}
-							{{
-								props
-									.currentSelectionData
-									.total_words
-							}}
+							<span
+								v-if="selectedMode === 'word'"
+								>{{
+									props
+										.currentSelectionData
+										.total_words
+								}}</span
+							>
+							<span
+								v-if="selectedMode === 'time'"
+								>{{
+									props
+										.currentSelectionData
+										.duration
+								}}s</span
+							>
 						</div>
 						<div>
 							{{
@@ -228,6 +239,12 @@
 
 <script setup>
 import ResultsChart from './ResultsChart.vue';
+import {useHomeStore} from '../stores/home'
+import { storeToRefs } from 'pinia';
+
+const store = useHomeStore();
+
+const { mode: selectedMode } = storeToRefs(store);
 
 const props = defineProps({
 	pastSessions: Array,

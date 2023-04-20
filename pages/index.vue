@@ -373,11 +373,17 @@ async function fetchFreshWords() {
 }
 
 async function getWords() {
+	let num: number;
+	if (selectedMode.value === 'word') {
+		num = selectedWords.value | 10;
+	} else {
+		num = 50;
+	}
 	const { data } = await useFetch(`api/languages`, {
 		query: {
 			char: selectedKey.value.charAt(0),
 			difficulty: selectedDifficulty.value,
-			num: selectedWords.value,
+			num,
 			lang: selectedDataset.value,
 		},
 	});
@@ -496,6 +502,9 @@ function handleCorrectInput() {
 		insertCharacterLogs();
 
 		function getCharWpm() {
+			if (index === 0 && wordIndex === 0) {
+				return null;
+			}
 			return parseFloat((60 / duration / 5).toFixed(2));
 		}
 		function insertCharacterLogs() {
@@ -651,9 +660,10 @@ function fillInitialData() {
 }
 
 async function handleEndSession(time: number) {
+	loading.value = true;
 	const metadata = currentMetadata.value;
 	if (metadata.currentWordMetadata.type === 'word') {
-		insertWord(metadata.currentWord);
+		insertWord(metadata.currentWord); // end word
 		pushWordLogs();
 	}
 	fillFinalIntervalValues();
@@ -671,6 +681,7 @@ async function handleEndSession(time: number) {
 	setShowResults();
 	console.log(pastSessions.value);
 	fetchWords();
+	loading.value = false;
 }
 
 function fillSessionIdToLogs() {
@@ -703,7 +714,12 @@ function fillFinalIntervalValues() {
 		getTotalCharactersInLastFiveSeconds(),
 		durationRaw
 	);
-	insertChartDataLog(wpm, intervalError, durationSeconds, rawWpm);
+	if(selectedMode.value === 'word'){
+		insertChartDataLog(wpm, intervalError, durationSeconds, rawWpm);
+	}else if(selectedMode.value === 'time'){
+		insertChartDataLog(wpm, intervalError, selectedDuration.value, rawWpm);
+	}
+	
 	pushIntervalLogs(
 		wpm,
 		intervalError,
@@ -908,9 +924,13 @@ function fillFinalData(time: number) {
 	sessionsInsertData.end_time = new Date(time)
 		.toISOString()
 		.toLocaleString();
-	sessionsInsertData.duration = parseFloat(
-		(elapsedTime / 1000).toFixed(2)
-	);
+	if (selectedMode.value === 'word') {
+		sessionsInsertData.duration = parseFloat(
+			(elapsedTime / 1000).toFixed(2)
+		);
+	} else if (selectedMode.value === 'time') {
+		sessionsInsertData.duration = selectedDuration.value;
+	}
 	sessionsInsertData.words = collectedWords;
 	sessionsInsertData.total_words = getTotalWords();
 	sessionsInsertData.xp_gains = parseFloat(
@@ -1212,7 +1232,7 @@ onMounted(() => {
 //redirect to login
 watchEffect(async () => {
 	if (!user.value) {
-		router.push('/login')
+		router.push('/login');
 	}
 });
 
@@ -1243,24 +1263,24 @@ async function getProfile(userId: string) {
 }
 
 // pure functions and checkers
-function getTotalWords(): number | undefined {
+function getTotalWords(): number {
 	if (selectedMode.value === 'word') {
-		return words.value?.num_words;
+		return collectedWords.length;
 	} else if (selectedMode.value === 'time') {
-		console.log('time not implemented yet');
-		return totalWordsCount;
+		return collectedWords.length;
 	}
-	console.log('total words not found');
+	console.log(`mode: ${selectedMode.value} not supported`);
+	return 0;
 }
 
-function getTotalCharacters(): number | undefined {
+function getTotalCharacters(): number {
 	if (selectedMode.value === 'word') {
-		return words.value?.num_characters;
+		return characterLogs.length;
 	} else if (selectedMode.value === 'time') {
-		console.log('time not implemented yet');
-		return totalCharactersCount;
+		return characterLogs.length;
 	}
-	console.log('total characters not found');
+	console.log(`mode: ${selectedMode.value} not supported`);
+	return 0;
 }
 
 function getDuration() {
@@ -1296,15 +1316,22 @@ function isStartSession() {
 }
 
 function isEndSession() {
-	const metadata = currentMetadata.value;
-	const currentWordLocation = metadata.currentWordLocation;
-	const currentCharLocation = metadata.currentCharLocation;
-	const currentWordLength = metadata.currentWordLength;
+	if (selectedMode.value === 'word') {
+		const metadata = currentMetadata.value;
+		const currentWordLocation = metadata.currentWordLocation;
+		const currentCharLocation = metadata.currentCharLocation;
+		const currentWordLength = metadata.currentWordLength;
 
-	return (
-		currentWordLocation === allData.value.length - 1 &&
-		currentCharLocation === currentWordLength - 1
-	);
+		return (
+			currentWordLocation === allData.value.length - 1 &&
+			currentCharLocation === currentWordLength - 1
+		);
+	} else if (selectedMode.value === 'time') {
+		return intervalCount === selectedDuration.value;
+	} else {
+		console.log(`${selectedMode.value} not supported`);
+		return false;
+	}
 }
 
 function isEndWord() {
