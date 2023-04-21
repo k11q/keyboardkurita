@@ -18,6 +18,7 @@
 			:current-active="currentActive"
 			:current-word-num="currentWordNum"
 			:correct-char-index="correctCharIndex"
+			:line-counter="translatedLines"
 			@button-click="
 				currentActive &&
 				currentActive.id === 'MasterInput'
@@ -246,6 +247,16 @@ const currentSelectionData = computed(() => {
 //manage carot
 const CARETLEFT = ref(0);
 const CARETTOP = ref(0);
+
+// counters managing auto-scroll and infinite words
+const lineCounter = ref(1);
+const translatedLines = computed(()=>{
+	if(lineCounter.value <= 2){
+		return 0
+	}
+	return lineCounter.value - 2
+})
+let oldTop: number;
 
 //temporary placeholder for db
 const pastSessions: globalThis.Ref<SessionsInsert[]> = ref([]);
@@ -525,6 +536,13 @@ function handleCorrectInput() {
 		}
 	}
 }
+
+watch([CARETTOP], () => {
+	if (CARETTOP.value > oldTop && oldTop !== 0) {
+		handleNewLine();
+	}
+	oldTop = CARETTOP.value;
+});
 function getCharDuration(time: number) {
 	return (time - finalKeydown) / 1000;
 }
@@ -905,6 +923,8 @@ function resetCounters() {
 	totalCharactersCount = 0;
 	intervalCharacterCount = 0;
 	characterCountPerFiveSeconds = [];
+	lineCounter.value = 1;
+	oldTop = 0;
 	chartData = { wpm: [], error: [], raw: [], time: [] };
 }
 
@@ -1221,6 +1241,9 @@ onMounted(() => {
 
 			CARETLEFT.value = rect.left;
 			CARETTOP.value = rect.top;
+			if(!oldTop){
+				oldTop = CARETTOP.value
+			}
 			currentActive.value = document.activeElement;
 		}
 		requestAnimationFrame(setCaretPosition);
@@ -1337,5 +1360,10 @@ function isEndWord() {
 	const currentWordLength = currentMetadata.value.currentWordLength;
 
 	return currentCharLocation === currentWordLength - 1;
+}
+
+function handleNewLine() {
+	lineCounter.value += 1;
+	console.log(lineCounter.value);
 }
 </script>

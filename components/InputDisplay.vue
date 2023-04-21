@@ -7,6 +7,7 @@
         class="w-full max-w-6xl px-6 mb-20 h-[162px] overflow-hidden flex-none"
         @click.prevent.stop="emit('buttonClick')"
       >
+      <div :style="`transform: translateY(${props.lineCounter*-54}px)`">
         <template v-for="(word, index) in props.allData" :key="index">
           <span>
             <span
@@ -18,6 +19,7 @@
             </span>
           </span>
         </template>
+      </div>
       </div>
     </div>
     <div class="relative h-0 w-full flex justify-center">
@@ -35,6 +37,7 @@ const props = defineProps({
   currentActive: Object,
   currentWordNum: Number,
   correctCharIndex: Number,
+  lineCounter: Number,
 });
 
 const getClass = (char, index, charIndex) => {
