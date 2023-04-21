@@ -373,11 +373,9 @@ async function fetchFreshWords() {
 }
 
 async function getWords() {
-	let num: number;
+	let num = 50;
 	if (selectedMode.value === 'word') {
 		num = selectedWords.value | 10;
-	} else {
-		num = 50;
 	}
 	const { data } = await useFetch(`api/languages`, {
 		query: {
@@ -399,7 +397,7 @@ function resetEverything() {
 
 function fillData() {
 	if (!words.value || !words.value.all_data) {
-		console.log(
+		console.error(
 			'Error: fillData():\
 			No all_data found from returned words.value\
 			or words.value doesnt exist.'
@@ -416,8 +414,7 @@ function handleKeydown(e: KeyboardEvent) {
 	const key = e.key;
 	// tab used to start new game
 	if (key === 'Tab') {
-		sessionRunning.value = false;
-		fetchWords();
+		handleQuickRestart();
 	} else if (isBackspace(e)) {
 		handleBackspace();
 	} else if (isRestrictedKeys(e)) {
@@ -425,6 +422,11 @@ function handleKeydown(e: KeyboardEvent) {
 	} else {
 		handleInput(key);
 	}
+}
+
+function handleQuickRestart() {
+	sessionRunning.value = false;
+	fetchWords();
 }
 
 function handleInput(key: string) {
@@ -450,14 +452,14 @@ function incrementTotalCharactersCount() {
 
 function handleCorrectInput() {
 	const time = Date.now();
-
-	deleteExtras();
 	const duration = getCharDuration(time);
 	const status = getStatus();
+
+	deleteExtras();
 	incrementIntervalCharacterCount();
 	incrementTotalCorrectsCount();
 	updateCurrentCharacterObject();
-	if (currentMetadata.value.currentWordType != 'separator') {
+	if (currentMetadata.value.currentWordType !== 'separator') {
 		pushCharacterLogs();
 	}
 	if (isEndSession()) {
@@ -522,10 +524,11 @@ function handleCorrectInput() {
 			characterLogs.push(updatedCharObject);
 		}
 	}
-	function getCharDuration(time: number) {
-		return (time - finalKeydown) / 1000;
-	}
 }
+function getCharDuration(time: number) {
+	return (time - finalKeydown) / 1000;
+}
+
 function resetCurrentIncorrect() {
 	currentIncorrect = false;
 }
@@ -589,15 +592,16 @@ function incrementIntervalError(): void {
 
 // function to delete extra values
 function deleteExtras(): void {
-	const metadata = currentMetadata.value;
 	const totalExtras = getExtrasCount();
-
-	if (totalExtras > 0) {
-		allData.value[metadata.currentWordLocation]?.characters.splice(
-			metadata.currentCharLocation,
-			totalExtras
-		);
+	if (totalExtras <= 0) {
+		return;
 	}
+	const metadata = currentMetadata.value;
+
+	allData.value[metadata.currentWordLocation]?.characters.splice(
+		metadata.currentCharLocation,
+		totalExtras
+	);
 }
 
 function getExtrasCount(): number {
@@ -669,7 +673,6 @@ async function handleEndSession(time: number) {
 	fillFinalIntervalValues();
 	fillFinalData(time);
 	sessionRunning.value = false;
-	// [TEMPORARY] fill the array instead of pushing to db
 	pastSessions.value = []; // clear it first
 	pastSessions.value.push(JSON.parse(JSON.stringify(sessionsInsertData)));
 	if (PROFILE.value && USERNAME.value) {
@@ -689,7 +692,9 @@ function fillSessionIdToLogs() {
 	addSessionIdToLogs(intervalLogs);
 }
 
-function addSessionIdToLogs(logs) {
+function addSessionIdToLogs(
+	logs: CharacterLogsInsert[] | WordLogsInsert[] | IntervalLogsInsert[]
+) {
 	logs.forEach((log) => {
 		log.session_id = sessionId;
 	});
@@ -964,7 +969,7 @@ function getWpm(totalAchievedCharacters: number, elapsedTime: number) {
 	);
 }
 
-function spliceUntilIndex(arr, index) {
+function spliceUntilIndex(arr: WordMetadata[], index: number) {
 	const spliceIndex = arr.findIndex((obj) => obj.index === index);
 	return arr.splice(0, spliceIndex + 1);
 }
@@ -997,7 +1002,7 @@ function getConsistency(chartData: ChartData) {
 async function insertSessionToDatabase() {
 	const { data, error } = await client
 		.from('sessions')
-		.insert({ ...sessionsInsertData })
+		.insert(sessionsInsertData)
 		.select();
 	if (error) {
 		console.error(error);
@@ -1049,30 +1054,12 @@ async function insertLogsToDatabase() {
 				intervalLogsResult.error
 			);
 		}
-
-		// Logs inserted successfully
-		console.log('CharLogs inserted:', charLogsResult.data);
-		console.log('WordLogs inserted:', wordLogsResult.data);
-		console.log('IntervalLogs inserted:', intervalLogsResult.data);
 	} catch (error) {
 		console.error('Error inserting logs:', error);
 	}
 }
 
-// ui functions
-function changeDifficulty(e: Event) {
-	const element = e.target as HTMLSelectElement;
-	const difficulty = element.value as DifficultyOptions;
-	selectedDifficulty.value = difficulty;
-}
-
-function changeKey(e: Event) {
-	const element = e.target as HTMLSelectElement;
-	const key = element.value;
-	selectedKey.value = key;
-}
-
-// watcher to get frash data when any mode/settings changed
+// watcher to get fresh data when any mode/settings changed
 watch(
 	[
 		selectedDifficulty,
@@ -1130,17 +1117,14 @@ function updateWPM() {
 	resetIntervalCharacterCount();
 	resetIntervalError();
 	timeoutId = setTimeout(updateWPM, 1000); // Log the values every second
-	function setIntervalValuesOnFinishedSession() {
-		if (pastSessions.value.length) {
-			liveRawWpm.value =
-				pastSessions.value[
-					pastSessions.value.length - 1
-				].raw;
-			liveWpm.value =
-				pastSessions.value[
-					pastSessions.value.length - 1
-				].wpm;
-		}
+}
+
+function setIntervalValuesOnFinishedSession() {
+	if (pastSessions.value.length) {
+		liveRawWpm.value =
+			pastSessions.value[pastSessions.value.length - 1].raw;
+		liveWpm.value =
+			pastSessions.value[pastSessions.value.length - 1].wpm;
 	}
 }
 
@@ -1184,26 +1168,21 @@ function pushIntervalLogs(
 ) {
 	const characterIndex = currentMetadata.value.currentCorrectCharLocation;
 	const wordIndex = currentMetadata.value.currentWordMetadata.index;
-	let misses = 0;
+	const misses = 0;
 	let sessionId: number;
 
-	insertIntervalLogs();
-	function insertIntervalLogs() {
-		const updatedIntervalLogObject = {
-			character_index: characterIndex,
-			word_index: wordIndex,
-			time_from_start: timeFromStart,
-			wpm,
-			session_id: sessionId,
-			misses,
-			errors,
-			raw,
-			log_time: new Date(logTime)
-				.toISOString()
-				.toLocaleString(),
-		};
-		intervalLogs.push(updatedIntervalLogObject);
-	}
+	const updatedIntervalLogObject = {
+		character_index: characterIndex,
+		word_index: wordIndex,
+		time_from_start: timeFromStart,
+		wpm,
+		session_id: sessionId,
+		misses,
+		errors,
+		raw,
+		log_time: new Date(logTime).toISOString().toLocaleString(),
+	};
+	intervalLogs.push(updatedIntervalLogObject);
 }
 
 function incrementIntervalCount(): void {

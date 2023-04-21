@@ -4,7 +4,7 @@
       :class="`pointer-events-none flex items-center justify-center font-mono transition-all ease-linear duration-1000 rounded-[32px] w-full left-0 right-0 text-4xl leading-[54px]`"
     >
       <div
-        class="w-full max-w-6xl px-6 mb-20 h-[14rem] flex-none"
+        class="w-full max-w-6xl px-6 mb-20 h-[162px] overflow-hidden flex-none"
         @click.prevent.stop="emit('buttonClick')"
       >
         <template v-for="(word, index) in props.allData" :key="index">
