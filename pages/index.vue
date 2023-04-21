@@ -18,7 +18,8 @@
 			:current-active="currentActive"
 			:current-word-num="currentWordNum"
 			:correct-char-index="correctCharIndex"
-			:line-counter="translatedLines"
+			:start-display-index="currentStartDisplayWordIndex"
+			:end-display-index="currentEndDisplayWordIndex"
 			@button-click="
 				currentActive &&
 				currentActive.id === 'MasterInput'
@@ -250,12 +251,11 @@ const CARETTOP = ref(0);
 
 // counters managing auto-scroll and infinite words
 const lineCounter = ref(1);
-const translatedLines = computed(()=>{
-	if(lineCounter.value <= 2){
-		return 0
-	}
-	return lineCounter.value - 2
-})
+const currentStartDisplayWordIndex = ref(0);
+let startSecondLineWordIndex = 0;
+const currentEndDisplayWordIndex = computed(() => {
+	return currentStartDisplayWordIndex.value + 100;
+});
 let oldTop: number;
 
 //temporary placeholder for db
@@ -384,7 +384,7 @@ async function fetchFreshWords() {
 }
 
 async function getWords() {
-	let num = 50;
+	let num = 100;
 	if (selectedMode.value === 'word') {
 		num = selectedWords.value | 10;
 	}
@@ -925,6 +925,8 @@ function resetCounters() {
 	characterCountPerFiveSeconds = [];
 	lineCounter.value = 1;
 	oldTop = 0;
+	currentStartDisplayWordIndex.value = 0;
+	startSecondLineWordIndex = 0;
 	chartData = { wpm: [], error: [], raw: [], time: [] };
 }
 
@@ -1241,8 +1243,8 @@ onMounted(() => {
 
 			CARETLEFT.value = rect.left;
 			CARETTOP.value = rect.top;
-			if(!oldTop){
-				oldTop = CARETTOP.value
+			if (!oldTop) {
+				oldTop = CARETTOP.value;
 			}
 			currentActive.value = document.activeElement;
 		}
@@ -1365,5 +1367,10 @@ function isEndWord() {
 function handleNewLine() {
 	lineCounter.value += 1;
 	console.log(lineCounter.value);
+	if (lineCounter.value >= 2) {
+		currentStartDisplayWordIndex.value = startSecondLineWordIndex;
+		console.log(currentStartDisplayWordIndex.value);
+	}
+	startSecondLineWordIndex = currentMetadata.value.currentWordMetadata.index;
 }
 </script>

@@ -7,9 +7,9 @@
         class="w-full max-w-6xl px-6 mb-20 h-[162px] overflow-hidden flex-none"
         @click.prevent.stop="emit('buttonClick')"
       >
-      <div :style="`transform: translateY(${props.lineCounter*-54}px)`">
+      <div>
         <template v-for="(word, index) in props.allData" :key="index">
-          <span>
+          <span v-if="word.index >= props.startDisplayIndex && word.index <= props.startDisplayIndex+40">
             <span
               v-for="(char, charIndex) in word.characters"
               :key="charIndex"
@@ -37,7 +37,8 @@ const props = defineProps({
   currentActive: Object,
   currentWordNum: Number,
   correctCharIndex: Number,
-  lineCounter: Number,
+  startDisplayIndex: Number,
+  endDisplayIndex: Number,
 });
 
 const getClass = (char, index, charIndex) => {
