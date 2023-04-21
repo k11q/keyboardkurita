@@ -675,13 +675,13 @@ async function handleEndSession(time: number) {
 	sessionRunning.value = false;
 	pastSessions.value = []; // clear it first
 	pastSessions.value.push(JSON.parse(JSON.stringify(sessionsInsertData)));
+	setShowResults();
 	if (PROFILE.value && USERNAME.value) {
 		const insertedSession = await insertSessionToDatabase();
 		sessionId = insertedSession[0].id;
 		fillSessionIdToLogs();
 		insertLogsToDatabase();
 	}
-	setShowResults();
 	fetchWords();
 	loading.value = false;
 }
