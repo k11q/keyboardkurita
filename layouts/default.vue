@@ -2,11 +2,6 @@
 useHead({
 	script: [
 		{
-			'data-token': 'a80211cd-14e0-406b-81fa-d0e2c17b27c8',
-			src: 'https://beamanalytics.b-cdn.net/beam.min.js',
-			async: true,
-		},
-		{
 			'data-website-id':
 				'7d589b8b-c758-483e-831b-beebaf9976e4',
 			src: 'https://umami-production-134d.up.railway.app/umami.js',

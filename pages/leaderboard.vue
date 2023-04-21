@@ -235,7 +235,7 @@
 								<div>
 									{{
 										session.username
-									}}<span class="text-neutral-500">- {{ session.duration }}s</span>
+									}}<span class="text-neutral-500"> - {{ session.duration }}s</span>
 								</div>
 							</td>
 							<td
