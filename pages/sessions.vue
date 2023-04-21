@@ -53,7 +53,7 @@
 							/>
 							<div>{{
 										session.username
-									}}</div>
+									}} <span class="text-neutral-500">- {{ session.mode }} - {{ session.mode === 'word' ? session.total_words : `${session.duration}s` }}</span></div>
 						</td>
 						<td class="flex items-center pr-0 py-0 pl-2">
 							<div>{{

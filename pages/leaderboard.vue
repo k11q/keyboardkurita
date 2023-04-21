@@ -85,7 +85,7 @@
 								<div>
 									{{
 										session.username
-									}}
+									}} <span class="text-neutral-500">- {{ session.total_words }}</span>
 								</div>
 							</td>
 							<td
@@ -235,7 +235,7 @@
 								<div>
 									{{
 										session.username
-									}}
+									}}<span class="text-neutral-500">- {{ session.duration }}s</span>
 								</div>
 							</td>
 							<td
