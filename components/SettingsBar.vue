@@ -32,6 +32,7 @@
 			>
 				<select
 					v-if="mode === 'time'"
+					v-model="selectedDuration"
 					style="
 					all: unset;
 					position: absolute;
@@ -189,6 +190,7 @@ const {
 	difficulty: selectedDifficulty,
 	mode,
 	key: selectedKey,
+	duration: selectedDuration,
 	dataset: selectedDataset,
 	durationOptions,
 	keyOptions,

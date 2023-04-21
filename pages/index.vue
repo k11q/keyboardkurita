@@ -679,7 +679,6 @@ async function handleEndSession(time: number) {
 		insertLogsToDatabase();
 	}
 	setShowResults();
-	console.log(pastSessions.value);
 	fetchWords();
 	loading.value = false;
 }
