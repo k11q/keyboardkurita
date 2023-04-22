@@ -1,7 +1,9 @@
+import type {Database} from './database.types';
+
 type DifficultyOptions = 'easy' | 'medium' | 'hard' | 'extra_hard';
 type ModesOptions = 'word' | 'time' | 'infinity';
-type ConfigDurationOptions = 10 | 20 | 30 | 60 | undefined;
-type ConfigTotalWordsOptions = 10 | 25 | 50 | undefined;
+type ConfigDurationOptions = 10 | 20 | 30 | 60 | null;
+type ConfigTotalWordsOptions = 10 | 25 | 50 | null;
 type ConfigSelectionOptions = 'english_50k' | 'supabase-docs' | 'supabase code';
 type CharLogStatus = 'error' | 'correct' | 'pending' | 'extra';
 type WordLogStatus = 'error' | 'correct' | 'incomplete' | 'skipped'
@@ -58,6 +60,23 @@ type WordMetadata = {
 	index: number;
 };
 
+//db types
+type SessionsInsert = Database['public']['Tables']['sessions']['Insert'];
+type IntervalLogsInsert =
+	Database['public']['Tables']['interval_logs']['Insert'];
+type CharacterLogsInsertInferred =
+	Database['public']['Tables']['character_logs']['Insert'];
+type CharacterLogsInsert = {
+	[K in keyof CharacterLogsInsertInferred]: K extends 'status'
+	? CharLogStatus : CharacterLogsInsertInferred[K];
+	};
+type WordLogsInsertInferred =
+	Database['public']['Tables']['word_logs']['Insert'];
+type WordLogsInsert = {
+	[K in keyof WordLogsInsertInferred]: K extends 'status'
+	? WordLogStatus : WordLogsInsertInferred[K];
+      };
+
 export {
 	DifficultyOptions,
 	ModesOptions,
@@ -73,4 +92,8 @@ export {
 	CharacterPerformance,
 	InputMetadata,
 	KeystrokeLog,
+	SessionsInsert,
+	IntervalLogsInsert,
+	CharacterLogsInsert,
+	WordLogsInsert
 };

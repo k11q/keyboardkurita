@@ -101,12 +101,6 @@ import {
 	MODES,
 	DATASETS,
 } from '@/stores/home';
-import type {
-	SessionsInsert,
-	CharacterLogsInsert,
-	WordLogsInsert,
-	IntervalLogsInsert,
-} from '../utils/db/sessions';
 import { format } from 'date-fns';
 import { storeToRefs } from 'pinia';
 import type {
@@ -123,6 +117,10 @@ import type {
 	InputMetadata,
 	KeystrokeLog,
 	WordLogStatus,
+	SessionsInsert,
+	CharacterLogsInsert,
+	WordLogsInsert,
+	IntervalLogsInsert,
 } from '@/types';
 import { calculateRawWPM, calculateWPM, focusInput } from '@/utils/input';
 import type { Database } from '~/types/database.types';
@@ -344,20 +342,6 @@ const currentCharacterStartTime: WritableComputedRef<string> = computed({
 	},
 });
 
-// writable computed ref is used for write only, get is gotten from currentmetadata.
-const currentCharacterDuration: WritableComputedRef<number> = computed({
-	get: (): number => {
-		return allData.value[currentWordNum.value].characters[
-			currentCharNum.value
-		].duration;
-	},
-	set: (newValue: number): void => {
-		allData.value[currentWordNum.value].characters[
-			currentCharNum.value
-		].duration = newValue;
-	},
-});
-
 //
 async function fetchWords() {
 	loading.value = true;
@@ -387,7 +371,7 @@ async function fetchFreshWords() {
 async function getWords() {
 	let num = 100;
 	if (selectedMode.value === 'word') {
-		num = selectedWords.value | 10;
+		num = selectedWords.value ?? 10;
 	}
 	const { data } = await useFetch(`api/languages`, {
 		query: {
@@ -420,16 +404,18 @@ function fillData() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-	if (loading.value || !allData.value.length) {
-		return;
-	}
+	if (loading.value || !allData.value.length) return;
 	const key = e.key;
 	// tab used to start new game
 	if (key === 'Tab') {
 		handleQuickRestart();
+	} else if (isShiftBackspace(e)) {
+		handleShiftBackspace();
 	} else if (isBackspace(e)) {
 		handleBackspace();
 	} else if (isRestrictedKeys(e)) {
+		e.preventDefault();
+		e.stopPropagation();
 		console.log('Keydown unhandled! Restricted key: ', key);
 	} else {
 		handleInput(key);
@@ -631,6 +617,34 @@ function getExtrasCount(): number {
 	);
 }
 
+function handleShiftBackspace() {
+	if (isStartSession()) return;
+	const wordIndex = currentWordNum.value;
+	const currentWordMetadata = currentMetadata.value.currentWordMetadata;
+	for (let i = correctCharIndex.value; i >= 0; i--) {
+		if (currentWordMetadata.characters[i].status === 'extra') {
+			currentWordMetadata.characters.splice(i, 1);
+		} else resetCharMetadata(wordIndex, i);
+	}
+	currentCharNum.value = 0;
+	correctCharIndex.value = 0;
+	currentIncorrect = false;
+}
+
+function resetCharMetadata(wordIndex: number, charIndex: number) {
+	const updatedCharMetadata: CharacterMetadata = {
+		character: allData.value[wordIndex].characters[charIndex]
+			.character,
+		char_index: charIndex,
+		word_index: wordIndex,
+		status: 'pending',
+	};
+	Object.assign(
+		allData.value[wordIndex].characters[charIndex],
+		updatedCharMetadata
+	);
+}
+
 function handleBackspace() {
 	if (isStartSession()) return;
 	if (freedomMode.value === 'on') {
@@ -641,18 +655,27 @@ function handleBackspace() {
 }
 
 function handleBackspaceFreedomModeOff() {
-	if (
-		allData.value.length &&
-		allData.value[currentWordNum.value].characters[
-			correctCharIndex.value - 1
-		].status === 'extra'
-	) {
-		allData.value[currentWordNum.value].characters.splice(
-			correctCharIndex.value - 1,
+	if (correctCharIndex.value === 0) return;
+	resetPrevCharMetadata();
+	return;
+}
+
+function resetPrevCharMetadata() {
+	const prevCharIndex = correctCharIndex.value - 1;
+	const prevCharMetadata =
+		currentMetadata.value.currentWordMetadata.characters[
+			prevCharIndex
+		];
+	if (prevCharMetadata.status === 'extra') {
+		currentMetadata.value.currentWordMetadata.characters.splice(
+			prevCharIndex,
 			1
 		);
-		correctCharIndex.value--;
+	} else {
+		prevCharMetadata.status = 'pending';
+		currentCharNum.value--;
 	}
+	correctCharIndex.value--;
 }
 
 function handleBackspaceFreedomModeOn() {
@@ -702,13 +725,14 @@ async function handleEndSession(time: number) {
 	sessionRunning.value = false;
 	pastSessions.value = []; // clear it first
 	pastSessions.value.push(JSON.parse(JSON.stringify(sessionsInsertData)));
-	setShowResults();
+	// push to db
 	if (PROFILE.value && USERNAME.value) {
 		const insertedSession = await insertSessionToDatabase();
 		sessionId = insertedSession[0].id;
 		fillSessionIdToLogs();
 		insertLogsToDatabase();
 	}
+	setShowResults();
 	fetchWords();
 	loading.value = false;
 }
@@ -961,16 +985,8 @@ function fillFinalData(time: number) {
 	);
 	sessionsInsertData.raw = getRaw(totalCharactersCount, elapsedTime);
 	sessionsInsertData.consistency = getConsistency(chartData);
-	sessionsInsertData.end_time = new Date(time)
-		.toISOString()
-		.toLocaleString();
-	if (selectedMode.value === 'word') {
-		sessionsInsertData.duration = parseFloat(
-			(elapsedTime / 1000).toFixed(2)
-		);
-	} else if (selectedMode.value === 'time') {
-		sessionsInsertData.duration = selectedDuration.value;
-	}
+	sessionsInsertData.end_time = formatLocaleTime(time);
+	sessionsInsertData.duration = getDuration(elapsedTime);
 	sessionsInsertData.words = collectedWords;
 	sessionsInsertData.total_words = getTotalWords();
 	sessionsInsertData.xp_gains = parseFloat(
@@ -1314,14 +1330,12 @@ function getTotalCharacters(): number {
 	return 0;
 }
 
-function getDuration() {
+function getDuration(elapsedTime: number) {
 	if (selectedMode.value === 'word') {
-		return words.value?.num_words;
-	} else if (selectedMode.value === 'time') {
-		console.log('time not implemented yet');
-		return totalWordsCount;
+		return parseFloat((elapsedTime / 1000).toFixed(2));
+	} else {
+		return selectedDuration.value as number;
 	}
-	console.log('total words not found');
 }
 
 function isRestrictedKeys(e: KeyboardEvent) {
@@ -1333,8 +1347,12 @@ function isRestrictedKeys(e: KeyboardEvent) {
 	);
 }
 
+function isShiftBackspace(e: KeyboardEvent) {
+	return e.shiftKey && (e.keyCode === 8 || e.keyCode === 46);
+}
+
 function isBackspace(e: KeyboardEvent) {
-	return e.keyCode == 8 || e.keyCode === 46;
+	return e.keyCode === 8 || e.keyCode === 46;
 }
 
 function isStartSession() {
@@ -1348,21 +1366,26 @@ function isStartSession() {
 
 function isEndSession() {
 	if (selectedMode.value === 'word') {
-		const metadata = currentMetadata.value;
-		const currentWordLocation = metadata.currentWordLocation;
-		const currentCharLocation = metadata.currentCharLocation;
-		const currentWordLength = metadata.currentWordLength;
-
-		return (
-			currentWordLocation === allData.value.length - 1 &&
-			currentCharLocation === currentWordLength - 1
-		);
-	} else if (selectedMode.value === 'time') {
-		return intervalCount === selectedDuration.value;
+		return isEndSessionModeWord();
 	} else {
-		console.log(`${selectedMode.value} not supported`);
-		return false;
+		return isEndSessionModeTime();
 	}
+}
+
+function isEndSessionModeWord() {
+	const metadata = currentMetadata.value;
+	const currentWordLocation = metadata.currentWordLocation;
+	const currentCharLocation = metadata.currentCharLocation;
+	const currentWordLength = metadata.currentWordLength;
+
+	return (
+		currentWordLocation === allData.value.length - 1 &&
+		currentCharLocation === currentWordLength - 1
+	);
+}
+
+function isEndSessionModeTime() {
+	return intervalCount === selectedDuration.value;
 }
 
 function isEndWord() {
@@ -1381,5 +1404,9 @@ function handleNewLine() {
 	}
 	startSecondLineWordIndex =
 		currentMetadata.value.currentWordMetadata.index;
+}
+
+function formatLocaleTime(time: number) {
+	return new Date(time).toISOString().toLocaleString();
 }
 </script>
