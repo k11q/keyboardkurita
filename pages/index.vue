@@ -159,6 +159,7 @@ const {
 	showTimerProgress,
 	punctuation,
 	numbers,
+	freedomMode,
 } = storeToRefs(store);
 
 // collected data, we use this to pass to the final object before inserting to db
@@ -631,9 +632,15 @@ function getExtrasCount(): number {
 }
 
 function handleBackspace() {
-	if (isStartSession()) {
-		return;
+	if (isStartSession()) return;
+	if (freedomMode.value === 'on') {
+		handleBackspaceFreedomModeOn();
+	} else {
+		handleBackspaceFreedomModeOff();
 	}
+}
+
+function handleBackspaceFreedomModeOff() {
 	if (
 		allData.value.length &&
 		allData.value[currentWordNum.value].characters[
@@ -646,6 +653,10 @@ function handleBackspace() {
 		);
 		correctCharIndex.value--;
 	}
+}
+
+function handleBackspaceFreedomModeOn() {
+	console.log('handling backspace with freedom mode: on');
 }
 
 function handleStartSession() {
@@ -684,10 +695,8 @@ function fillInitialData() {
 async function handleEndSession(time: number) {
 	loading.value = true;
 	const metadata = currentMetadata.value;
-	if (metadata.currentWordMetadata.type === 'word') {
-		insertWord(metadata.currentWord); // end word
-		pushWordLogs();
-	}
+	insertWord(metadata.currentWord);
+	pushWordLogs();
 	fillFinalIntervalValues();
 	fillFinalData(time);
 	sessionRunning.value = false;
@@ -1280,7 +1289,6 @@ async function getProfile(userId: string) {
 	}
 	if (data) {
 		USERNAME.value = data.username;
-		console.log(USERNAME.value);
 	}
 	return data;
 }
@@ -1371,6 +1379,7 @@ function handleNewLine() {
 		currentStartDisplayWordIndex.value = startSecondLineWordIndex;
 		console.log(currentStartDisplayWordIndex.value);
 	}
-	startSecondLineWordIndex = currentMetadata.value.currentWordMetadata.index;
+	startSecondLineWordIndex =
+		currentMetadata.value.currentWordMetadata.index;
 }
 </script>

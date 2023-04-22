@@ -515,6 +515,7 @@ export const useHomeStore = defineStore('counter', () => {
 				},
 				{
 					title: 'Freedom mode',
+					value: 'freedomMode',
 					description:
 						'Allow you to delete any characters including correct ones',
 					selected: 'off',
@@ -701,6 +702,19 @@ export const useHomeStore = defineStore('counter', () => {
 		},
 	});
 
+	const freedomMode: WritableComputedRef<'on' | 'off'> = computed({
+		get: (): 'on' | 'off' => {
+			return settings.value[1].settings.find(
+				(i) => i.value === 'freedomMode'
+			)!.selected;
+		},
+		set: (newValue): void => {
+			settings.value[1].settings.find(
+				(i) => i.title === 'freedomMode'
+			).selected = newValue;
+		},
+	});
+
 	const durationOptions = computed(()=>{
 		return settings.value[0].settings.find(
 			(i) => i.title === 'Duration'
@@ -766,6 +780,6 @@ export const useHomeStore = defineStore('counter', () => {
 		punctuation,
 		numbers,
 		settings,
-
+		freedomMode,
 	};
 });
