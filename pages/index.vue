@@ -449,6 +449,10 @@ function incrementTotalCharactersCount() {
 }
 
 function handleCorrectInput() {
+	deleteExtras();
+	incrementIntervalCharacterCount();
+	incrementTotalCorrectsCount();
+
 	const metadata = currentMetadata.value;
 	const currentCharMetadata = currentMetadata.value.currentCharMetadata;
 	const time = Date.now();
@@ -457,9 +461,6 @@ function handleCorrectInput() {
 	const index = metadata.currentCharLocation;
 	const wordIndex = metadata.currentWordMetadata.index;
 
-	deleteExtras();
-	incrementIntervalCharacterCount();
-	incrementTotalCorrectsCount();
 	updateCurrentCharacterObject();
 	if (isEndSession()) {
 		handleEndSession(time);
@@ -475,7 +476,7 @@ function handleCorrectInput() {
 	function updateCurrentCharacterObject() {
 		currentCharMetadata.end_time = formatLocaleTime(time);
 		currentCharMetadata.start_time = formatLocaleTime(finalKeydown);
-		currentCharacterStatus.value = status;
+		currentCharMetadata.status = status;
 		currentCharMetadata.duration = duration;
 		currentCharMetadata.wpm = getCharWpm() ?? undefined;
 	}
