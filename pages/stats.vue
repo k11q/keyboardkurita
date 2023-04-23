@@ -48,8 +48,15 @@ const formattedDuration = computed(() => {
 });
 
 function formatTime(seconds) {
-	const minutes = Math.floor(seconds / 60);
-	const remainingSeconds = Math.round(seconds % 60);
-	return `${minutes}mins ${remainingSeconds} seconds`;
+	const hours = Math.floor(seconds / 3600);
+	const remainingSecondsAfterHours = seconds % 3600;
+	const minutes = Math.floor(remainingSecondsAfterHours / 60);
+	const remainingSeconds = Math.round(remainingSecondsAfterHours % 60);
+
+	const hourString = hours === 1 ? 'hour' : 'hours';
+	const minuteString = minutes === 1 ? 'min' : 'mins';
+	const secondString = remainingSeconds === 1 ? 'second' : 'seconds';
+
+	return `${hours}${hourString} ${minutes}${minuteString} ${remainingSeconds}${secondString}`;
 }
 </script>
