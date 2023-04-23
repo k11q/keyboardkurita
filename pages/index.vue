@@ -409,8 +409,8 @@ function handleKeydown(e: KeyboardEvent) {
 	// tab used to start new game
 	if (key === 'Tab') {
 		handleQuickRestart();
-	} else if (isShiftBackspace(e)) {
-		handleShiftBackspace();
+	} else if (isCtrlBackspace(e)) {
+		handleCtrlBackspace();
 	} else if (isBackspace(e)) {
 		handleBackspace();
 	} else if (isRestrictedKeys(e)) {
@@ -580,7 +580,7 @@ function getExtrasCount(): number {
 	);
 }
 
-function handleShiftBackspace() {
+function handleCtrlBackspace() {
 	if (isStartSession()) return;
 	const wordIndex = currentWordNum.value;
 	const currentWordMetadata = currentMetadata.value.currentWordMetadata;
@@ -1316,8 +1316,8 @@ function isRestrictedKeys(e: KeyboardEvent) {
 	);
 }
 
-function isShiftBackspace(e: KeyboardEvent) {
-	return e.shiftKey && (e.keyCode === 8 || e.keyCode === 46);
+function isCtrlBackspace(e: KeyboardEvent) {
+	return e.ctrlKey && (e.keyCode === 8 || e.keyCode === 46);
 }
 
 function isBackspace(e: KeyboardEvent) {
