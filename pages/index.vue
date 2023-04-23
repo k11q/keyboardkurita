@@ -687,7 +687,7 @@ async function handleEndSession(time: number) {
 		insertWord(metadata.currentWord);
 		pushWordLogs();
 	}
-	fillFinalIntervalValues();
+	fillFinalIntervalValues(time);
 	fillFinalData(time);
 	sessionRunning.value = false;
 	pastSessions.value = []; // clear it first
@@ -728,10 +728,9 @@ function addSessionIdToLogs(
 	});
 }
 
-function fillFinalIntervalValues() {
+function fillFinalIntervalValues(time: number) {
 	insertCharacterCountPerSecond();
-	const currentTime = Date.now();
-	const elapsedTime = currentTime - startTime!;
+	const elapsedTime = time - startTime!;
 	let durationRaw;
 	if (elapsedTime < 5000) {
 		const wholeSeconds = Math.floor(elapsedTime / 1000);
@@ -762,7 +761,7 @@ function fillFinalIntervalValues() {
 		intervalError,
 		durationSeconds,
 		rawWpm,
-		currentTime
+		time
 	);
 }
 
@@ -1132,6 +1131,7 @@ function updateWPM() {
 		selectedMode.value === 'time' &&
 		elapsedTime >= selectedDuration.value * 1000
 	) {
+		incrementIntervalCount();
 		handleEndSession(logTime);
 		return;
 	}
