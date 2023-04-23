@@ -271,8 +271,8 @@ const currentMetadata: globalThis.ComputedRef<InputMetadata> = computed(() => {
 	const currentWordMetadata = allData.value[
 		currentWordLocation
 	] as WordMetadata;
-	const currentWordLength = allData.value[currentWordNum.value]?.characters
-		.length as number;
+	const currentWordLength = allData.value[currentWordNum.value]
+		?.characters.length as number;
 	const currentChar =
 		allData.value[currentWordNum.value]?.characters[
 			currentCharNum.value
@@ -682,8 +682,11 @@ function fillInitialData() {
 async function handleEndSession(time: number) {
 	loading.value = true;
 	const metadata = currentMetadata.value;
-	insertWord(metadata.currentWord);
-	pushWordLogs();
+	fillCharacterLogs()
+	if (metadata.currentWordMetadata.type !== 'separator') {
+		insertWord(metadata.currentWord);
+		pushWordLogs();
+	}
 	fillFinalIntervalValues();
 	fillFinalData(time);
 	sessionRunning.value = false;
@@ -701,13 +704,17 @@ async function handleEndSession(time: number) {
 	loading.value = false;
 }
 
-function fillSessionIdToLogs() {
+function fillCharacterLogs(){
 	allData.value.forEach((wordObj) => {
 		if (wordObj.type === 'separator') return;
-		wordObj.characters?.forEach(charObj=>{
+		wordObj.characters?.forEach((charObj) => {
+			if (charObj.status === 'pending') return;
 			characterLogs.push(charObj);
-		})
+		});
 	});
+}
+
+function fillSessionIdToLogs() {
 	addSessionIdToLogs(characterLogs);
 	addSessionIdToLogs(wordLogs);
 	addSessionIdToLogs(intervalLogs);
@@ -791,7 +798,9 @@ function pushWordLogs() {
 	const wpm = getWordWpm();
 	let session_id: number; // fill at the end
 
-	insertWordLogs();
+	if (wpm && duration) {
+		insertWordLogs();
+	}
 
 	function getWordIndex() {
 		return currentMetadata.value.currentWordMetadata.index;
