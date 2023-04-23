@@ -17,15 +17,3 @@ export type WordLogsInsert = {
 	[K in keyof WordLogsInsertInferred]: K extends 'status'
 	? WordLogStatus : WordLogsInsertInferred[K];
       };
-
-export async function insertSessions(insertData: SessionsInsert) {
-	const client = serverSupabaseClient(event);
-
-	const { data, error } = await client
-		.fro('sessions')
-		.insert(insertData);
-	if (error) {
-		return error;
-	}
-	return data;
-}

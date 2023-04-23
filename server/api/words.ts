@@ -234,9 +234,8 @@ function insertCharObject(
 	for (const char of characters) {
 		charData.push({
 			character: char,
-			timing: 0,
 			status: 'pending',
-			char_index: charCount,
+			index: charCount,
 			word_index: wordCount,
 		});
 		charCount++;
@@ -267,9 +266,8 @@ function insertSpacerObject(words: string[], wordCount: number) {
 		characters: [
 			{
 				character: ' ',
-				timing: 0,
 				status: 'pending',
-				char_index: 0,
+				index: 0,
 				word_index: wordCount,
 			},
 		],

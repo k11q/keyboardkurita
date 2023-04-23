@@ -49,15 +49,22 @@ type CharacterMetadata = {
 	end_time?: string;
 	start_time?: string;
 	status: CharLogStatus;
-	char_index: number;
+	index: number;
 	word_index: number;
 	duration?: number;
+	wpm?: number;
+	input?: string;
 };
 type WordMetadata = {
 	word: string;
-	characters: CharacterMetadata[];
+	characters?: CharacterMetadata[];
 	type: WordType;
 	index: number;
+	end_time?: string;
+	start_time?: string;
+	status?: CharLogStatus;
+	duration?: number;
+	wpm?: number;
 };
 
 //db types

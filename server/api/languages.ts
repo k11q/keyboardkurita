@@ -51,7 +51,7 @@ const insertSpacerObject = (
 				{
 					character: ' ',
 					status: 'pending',
-					char_index: 0,
+					index: 0,
 					word_index: i,
 				},
 			],
@@ -100,7 +100,7 @@ const generateWordsData = async (
 				return {
 					character,
 					status: 'pending',
-					char_index: charIndex,
+					index: charIndex,
 					word_index: index,
 				};
 			});

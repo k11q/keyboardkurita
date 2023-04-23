@@ -271,15 +271,15 @@ const currentMetadata: globalThis.ComputedRef<InputMetadata> = computed(() => {
 	const currentWordMetadata = allData.value[
 		currentWordLocation
 	] as WordMetadata;
-	const currentWordLength = allData.value[currentWordLocation]?.characters
+	const currentWordLength = allData.value[currentWordNum.value]?.characters
 		.length as number;
 	const currentChar =
-		allData.value[currentWordLocation]?.characters[
-			currentCharLocation
+		allData.value[currentWordNum.value]?.characters[
+			currentCharNum.value
 		]?.character;
 	const currentCharMetadata =
-		allData.value[currentWordLocation]?.characters[
-			currentCharLocation
+		allData.value[currentWordNum.value]?.characters[
+			currentCharNum.value
 		];
 	const currentWord = allData.value[currentWordLocation].word;
 	const currentCorrectChar =
@@ -449,17 +449,18 @@ function incrementTotalCharactersCount() {
 }
 
 function handleCorrectInput() {
+	const metadata = currentMetadata.value;
+	const currentCharMetadata = currentMetadata.value.currentCharMetadata;
 	const time = Date.now();
 	const duration = getCharDuration(time);
 	const status = getStatus();
+	const index = metadata.currentCharLocation;
+	const wordIndex = metadata.currentWordMetadata.index;
 
 	deleteExtras();
 	incrementIntervalCharacterCount();
 	incrementTotalCorrectsCount();
 	updateCurrentCharacterObject();
-	if (currentMetadata.value.currentWordType !== 'separator') {
-		pushCharacterLogs();
-	}
 	if (isEndSession()) {
 		handleEndSession(time);
 		return;
@@ -472,55 +473,17 @@ function handleCorrectInput() {
 	resetCurrentIncorrect();
 
 	function updateCurrentCharacterObject() {
-		currentCharacterEndTime.value = new Date(time)
-			.toISOString()
-			.toLocaleString();
-		currentCharacterStartTime.value = new Date(finalKeydown)
-			.toISOString()
-			.toLocaleString();
+		currentCharMetadata.end_time = formatLocaleTime(time);
+		currentCharMetadata.start_time = formatLocaleTime(finalKeydown);
 		currentCharacterStatus.value = status;
+		currentCharMetadata.duration = duration;
+		currentCharMetadata.wpm = getCharWpm() ?? undefined;
 	}
-	function pushCharacterLogs() {
-		//to push
-		const metadata = currentMetadata.value;
-		const index = metadata.currentCharLocation;
-		const character = metadata.currentChar;
-		const wordIndex = metadata.currentWordMetadata.index;
-		const startTime = new Date(finalKeydown)
-			.toISOString()
-			.toLocaleString();
-		const endTime = new Date(time).toISOString().toLocaleString();
-		const wpm = getCharWpm();
-		let session_id: number; // fill at the end
-
-		//checks
-		if (!character) {
-			return;
+	function getCharWpm() {
+		if (index === 0 && wordIndex === 0) {
+			return null;
 		}
-
-		// insert function
-		insertCharacterLogs();
-
-		function getCharWpm() {
-			if (index === 0 && wordIndex === 0) {
-				return null;
-			}
-			return parseFloat((60 / duration / 5).toFixed(2));
-		}
-		function insertCharacterLogs() {
-			const updatedCharObject = {
-				index,
-				character,
-				word_index: wordIndex,
-				start_time: startTime,
-				end_time: endTime,
-				duration: duration,
-				status,
-				wpm,
-				session_id,
-			};
-			characterLogs.push(updatedCharObject);
-		}
+		return parseFloat((60 / duration / 5).toFixed(2));
 	}
 }
 
@@ -635,7 +598,7 @@ function resetCharMetadata(wordIndex: number, charIndex: number) {
 	const updatedCharMetadata: CharacterMetadata = {
 		character: allData.value[wordIndex].characters[charIndex]
 			.character,
-		char_index: charIndex,
+		index: charIndex,
 		word_index: wordIndex,
 		status: 'pending',
 	};
@@ -738,6 +701,12 @@ async function handleEndSession(time: number) {
 }
 
 function fillSessionIdToLogs() {
+	allData.value.forEach((wordObj) => {
+		if (wordObj.type === 'separator') return;
+		wordObj.characters?.forEach(charObj=>{
+			characterLogs.push(charObj);
+		})
+	});
 	addSessionIdToLogs(characterLogs);
 	addSessionIdToLogs(wordLogs);
 	addSessionIdToLogs(intervalLogs);
