@@ -682,7 +682,7 @@ function fillInitialData() {
 async function handleEndSession(time: number) {
 	loading.value = true;
 	const metadata = currentMetadata.value;
-	fillCharacterLogs()
+	fillCharacterLogs();
 	if (metadata.currentWordMetadata.type !== 'separator') {
 		insertWord(metadata.currentWord);
 		pushWordLogs();
@@ -704,7 +704,7 @@ async function handleEndSession(time: number) {
 	loading.value = false;
 }
 
-function fillCharacterLogs(){
+function fillCharacterLogs() {
 	allData.value.forEach((wordObj) => {
 		if (wordObj.type === 'separator') return;
 		wordObj.characters?.forEach((charObj) => {
@@ -1123,12 +1123,18 @@ function updateWPM() {
 		setIntervalValuesOnFinishedSession();
 		return;
 	}
-	insertCharacterCountPerSecond();
 	if (!startTime) {
 		startTime = Date.now();
 	}
-	const elapsedTime = Date.now() - startTime;
 	const logTime = Date.now();
+	const elapsedTime = logTime - startTime;
+	if (
+		selectedMode.value === 'time' &&
+		elapsedTime >= selectedDuration.value * 1000
+	) {
+		handleEndSession(logTime);
+		return;
+	}
 	const wpm = getWpm(totalCorrectsCount + totalErrorsCount, elapsedTime);
 	let rawWpm: number;
 	if (intervalCount < 5) {
@@ -1136,6 +1142,7 @@ function updateWPM() {
 	} else {
 		rawWpm = getRaw(getTotalCharactersInLastFiveSeconds(), 5000);
 	}
+	insertCharacterCountPerSecond();
 	setIntervalValues(wpm, intervalCount, rawWpm);
 	insertChartDataLog(wpm, intervalError, intervalCount, rawWpm);
 	pushIntervalLogs(wpm, intervalError, intervalCount, rawWpm, logTime);
@@ -1344,11 +1351,14 @@ function isStartSession() {
 }
 
 function isEndSession() {
+	return isEndSessionModeWord();
+	/*
 	if (selectedMode.value === 'word') {
 		return isEndSessionModeWord();
 	} else {
 		return isEndSessionModeTime();
 	}
+	*/
 }
 
 function isEndSessionModeWord() {
