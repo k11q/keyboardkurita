@@ -1,4 +1,3 @@
-// BaseCounter.js
 class BaseCounter {
 	value: number;
 	constructor() {

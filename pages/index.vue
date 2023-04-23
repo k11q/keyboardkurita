@@ -124,6 +124,10 @@ import type {
 } from '@/types';
 import { calculateRawWPM, calculateWPM, focusInput } from '@/utils/input';
 import type { Database } from '~/types/database.types';
+import formatLocaleTime from '~/utils/format-locale-time';
+import IntervalCounter from '~/src/counters/interval-counter';
+import IntervalCharactersCounter from '~/src/counters/interval-characters-counter';
+import TotalCharactersCounter from '~/src/counters/total-characters-counter'
 
 definePageMeta({
 	middleware: 'auth',
@@ -200,14 +204,14 @@ let intervalLogs: IntervalLogsInsert[] = [];
 let chartData: ChartData = { wpm: [], error: [], raw: [], time: [] };
 
 // variable for logging wpm and row in interval
-let intervalCount = 1;
+const intervalCount = new IntervalCounter();
 const liveWpm = ref(0);
 const liveRawWpm = ref(0);
 const liveTimer = ref(0);
 let intervalError = 0;
-let intervalCharacterCount = 0;
+let intervalCharacterCount = new IntervalCharactersCounter();
 let characterCountPerFiveSeconds: number[] = [];
-let totalCharactersCount = 0;
+let totalCharactersCount = new TotalCharactersCounter();
 let totalWordsCount = 0;
 let totalErrorsCount = 0;
 let totalCorrectsCount = 0;
@@ -433,7 +437,9 @@ function handleInput(key: string) {
 	if (isStartSession()) {
 		handleStartSession();
 	}
-	incrementTotalCharactersCount();
+	if (currentMetadata.value.currentWordType !== 'separator') {
+		totalCharactersCount.increment();
+	}
 	if (key === currentCorrectChar) {
 		handleCorrectInput();
 	} else {
@@ -442,15 +448,9 @@ function handleInput(key: string) {
 	finalKeydown = Date.now();
 }
 
-function incrementTotalCharactersCount() {
-	if (currentMetadata.value.currentWordType !== 'separator') {
-		totalCharactersCount++;
-	}
-}
-
 function handleCorrectInput() {
 	deleteExtras();
-	incrementIntervalCharacterCount();
+	intervalCharacterCount.increment();
 	incrementTotalCorrectsCount();
 
 	const metadata = currentMetadata.value;
@@ -500,10 +500,6 @@ function getCharDuration(time: number) {
 
 function resetCurrentIncorrect() {
 	currentIncorrect = false;
-}
-
-function incrementIntervalCharacterCount(): void {
-	intervalCharacterCount++;
 }
 
 function getStatus(): CharLogStatus {
@@ -756,13 +752,7 @@ function fillFinalIntervalValues(time: number) {
 		);
 	}
 
-	pushIntervalLogs(
-		wpm,
-		intervalError,
-		durationSeconds,
-		rawWpm,
-		time
-	);
+	pushIntervalLogs(wpm, intervalError, durationSeconds, rawWpm, time);
 }
 
 function setShowResults() {
@@ -931,8 +921,8 @@ function resetCounters() {
 	totalWordsCount = 0;
 	totalCorrectsCount = 0;
 	totalErrorsCount = 0;
-	totalCharactersCount = 0;
-	intervalCharacterCount = 0;
+	totalCharactersCount.reset();
+	intervalCharacterCount.reset();
 	characterCountPerFiveSeconds = [];
 	lineCounter.value = 1;
 	oldTop = 0;
@@ -959,9 +949,9 @@ function fillFinalData(time: number) {
 	);
 	sessionsInsertData.accuracy = getAccuracy(
 		totalCorrectsCount,
-		totalCharactersCount
+		totalCharactersCount.getValue()
 	);
-	sessionsInsertData.raw = getRaw(totalCharactersCount, elapsedTime);
+	sessionsInsertData.raw = getRaw(totalCharactersCount.getValue(), elapsedTime);
 	sessionsInsertData.consistency = getConsistency(chartData);
 	sessionsInsertData.end_time = formatLocaleTime(time);
 	sessionsInsertData.duration = getDuration(elapsedTime);
@@ -1110,7 +1100,7 @@ function resetLiveInterval() {
 function resetInterval() {
 	if (timeoutId) {
 		clearTimeout(timeoutId);
-		resetIntervalCount();
+		intervalCount.reset();
 	}
 }
 
@@ -1118,7 +1108,7 @@ function resetInterval() {
 function updateWPM() {
 	if (!sessionRunning.value) {
 		clearTimeout(timeoutId);
-		resetIntervalCount();
+		intervalCount.reset();
 		setIntervalValuesOnFinishedSession();
 		return;
 	}
@@ -1131,23 +1121,34 @@ function updateWPM() {
 		selectedMode.value === 'time' &&
 		elapsedTime >= selectedDuration.value * 1000
 	) {
-		incrementIntervalCount();
+		intervalCount.increment();
 		handleEndSession(logTime);
 		return;
 	}
 	const wpm = getWpm(totalCorrectsCount + totalErrorsCount, elapsedTime);
 	let rawWpm: number;
-	if (intervalCount < 5) {
-		rawWpm = getRaw(totalCharactersCount, elapsedTime);
+	if (intervalCount.getValue() < 5) {
+		rawWpm = getRaw(totalCharactersCount.getValue(), elapsedTime);
 	} else {
 		rawWpm = getRaw(getTotalCharactersInLastFiveSeconds(), 5000);
 	}
 	insertCharacterCountPerSecond();
-	setIntervalValues(wpm, intervalCount, rawWpm);
-	insertChartDataLog(wpm, intervalError, intervalCount, rawWpm);
-	pushIntervalLogs(wpm, intervalError, intervalCount, rawWpm, logTime);
-	incrementIntervalCount();
-	resetIntervalCharacterCount();
+	setIntervalValues(wpm, intervalCount.getValue(), rawWpm);
+	insertChartDataLog(
+		wpm,
+		intervalError,
+		intervalCount.getValue(),
+		rawWpm
+	);
+	pushIntervalLogs(
+		wpm,
+		intervalError,
+		intervalCount.getValue(),
+		rawWpm,
+		logTime
+	);
+	intervalCount.increment();
+	intervalCharacterCount.reset();
 	resetIntervalError();
 	timeoutId = setTimeout(updateWPM, 1000); // Log the values every second
 }
@@ -1171,7 +1172,7 @@ function getTotalCharactersInLastFiveSeconds() {
 }
 
 function insertCharacterCountPerSecond() {
-	characterCountPerFiveSeconds.push(intervalCharacterCount);
+	characterCountPerFiveSeconds.push(intervalCharacterCount.value);
 }
 
 function setIntervalValues(wpm: number, intervalCount: number, rawWpm: number) {
@@ -1218,20 +1219,8 @@ function pushIntervalLogs(
 	intervalLogs.push(updatedIntervalLogObject);
 }
 
-function incrementIntervalCount(): void {
-	intervalCount++;
-}
-
 function resetIntervalError(): void {
 	intervalError = 0;
-}
-
-function resetIntervalCharacterCount(): void {
-	intervalCharacterCount = 0;
-}
-
-function resetIntervalCount(): void {
-	intervalCount = 1;
 }
 
 //watch if input out of focus
@@ -1374,7 +1363,7 @@ function isEndSessionModeWord() {
 }
 
 function isEndSessionModeTime() {
-	return intervalCount === selectedDuration.value;
+	return intervalCount.getValue() === selectedDuration.value;
 }
 
 function isEndWord() {
@@ -1393,9 +1382,5 @@ function handleNewLine() {
 	}
 	startSecondLineWordIndex =
 		currentMetadata.value.currentWordMetadata.index;
-}
-
-function formatLocaleTime(time: number) {
-	return new Date(time).toISOString().toLocaleString();
 }
 </script>
