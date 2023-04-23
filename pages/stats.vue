@@ -57,6 +57,18 @@ function formatTime(seconds) {
 	const minuteString = minutes === 1 ? 'min' : 'mins';
 	const secondString = remainingSeconds === 1 ? 'second' : 'seconds';
 
-	return `${hours}${hourString} ${minutes}${minuteString} ${remainingSeconds}${secondString}`;
+	let formattedTime = '';
+
+	if (hours > 0) {
+		formattedTime += `${hours} ${hourString} `;
+	}
+	if (minutes > 0) {
+		formattedTime += `${minutes} ${minuteString} `;
+	}
+	if (remainingSeconds > 0) {
+		formattedTime += `${remainingSeconds} ${secondString}`;
+	}
+
+	return formattedTime.trim();
 }
 </script>
