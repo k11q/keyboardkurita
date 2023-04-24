@@ -125,9 +125,13 @@ import type {
 import { calculateRawWPM, calculateWPM, focusInput } from '@/utils/input';
 import type { Database } from '~/types/database.types';
 import formatLocaleTime from '~/utils/format-locale-time';
-import IntervalCounter from '~/src/counters/interval-counter';
-import IntervalCharactersCounter from '~/src/counters/interval-characters-counter';
-import TotalCharactersCounter from '~/src/counters/total-characters-counter'
+import {
+	IntervalCounter,
+	IntervalCharactersCounter,
+	TotalCharactersCounter,
+	TotalCorrectsCounter,
+	TotalErrorsCounter,
+} from '~/src/counters';
 
 definePageMeta({
 	middleware: 'auth',
@@ -209,12 +213,11 @@ const liveWpm = ref(0);
 const liveRawWpm = ref(0);
 const liveTimer = ref(0);
 let intervalError = 0;
-let intervalCharacterCount = new IntervalCharactersCounter();
+const intervalCharacterCount = new IntervalCharactersCounter();
 let characterCountPerFiveSeconds: number[] = [];
-let totalCharactersCount = new TotalCharactersCounter();
-let totalWordsCount = 0;
-let totalErrorsCount = 0;
-let totalCorrectsCount = 0;
+const totalCharactersCount = new TotalCharactersCounter();
+const totalErrorsCount = new TotalErrorsCounter();
+const totalCorrectsCount = new TotalCorrectsCounter();
 const totalExtrasCount = 0;
 let sessionId: number;
 
@@ -451,7 +454,14 @@ function handleInput(key: string) {
 function handleCorrectInput() {
 	deleteExtras();
 	intervalCharacterCount.increment();
-	incrementTotalCorrectsCount();
+	const { currentWordMetadata } = currentMetadata.value;
+	if (
+		!currentIncorrect &&
+		currentWordMetadata &&
+		currentWordMetadata.type !== 'separator'
+	) {
+		totalCorrectsCount.increment();
+	}
 
 	const metadata = currentMetadata.value;
 	const currentCharMetadata = currentMetadata.value.currentCharMetadata;
@@ -510,17 +520,6 @@ function getStatus(): CharLogStatus {
 	}
 }
 
-function incrementTotalCorrectsCount() {
-	const currentWordMetadata = currentMetadata.value.currentWordMetadata;
-	if (
-		!currentIncorrect &&
-		currentWordMetadata &&
-		currentWordMetadata.type !== 'separator'
-	) {
-		totalCorrectsCount++;
-	}
-}
-
 function incrementWord() {
 	currentWordNum.value++;
 }
@@ -538,17 +537,13 @@ function resetCorrectCharIndex() {
 }
 
 function handleIncorrectInput(key: string): void {
-	incrementTotalErrorsCount();
+	if (!currentIncorrect) {
+		totalErrorsCount.increment();
+	}
 	incrementIntervalError();
 	insertExtraChar(key);
 	currentIncorrect = true;
 	correctCharIndex.value++;
-}
-
-function incrementTotalErrorsCount(): void {
-	if (!currentIncorrect) {
-		totalErrorsCount++;
-	}
 }
 
 function incrementIntervalError(): void {
@@ -736,7 +731,10 @@ function fillFinalIntervalValues(time: number) {
 		durationRaw = (elapsedTime % 1000) + 4000;
 	}
 	const durationSeconds = parseFloat((elapsedTime / 1000).toFixed(2));
-	const wpm = getWpm(totalCorrectsCount + totalErrorsCount, elapsedTime);
+	const wpm = getWpm(
+		totalCorrectsCount.getValue() + totalErrorsCount.getValue(),
+		elapsedTime
+	);
 	const rawWpm = getRaw(
 		getTotalCharactersInLastFiveSeconds(),
 		durationRaw
@@ -769,7 +767,6 @@ function handleEndWord() {
 		pushWordLogs();
 	}
 	incrementWord();
-	incrementWordCount();
 	resetCharNum();
 }
 
@@ -850,10 +847,6 @@ function pushWordLogs() {
 	}
 }
 
-function incrementWordCount(): void {
-	totalWordsCount++;
-}
-
 function insertWord(word: string) {
 	collectedWords.push(word);
 }
@@ -918,9 +911,8 @@ function resetCounters() {
 	characterLogs = [];
 	wordLogs = [];
 	intervalLogs = [];
-	totalWordsCount = 0;
-	totalCorrectsCount = 0;
-	totalErrorsCount = 0;
+	totalCorrectsCount.reset();
+	totalErrorsCount.reset();
 	totalCharactersCount.reset();
 	intervalCharacterCount.reset();
 	characterCountPerFiveSeconds = [];
@@ -941,17 +933,20 @@ function resetIndexes() {
 function fillFinalData(time: number) {
 	sessionsInsertData.total_characters = getTotalCharacters();
 	const elapsedTime = time - startTime!;
-	sessionsInsertData.total_errors = totalErrorsCount;
-	sessionsInsertData.total_corrects = totalCorrectsCount;
+	sessionsInsertData.total_errors = totalErrorsCount.getValue();
+	sessionsInsertData.total_corrects = totalCorrectsCount.getValue();
 	sessionsInsertData.wpm = getWpm(
-		totalCorrectsCount + totalErrorsCount,
+		totalCorrectsCount.getValue() + totalErrorsCount.getValue(),
 		elapsedTime
 	);
 	sessionsInsertData.accuracy = getAccuracy(
-		totalCorrectsCount,
+		totalCorrectsCount.getValue(),
 		totalCharactersCount.getValue()
 	);
-	sessionsInsertData.raw = getRaw(totalCharactersCount.getValue(), elapsedTime);
+	sessionsInsertData.raw = getRaw(
+		totalCharactersCount.getValue(),
+		elapsedTime
+	);
 	sessionsInsertData.consistency = getConsistency(chartData);
 	sessionsInsertData.end_time = formatLocaleTime(time);
 	sessionsInsertData.duration = getDuration(elapsedTime);
@@ -1125,7 +1120,10 @@ function updateWPM() {
 		handleEndSession(logTime);
 		return;
 	}
-	const wpm = getWpm(totalCorrectsCount + totalErrorsCount, elapsedTime);
+	const wpm = getWpm(
+		totalCorrectsCount.getValue() + totalErrorsCount.getValue(),
+		elapsedTime
+	);
 	let rawWpm: number;
 	if (intervalCount.getValue() < 5) {
 		rawWpm = getRaw(totalCharactersCount.getValue(), elapsedTime);
@@ -1172,7 +1170,7 @@ function getTotalCharactersInLastFiveSeconds() {
 }
 
 function insertCharacterCountPerSecond() {
-	characterCountPerFiveSeconds.push(intervalCharacterCount.value);
+	characterCountPerFiveSeconds.push(intervalCharacterCount.getValue());
 }
 
 function setIntervalValues(wpm: number, intervalCount: number, rawWpm: number) {

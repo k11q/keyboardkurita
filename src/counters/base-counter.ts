@@ -1,5 +1,6 @@
-class BaseCounter {
-	value: number;
+abstract class BaseCounter {
+	protected value: number;
+	
 	constructor() {
 		this.value = 0;
 	}

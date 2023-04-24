@@ -4,4 +4,4 @@ class ErrorsCounter extends BaseCounter{
 
 }
 
-export default ErrorsCounter;
+export {ErrorsCounter};

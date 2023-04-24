@@ -4,4 +4,4 @@ class TotalCharactersCounter extends BaseCounter{
 
 }
 
-export default TotalCharactersCounter;
+export {TotalCharactersCounter};

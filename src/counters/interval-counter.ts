@@ -11,4 +11,4 @@ class IntervalCounter extends BaseCounter{
 	}
 }
 
-export default IntervalCounter;
+export {IntervalCounter};
