@@ -4,3 +4,4 @@ export { IntervalCharactersCounter } from './interval-characters-counter';
 export { TotalCharactersCounter } from './total-characters-counter';
 export { TotalErrorsCounter } from './total-errors-counter';
 export { ErrorsCounter } from './errors-counter';
+export { IntervalErrorCounter } from './interval-error-counter';

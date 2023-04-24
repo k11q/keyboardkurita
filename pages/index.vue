@@ -131,6 +131,7 @@ import {
 	TotalCharactersCounter,
 	TotalCorrectsCounter,
 	TotalErrorsCounter,
+	IntervalErrorCounter,
 } from '~/src/counters';
 
 definePageMeta({
@@ -212,7 +213,7 @@ const intervalCount = new IntervalCounter();
 const liveWpm = ref(0);
 const liveRawWpm = ref(0);
 const liveTimer = ref(0);
-let intervalError = 0;
+const intervalError = new IntervalErrorCounter();
 const intervalCharacterCount = new IntervalCharactersCounter();
 let characterCountPerFiveSeconds: number[] = [];
 const totalCharactersCount = new TotalCharactersCounter();
@@ -540,14 +541,10 @@ function handleIncorrectInput(key: string): void {
 	if (!currentIncorrect) {
 		totalErrorsCount.increment();
 	}
-	incrementIntervalError();
+	intervalError.increment();
 	insertExtraChar(key);
 	currentIncorrect = true;
 	correctCharIndex.value++;
-}
-
-function incrementIntervalError(): void {
-	intervalError++;
 }
 
 // function to delete extra values
@@ -740,17 +737,28 @@ function fillFinalIntervalValues(time: number) {
 		durationRaw
 	);
 	if (selectedMode.value === 'word') {
-		insertChartDataLog(wpm, intervalError, durationSeconds, rawWpm);
+		insertChartDataLog(
+			wpm,
+			intervalError.getValue(),
+			durationSeconds,
+			rawWpm
+		);
 	} else if (selectedMode.value === 'time') {
 		insertChartDataLog(
 			wpm,
-			intervalError,
+			intervalError.getValue(),
 			selectedDuration.value,
 			rawWpm
 		);
 	}
 
-	pushIntervalLogs(wpm, intervalError, durationSeconds, rawWpm, time);
+	pushIntervalLogs(
+		wpm,
+		intervalError.getValue(),
+		durationSeconds,
+		rawWpm,
+		time
+	);
 }
 
 function setShowResults() {
@@ -911,6 +919,7 @@ function resetCounters() {
 	characterLogs = [];
 	wordLogs = [];
 	intervalLogs = [];
+	intervalError.reset();
 	totalCorrectsCount.reset();
 	totalErrorsCount.reset();
 	totalCharactersCount.reset();
@@ -1134,20 +1143,20 @@ function updateWPM() {
 	setIntervalValues(wpm, intervalCount.getValue(), rawWpm);
 	insertChartDataLog(
 		wpm,
-		intervalError,
+		intervalError.getValue(),
 		intervalCount.getValue(),
 		rawWpm
 	);
 	pushIntervalLogs(
 		wpm,
-		intervalError,
+		intervalError.getValue(),
 		intervalCount.getValue(),
 		rawWpm,
 		logTime
 	);
 	intervalCount.increment();
 	intervalCharacterCount.reset();
-	resetIntervalError();
+	intervalError.reset();
 	timeoutId = setTimeout(updateWPM, 1000); // Log the values every second
 }
 
@@ -1215,10 +1224,6 @@ function pushIntervalLogs(
 		log_time: new Date(logTime).toISOString().toLocaleString(),
 	};
 	intervalLogs.push(updatedIntervalLogObject);
-}
-
-function resetIntervalError(): void {
-	intervalError = 0;
 }
 
 //watch if input out of focus
