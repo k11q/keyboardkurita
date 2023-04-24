@@ -1339,13 +1339,6 @@ function isStartSession() {
 
 function isEndSession() {
 	return isEndSessionModeWord();
-	/*
-	if (selectedMode.value === 'word') {
-		return isEndSessionModeWord();
-	} else {
-		return isEndSessionModeTime();
-	}
-	*/
 }
 
 function isEndSessionModeWord() {
@@ -1358,10 +1351,6 @@ function isEndSessionModeWord() {
 		currentWordLocation === allData.value.length - 1 &&
 		currentCharLocation === currentWordLength - 1
 	);
-}
-
-function isEndSessionModeTime() {
-	return intervalCount.getValue() === selectedDuration.value;
 }
 
 function isEndWord() {
