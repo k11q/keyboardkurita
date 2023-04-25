@@ -478,10 +478,7 @@ function handleCorrectInput() {
 	deleteExtras();
 	intervalCharacterCount.increment();
 	const { currentWordMetadata } = currentMetadata.value;
-	if (
-		currentWordMetadata &&
-		currentWordMetadata.type !== 'separator'
-	) {
+	if (currentWordMetadata && currentWordMetadata.type !== 'separator') {
 		totalCorrectsCount.increment();
 	}
 
@@ -549,7 +546,7 @@ function handleIncorrectInput(key: string): void {
 	const time = Date.now();
 	const duration = getCharDuration(time);
 	const { currentWordMetadata } = currentMetadata.value;
-		totalErrorsCount.increment();
+	totalErrorsCount.increment();
 	intervalError.increment();
 	if (currentWordMetadata.type === 'separator') {
 		insertExtraChar(key);
@@ -616,6 +613,7 @@ function resetCharMetadata(wordIndex: number, charIndex: number) {
 		index: charIndex,
 		word_index: wordIndex,
 		status: 'pending',
+		input: undefined,
 	};
 	Object.assign(
 		allData.value[wordIndex].characters[charIndex],
@@ -642,17 +640,37 @@ function resetPrevCharMetadata() {
 	const currentWordIndex = currentWordMetadata.index;
 	let prevCharIndex: number;
 	let prevCharMetadata: CharacterMetadata;
-	if (
-		currentWordMetadata.type === 'separator' &&
-		correctCharIndex.value === 0
+	if (correctCharIndex.value === 0
 	) {
-		const prevWordMetadata = allData.value[currentWordNum.value-1];
-		prevCharIndex = prevWordMetadata.characters?.length - 1;
+		let prevWordMetadata: WordMetadata;
+		let newWordIndex: number
+		if(currentWordMetadata.type === 'separator'){
+		newWordIndex = currentWordNum.value - 1
+		prevWordMetadata =
+			allData.value[newWordIndex];
+		}else{
+		newWordIndex = currentWordNum.value - 2
+		prevWordMetadata =
+			allData.value[newWordIndex];
+		}
+		for (
+			let i = 0;
+			i < prevWordMetadata.characters?.length;
+			i++
+		) {
+			if (
+				allData.value[newWordIndex]
+					.characters[i].status === 'pending'
+			) {
+				break;
+			} else {
+				prevCharIndex = i;
+			}
+		}
 		prevCharMetadata =
-			allData.value[currentWordNum.value-1].characters[
+			allData.value[newWordIndex].characters[
 				prevCharIndex
 			];
-		if(prevCharMetadata.status === 'correct') return;
 		if (prevCharMetadata.status === 'extra') {
 			currentMetadata.value.currentWordMetadata.characters.splice(
 				prevCharIndex,
@@ -663,11 +681,9 @@ function resetPrevCharMetadata() {
 			delete prevCharMetadata.input;
 			currentCharNum.value;
 		}
-		currentWordNum.value--;
+		currentWordNum.value = newWordIndex;
 		currentCharNum.value = prevCharIndex;
 		correctCharIndex.value = currentCharNum.value;
-	} else if (correctCharIndex.value === 0) {
-		return;
 	} else {
 		prevCharIndex = correctCharIndex.value - 1;
 		prevCharMetadata =
