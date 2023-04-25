@@ -692,7 +692,7 @@ function fillCharacterLogs() {
 	allData.value.forEach((wordObj) => {
 		if (wordObj.type === 'separator') return;
 		wordObj.characters?.forEach((charObj) => {
-			if (charObj.status === 'pending') return;
+			if (charObj.status === 'pending' || charObj.status === 'extra') return;
 			characterLogs.push(charObj);
 		});
 	});
@@ -872,7 +872,7 @@ function addExtraCharToDisplay(key: string) {
 	allData.value[currentWordNum.value].characters.splice(
 		correctCharIndex.value,
 		0,
-		{ character: key, log_time: 0, status: 'extra' }
+		{ character: key, status: 'extra' }
 	);
 }
 
