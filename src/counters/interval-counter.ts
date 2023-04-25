@@ -1,4 +1,4 @@
-import BaseCounter from './base-counter';
+import {BaseCounter} from './base-counter';
 
 class IntervalCounter extends BaseCounter{
 	constructor() {

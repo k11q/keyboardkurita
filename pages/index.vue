@@ -127,11 +127,7 @@ import type { Database } from '~/types/database.types';
 import formatLocaleTime from '~/utils/format-locale-time';
 import {
 	IntervalCounter,
-	IntervalCharactersCounter,
-	TotalCharactersCounter,
-	TotalCorrectsCounter,
-	TotalErrorsCounter,
-	IntervalErrorCounter,
+	BaseCounter,
 } from '~/src/counters';
 
 definePageMeta({
@@ -213,12 +209,12 @@ const intervalCount = new IntervalCounter();
 const liveWpm = ref(0);
 const liveRawWpm = ref(0);
 const liveTimer = ref(0);
-const intervalError = new IntervalErrorCounter();
-const intervalCharacterCount = new IntervalCharactersCounter();
+const intervalError = new BaseCounter();
+const intervalCharacterCount = new BaseCounter();
 let characterCountPerFiveSeconds: number[] = [];
-const totalCharactersCount = new TotalCharactersCounter();
-const totalErrorsCount = new TotalErrorsCounter();
-const totalCorrectsCount = new TotalCorrectsCounter();
+const totalCharactersCount = new BaseCounter();
+const totalErrorsCount = new BaseCounter();
+const totalCorrectsCount = new BaseCounter();
 const totalExtrasCount = 0;
 let sessionId: number;
 
