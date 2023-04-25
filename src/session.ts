@@ -1,7 +1,7 @@
 import { SessionsInsert } from '~/types';
 import { Json } from '~/types/database.types';
 
-class Session implements SessionsInsert {
+class Session {
 	user_id: number;
 	start_time: string;
 	difficulty: string;
@@ -52,6 +52,12 @@ class Session implements SessionsInsert {
 		this.numbers = false;
 		this.punctuation = false;
 		this.restart_count = 0;
+	}
+
+	get(){
+		return {
+			user_id: this.user_id
+		};
 	}
 }
       
