@@ -1,4 +1,4 @@
-abstract class BaseCounter {
+class BaseCounter {
 	protected value: number;
 	
 	constructor() {
@@ -22,4 +22,4 @@ abstract class BaseCounter {
 	}
 }
       
-export default BaseCounter;
+export {BaseCounter};
