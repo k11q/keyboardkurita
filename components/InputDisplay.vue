@@ -13,9 +13,10 @@
             <span
               v-for="(char, charIndex) in word.characters"
               :key="charIndex"
-              :class="getClass(char, index, charIndex)"
+              class="relative"
             >
-              {{ char.character === " " ? " " : char.character }}
+              <span :class="getClass(char, index, charIndex)">{{ char.character === " " ? " " : char.character }}</span>
+              <span v-if="char.input" class="text-red-300 absolute top-full left-0 right-0 text-base leading-none text-center">{{ char.input ? char.input : '' }}</span>
             </span>
           </span>
         </template>
