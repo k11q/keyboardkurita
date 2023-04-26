@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { WritableComputedRef } from 'vue';
+import { ref, computed } from 'vue';
 import {
 	useHomeStore,
 	KEYOPTIONS,
@@ -126,6 +126,8 @@ import { calculateRawWPM, calculateWPM, focusInput } from '@/utils/input';
 import type { Database } from '~/types/database.types';
 import formatLocaleTime from '~/utils/format-locale-time';
 import { IntervalCounter, BaseCounter } from '~/src/counters';
+import { isKeySpace, isQuickRestartShortcut } from '~/src/helpers';
+import { WordLog, CharacterLog, IntervalLog } from '~/src/log';
 
 definePageMeta({
 	middleware: 'auth',
@@ -242,7 +244,7 @@ const currentSelectionData = computed(() => {
 	}
 });
 
-//manage carot
+//manage caret
 const CARETLEFT = ref(0);
 const CARETTOP = ref(0);
 
@@ -298,46 +300,6 @@ const currentMetadata: globalThis.ComputedRef<InputMetadata> = computed(() => {
 		currentWordType,
 		currentChar,
 	};
-});
-
-// writable computed ref is used for write only, get is gotten from currentmetadata.
-const currentCharacterStatus: WritableComputedRef<CharLogStatus> = computed({
-	get: (): CharLogStatus => {
-		return allData.value[currentWordNum.value]?.characters[
-			currentCharNum.value
-		].status;
-	},
-	set: (newValue: CharLogStatus): void => {
-		allData.value[currentWordNum.value].characters[
-			currentCharNum.value
-		].status = newValue;
-	},
-});
-
-// writable computed ref is used for write only, get is gotten from currentmetadata.
-const currentCharacterEndTime: WritableComputedRef<string> = computed({
-	get: (): string => {
-		return allData.value[currentWordNum.value]?.characters[
-			currentCharNum.value
-		].end_time;
-	},
-	set: (newValue: string): void => {
-		allData.value[currentWordNum.value].characters[
-			currentCharNum.value
-		].end_time = newValue;
-	},
-});
-const currentCharacterStartTime: WritableComputedRef<string> = computed({
-	get: (): string => {
-		return allData.value[currentWordNum.value]?.characters[
-			currentCharNum.value
-		].start_time;
-	},
-	set: (newValue: string): void => {
-		allData.value[currentWordNum.value].characters[
-			currentCharNum.value
-		].start_time = newValue;
-	},
 });
 
 //
@@ -417,21 +379,9 @@ function handleKeydown(e: KeyboardEvent) {
 	}
 }
 
-function isQuickRestartShortcut(e: KeyboardEvent) {
-	const key = e.key;
-	if (key === 'Tab') return true;
-	return false;
-}
-
-function isSpace(e: KeyboardEvent) {
-	const key = e.key;
-	if (key === ' ') return true;
-	return false;
-}
-
 function handleSpace() {
 	const metadata = currentMetadata.value;
-	metadata.currentWordMetadata.status = getWordStatus()
+	metadata.currentWordMetadata.status = getWordStatus();
 	insertWord(metadata.currentWord);
 	pushWordLogs();
 	currentWordNum.value += 2;
@@ -445,9 +395,10 @@ function handleQuickRestart() {
 }
 
 function isFinalWord(index: number) {
-	if (selectedMode.value === 'word' && index === selectedWords.value - 1)
-		return true;
-	return false;
+	return (
+		selectedMode.value === 'word' &&
+		index === selectedWords.value - 1
+	);
 }
 
 function handleInput(e: KeyboardEvent) {
@@ -461,7 +412,7 @@ function handleInput(e: KeyboardEvent) {
 	}
 	if (currentWordType !== 'separator') {
 		totalCharactersCount.increment();
-		if (isSpace(e)) {
+		if (isKeySpace(e)) {
 			if (!isFinalWord(index)) handleSpace();
 			return;
 		}
@@ -515,12 +466,6 @@ function handleCorrectInput() {
 	}
 }
 
-watch([CARETTOP], () => {
-	if (CARETTOP.value > oldTop && oldTop !== 0) {
-		handleNewLine();
-	}
-	oldTop = CARETTOP.value;
-});
 function getCharDuration(time: number) {
 	return (time - finalKeydown) / 1000;
 }
@@ -640,27 +585,20 @@ function resetPrevCharMetadata() {
 	const currentWordIndex = currentWordMetadata.index;
 	let prevCharIndex: number;
 	let prevCharMetadata: CharacterMetadata;
-	if (correctCharIndex.value === 0
-	) {
+	if (correctCharIndex.value === 0) {
 		let prevWordMetadata: WordMetadata;
-		let newWordIndex: number
-		if(currentWordMetadata.type === 'separator'){
-		newWordIndex = currentWordNum.value - 1
-		prevWordMetadata =
-			allData.value[newWordIndex];
-		}else{
-		newWordIndex = currentWordNum.value - 2
-		prevWordMetadata =
-			allData.value[newWordIndex];
+		let newWordIndex: number;
+		if (currentWordMetadata.type === 'separator') {
+			newWordIndex = currentWordNum.value - 1;
+			prevWordMetadata = allData.value[newWordIndex];
+		} else {
+			newWordIndex = currentWordNum.value - 2;
+			prevWordMetadata = allData.value[newWordIndex];
 		}
-		for (
-			let i = 0;
-			i < prevWordMetadata.characters?.length;
-			i++
-		) {
+		for (let i = 0; i < prevWordMetadata.characters?.length; i++) {
 			if (
-				allData.value[newWordIndex]
-					.characters[i].status === 'pending'
+				allData.value[newWordIndex].characters[i]
+					.status === 'pending'
 			) {
 				break;
 			} else {
@@ -668,9 +606,7 @@ function resetPrevCharMetadata() {
 			}
 		}
 		prevCharMetadata =
-			allData.value[newWordIndex].characters[
-				prevCharIndex
-			];
+			allData.value[newWordIndex].characters[prevCharIndex];
 		if (prevCharMetadata.status === 'extra') {
 			currentMetadata.value.currentWordMetadata.characters.splice(
 				prevCharIndex,
@@ -851,7 +787,7 @@ function setShowResults() {
 
 function handleEndWord() {
 	const metadata = currentMetadata.value;
-	metadata.currentWordMetadata.status = getWordStatus()
+	metadata.currentWordMetadata.status = getWordStatus();
 	if (metadata.currentWordMetadata.type === 'word') {
 		insertWord(metadata.currentWord);
 		pushWordLogs();
@@ -864,18 +800,22 @@ function pushWordLogs() {
 	//internal
 	const wordLength = currentMetadata.value.currentWordLength;
 	//to push
-	const index = getWordIndex();
-	const word = currentMetadata.value.currentWord;
-	const type = getWordType();
-	const startTime = getWordStartTime();
-	const endTime = getWordEndTime();
 	const duration = getWordDuration();
-	const status = getWordStatus();
 	const wpm = getWordWpm();
-	let session_id: number; // fill at the end
+
+	const newWordLog = new WordLog({
+		index: getWordIndex(),
+		word: currentMetadata.value.currentWord,
+		type: getWordType(),
+		start_time: getWordStartTime(),
+		end_time: getWordEndTime(),
+		duration,
+		status: getWordStatus(),
+		wpm,
+	});
 
 	if (wpm && duration) {
-		insertWordLogs();
+		wordLogs.push(newWordLog.getData());
 	}
 
 	function getWordIndex() {
@@ -911,33 +851,19 @@ function pushWordLogs() {
 			(wordLength / 5 / (duration / 60)).toFixed(2)
 		);
 	}
-	function insertWordLogs(): void {
-		const updatedWordObject = {
-			index,
-			word,
-			start_time: startTime,
-			end_time: endTime,
-			duration,
-			status,
-			type,
-			wpm,
-			session_id,
-		};
-		wordLogs.push(updatedWordObject);
-	}
 }
 
 function getWordStatus(): WordLogStatus {
-		const wordLength = currentMetadata.value.currentWordLength
-		for (let i = 0; i < wordLength; i++) {
-			if (
-				currentMetadata.value.currentWordMetadata
-					.characters[i].status !== 'correct'
-			)
-				return 'error';
-		}
-		return 'correct';
+	const wordLength = currentMetadata.value.currentWordLength;
+	for (let i = 0; i < wordLength; i++) {
+		if (
+			currentMetadata.value.currentWordMetadata.characters[i]
+				.status !== 'correct'
+		)
+			return 'error';
 	}
+	return 'correct';
+}
 
 function insertWord(word: string) {
 	collectedWords.push(word);
@@ -1159,21 +1085,6 @@ async function insertLogsToDatabase() {
 	}
 }
 
-// watcher to get fresh data when any mode/settings changed
-watch(
-	[
-		selectedDifficulty,
-		selectedDuration,
-		selectedKey,
-		selectedMode,
-		selectedDataset,
-		selectedWords,
-	],
-	() => {
-		fetchFreshWords();
-	}
-);
-
 // function resetlivetimer live wpm
 function resetLiveInterval() {
 	liveTimer.value = 0;
@@ -1307,6 +1218,21 @@ function pushIntervalLogs(
 	intervalLogs.push(updatedIntervalLogObject);
 }
 
+// watcher to get fresh data when any mode/settings changed
+watch(
+	[
+		selectedDifficulty,
+		selectedDuration,
+		selectedKey,
+		selectedMode,
+		selectedDataset,
+		selectedWords,
+	],
+	() => {
+		fetchFreshWords();
+	}
+);
+
 //watch if input out of focus
 watch(currentActive, () => {
 	if (currentActive.value.id !== 'MasterInput') {
@@ -1334,6 +1260,13 @@ onMounted(() => {
 		}
 		requestAnimationFrame(setCaretPosition);
 	}
+});
+
+watch([CARETTOP], () => {
+	if (CARETTOP.value > oldTop && oldTop !== 0) {
+		handleNewLine();
+	}
+	oldTop = CARETTOP.value;
 });
 
 // get profile data from auth
