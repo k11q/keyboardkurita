@@ -426,25 +426,29 @@ function handleInput(e: KeyboardEvent) {
 }
 
 function handleCorrectInput() {
-	deleteExtras();
 	intervalCharacterCount.increment();
 	const { currentWordMetadata } = currentMetadata.value;
 	if (currentWordMetadata && currentWordMetadata.type !== 'separator') {
 		totalCorrectsCount.increment();
 	}
-
 	const metadata = currentMetadata.value;
-	const currentCharMetadata = currentMetadata.value.currentCharMetadata;
+	let currentCharMetadata = currentMetadata.value.currentCharMetadata;
 	const time = Date.now();
 	const duration = getCharDuration(time);
-	const index = metadata.currentCharLocation;
+	let index = metadata.currentCharLocation;
 	const wordIndex = metadata.currentWordMetadata.index;
+	if(currentWordMetadata.type === 'separator'){
+		currentCharMetadata = allData.value[currentWordNum.value]?.characters[
+			metadata.currentCorrectCharLocation
+		];
+		index = metadata.currentCorrectCharLocation
+	}
 
 	updateCurrentCharacterObject();
 	if (isEndSession()) {
 		handleEndSession(time);
 		return;
-	} else if (isEndWord()) {
+	} else if (isEndWord() || currentWordMetadata.type === 'separator') {
 		handleEndWord();
 	} else {
 		incrementChar();
