@@ -9,7 +9,7 @@
       >
       <div>
         <template v-for="(word, index) in props.allData" :key="index">
-          <span v-if="word.index >= props.startDisplayIndex && word.index <= props.startDisplayIndex+40">
+          <span v-if="word.index >= props.startDisplayIndex && word.index <= props.startDisplayIndex+40" :class="`${word.status === 'error' ? 'underline decoration-red-500 underline-offset-8' : ''}`">
             <span
               v-for="(char, charIndex) in word.characters"
               :key="charIndex"
