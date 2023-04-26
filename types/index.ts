@@ -62,7 +62,7 @@ type WordMetadata = {
 	index: number;
 	end_time?: string;
 	start_time?: string;
-	status?: CharLogStatus;
+	status?: WordLogStatus;
 	duration?: number;
 	wpm?: number;
 };

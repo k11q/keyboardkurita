@@ -431,7 +431,7 @@ function isSpace(e: KeyboardEvent) {
 
 function handleSpace() {
 	const metadata = currentMetadata.value;
-
+	metadata.currentWordMetadata.status = getWordStatus()
 	insertWord(metadata.currentWord);
 	pushWordLogs();
 	currentWordNum.value += 2;
@@ -851,6 +851,7 @@ function setShowResults() {
 
 function handleEndWord() {
 	const metadata = currentMetadata.value;
+	metadata.currentWordMetadata.status = getWordStatus()
 	if (metadata.currentWordMetadata.type === 'word') {
 		insertWord(metadata.currentWord);
 		pushWordLogs();
@@ -905,16 +906,6 @@ function pushWordLogs() {
 			1000
 		);
 	}
-	function getWordStatus(): WordLogStatus {
-		for (let i = 0; i < wordLength; i++) {
-			if (
-				currentMetadata.value.currentWordMetadata
-					.characters[i].status !== 'correct'
-			)
-				return 'error';
-		}
-		return 'correct';
-	}
 	function getWordWpm(): number {
 		return parseFloat(
 			(wordLength / 5 / (duration / 60)).toFixed(2)
@@ -935,6 +926,18 @@ function pushWordLogs() {
 		wordLogs.push(updatedWordObject);
 	}
 }
+
+function getWordStatus(): WordLogStatus {
+		const wordLength = currentMetadata.value.currentWordLength
+		for (let i = 0; i < wordLength; i++) {
+			if (
+				currentMetadata.value.currentWordMetadata
+					.characters[i].status !== 'correct'
+			)
+				return 'error';
+		}
+		return 'correct';
+	}
 
 function insertWord(word: string) {
 	collectedWords.push(word);
