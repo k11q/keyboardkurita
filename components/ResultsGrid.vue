@@ -191,7 +191,7 @@
 							.logs"
 						:key="index"
 					>
-						<span
+						<span  :class="`${word.status === 'error' ? 'underline decoration-red-500 underline-offset-4 decoration-1' : ''}`"
 							><span
 								v-for="(
 									char,
@@ -201,10 +201,10 @@
 								:class="` ${
 									char.status ===
 									'correct'
-										? 'opacity-100'
+										? ''
 										: char.status ===
 										  'extra'
-										? 'bg-[#F44250] text-white opacity-100'
+										? 'bg-[#F44250] text-white'
 										: char.status ===
 												'error' &&
 										  char.character ===
@@ -212,8 +212,8 @@
 										? 'box-border border-b border-red-600'
 										: char.status ===
 										  'error'
-										? 'text-[#F44250] opacity-100'
-										: 'opacity-40'
+										? 'text-[#F44250]'
+										: 'text-neutral-500'
 								} ${
 									index ===
 										props.currentWordNum &&

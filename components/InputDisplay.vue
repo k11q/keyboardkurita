@@ -9,7 +9,7 @@
       >
       <div>
         <template v-for="(word, index) in props.allData" :key="index">
-          <span v-if="word.index >= props.startDisplayIndex && word.index <= props.startDisplayIndex+40" :class="`${word.status === 'error' ? 'underline decoration-red-500 underline-offset-8' : ''}`">
+          <span v-if="word.index >= props.startDisplayIndex && word.index <= props.startDisplayIndex+40" :class="`${word.status === 'error' ? 'underline decoration-red-500 underline-offset-8 decoration-2' : ''}`">
             <span
               v-for="(char, charIndex) in word.characters"
               :key="charIndex"
@@ -45,14 +45,14 @@ const props = defineProps({
 const getClass = (char, index, charIndex) => {
   const baseClass =
     char.status === "correct"
-      ? "opacity-100"
+      ? ""
       : char.status === "extra"
-      ? "bg-[#F44250] text-white opacity-100"
+      ? "bg-[#F44250] text-white"
       : char.status === "error" && char.character === " "
       ? "box-border border-b-2 border-red-600"
       : char.status === "error"
-      ? "text-[#F44250] opacity-100"
-      : "opacity-40";
+      ? "text-[#F44250]"
+      : "text-neutral-500";
 
   const cursorClass =
     index === props.currentWordNum && charIndex === props.correctCharIndex
