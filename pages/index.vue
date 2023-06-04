@@ -1300,8 +1300,8 @@ async function getProfile(userId: string) {
 
 // pure functions and checkers
 function getTotalWords(): number {
-	if (selectedMode.value === 'word') {
-		return collectedWords.length;
+	if (selectedMode.value === 'word' && selectedWords.value) {
+		return selectedWords.value;
 	} else if (selectedMode.value === 'time') {
 		return collectedWords.length;
 	}
