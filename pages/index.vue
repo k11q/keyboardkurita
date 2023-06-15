@@ -1,92 +1,56 @@
 <template>
-	<div
-		class="max-w-6xl w-full flex flex-col flex-grow relative sm:px-6 xl:px-0"
-	>
+	<div class="max-w-6xl w-full flex flex-col flex-grow relative sm:px-6 xl:px-0">
 		<!--MODAL SETTINGS COMPONENT-->
 		<MoreSettings />
 		<!--LIVE INFO INTERVAL WPM RAW-->
-		<LiveInfo
-			:session-running="sessionRunning"
-			:live-timer="liveTimer"
-			:live-wpm="liveWpm"
-			:live-raw="liveRawWpm"
-		/>
+		<LiveInfo :session-running="sessionRunning" :live-timer="liveTimer" :live-wpm="liveWpm" :live-raw="liveRawWpm" />
 		<!--INPUT PAGE - TEXT COMPONENT-->
-		<InputDisplay
-			:show-results="showResults"
-			:all-data="allData"
-			:current-active="currentActive"
-			:current-word-num="currentWordNum"
-			:correct-char-index="correctCharIndex"
-			:start-display-index="currentStartDisplayWordIndex"
-			:end-display-index="currentEndDisplayWordIndex"
+		<InputDisplay :show-results="showResults" :all-data="allData" :current-active="currentActive"
+			:current-word-num="currentWordNum" :correct-char-index="correctCharIndex"
+			:start-display-index="currentStartDisplayWordIndex" :end-display-index="currentEndDisplayWordIndex"
 			@button-click="
 				currentActive &&
-				currentActive.id === 'MasterInput'
+					currentActive.id === 'MasterInput'
 					? ''
 					: focusInput()
-			"
-		/>
+			" />
 		<!--CARET COMPONENT-->
-		<Caret
-			:is-visible="
-				currentActive &&
-				currentActive.id === 'MasterInput'
-			"
-			:caret-left="CARETLEFT"
-			:caret-top="CARETTOP"
-		/>
+		<Caret :is-visible="
+			currentActive &&
+			currentActive.id === 'MasterInput'
+		" :caret-left="CARETLEFT" :caret-top="CARETTOP" />
 		<!--OUTFOCUSOVERLAY CLICK TO ACTIVATE OVERLAY AND SETTINGS/MENU-->
-		<OutFocusOverlay
-			:should-show="
-				!currentActive ||
-				(currentActive &&
-					currentActive.id !== 'MasterInput')
-			"
-			@button-click="
-				() => {
-					if (!allData.length) {
-						fetchWords();
-						focusInput();
-					} else {
-						focusInput();
-					}
-				}
-			"
-		/>
+		<OutFocusOverlay :should-show="
+			!currentActive ||
+			(currentActive &&
+				currentActive.id !== 'MasterInput')
+		" @button-click="
+	() => {
+		if (!allData.length) {
+			fetchWords();
+			focusInput();
+		} else {
+			focusInput();
+		}
+	}
+" />
 		<!--RESULTS PAGE - CHART COMPONENT AND MENUBAR-->
-		<div
-			v-if="showResults"
-			class="flex-grow flex flex-col justify-center z-50 gap-10 bg-neutral-900 font-mono"
-		>
+		<div v-if="showResults" class="flex-grow flex flex-col justify-center z-50 gap-10 bg-neutral-900 font-mono">
 			<!--RESULTSGRID COMPONENT-->
-			<ResultsGrid
-				:past-sessions="pastSessions"
-				:current-selection-data="currentSelectionData"
-				:current-word-num="currentWordNum"
-				:correct-char-index="correctCharIndex"
-				:focus-input="focusInput"
-			/>
+			<ResultsGrid :past-sessions="pastSessions" :current-selection-data="currentSelectionData"
+				:current-word-num="currentWordNum" :correct-char-index="correctCharIndex" :focus-input="focusInput" />
 			<!--RESULTSMENU COMPONENT-->
-			<ResultsMenu
-				:date="format(new Date(currentSelectionData!.end_time), 'dd MMM yyyy HH:mm')"
-				:username="USERNAME"
+			<ResultsMenu :date="format(new Date(currentSelectionData!.end_time), 'dd MMM yyyy HH:mm')" :username="USERNAME"
 				@button-click="
 					() => {
 						showResults = false;
 						fetchWords();
 						focusInput();
 					}
-				"
-			/>
+				" />
 		</div>
 		<!--(HIDDEN)INPUT COMPONENT-->
-		<input
-			id="MasterInput"
-			type="text"
-			style="opacity: 0%; position: absolute"
-			@keydown.prevent.stop="handleKeydown"
-		/>
+		<input id="MasterInput" type="text" style="opacity: 0%; position: absolute" @keydown.prevent.stop="handleKeydown" />
 		<!--FOOT COMPONENT-->
 		<Footer />
 	</div>
@@ -279,7 +243,7 @@ const currentMetadata: globalThis.ComputedRef<InputMetadata> = computed(() => {
 		]?.character;
 	const currentCharMetadata =
 		allData.value[currentWordNum.value]?.characters[
-			currentCharNum.value
+		currentCharNum.value
 		];
 	const currentWord = allData.value[currentWordLocation].word;
 	const currentCorrectChar =
@@ -301,6 +265,24 @@ const currentMetadata: globalThis.ComputedRef<InputMetadata> = computed(() => {
 		currentChar,
 	};
 });
+
+
+const router = useRouter();
+
+onMounted(async () => {
+	if (!user.value) {
+		return router.push("/login");
+	} else {
+		const { data: profile } = await client
+			.from("profile")
+			.select()
+			.eq("user_id", user.value.id)
+			.single();
+		if (!profile) {
+			return router.push("/set-username");
+		}
+	}
+})
 
 //
 async function fetchWords() {
@@ -437,7 +419,7 @@ function handleCorrectInput() {
 	const duration = getCharDuration(time);
 	let index = metadata.currentCharLocation;
 	const wordIndex = metadata.currentWordMetadata.index;
-	if(currentWordMetadata.type === 'separator'){
+	if (currentWordMetadata.type === 'separator') {
 		currentCharMetadata = allData.value[currentWordNum.value]?.characters[
 			metadata.currentCorrectCharLocation
 		];
@@ -628,7 +610,7 @@ function resetPrevCharMetadata() {
 		prevCharIndex = correctCharIndex.value - 1;
 		prevCharMetadata =
 			currentMetadata.value.currentWordMetadata.characters[
-				prevCharIndex
+			prevCharIndex
 			];
 		if (prevCharMetadata.status === 'extra') {
 			currentMetadata.value.currentWordMetadata.characters.splice(

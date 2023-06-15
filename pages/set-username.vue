@@ -14,7 +14,6 @@
 				<input
 					name="username"
 					v-model="username"
-					@keypress="validateUsername($event)"
 					:class="`pl-4 py-3 rounded-lg border border-neutral-700 bg-neutral-800/50 mb-3 focus:outline-none focus:ring-sky-600 focus:ring-2`"
 				/>
 				<button
@@ -50,22 +49,12 @@ const loading = ref(false);
 const username = ref('');
 const isUsernameValid = ref(false);
 
-function validateUsername(event) {
-	const regex = /^[a-z0-9_]+$/;
-	isUsernameValid.value =
-		regex.test(username.value) && username.value != '';
-	if (!regex.test(event.key) && event.key != 'Enter') {
-		event.preventDefault();
-		event.stopImmediatePropagation();
-	}
-}
-
 async function setUsername() {
 	loading.value = true;
-	const { data, error } = await client
+	const userId = user.value!.id
+	const { error } = await client
 		.from('profile')
-		.insert({ user_id: user.value.id, username: username.value })
-		.select();
+		.insert({ user_id: userId, username: username.value })
 	if (error) {
 		loading.value = false;
 		usernameError.value = true;
